@@ -1,0 +1,345 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  user_id           String   @id @default(uuid())
+  user_show_name    String   @db.VarChar(50)
+  username          String   @unique
+  password          String
+  sex               Sex
+  age               Int
+  birth_of_date     DateTime
+  interested_gender Sex
+  role              Role     @default(user)
+
+  images                 User_image[]
+  info                   User_Information?
+  life_style             User_Life_Style?
+  location_review        Location_review[]
+  matchesAsUser1         Match[]           @relation("User1Match")
+  matchesAsUser2         Match[]           @relation("User2Match")
+  find_match             Find_Match?
+  chat1                  Chat[]            @relation("User1Chat")
+  chat2                  Chat[]            @relation("User2Chat")
+  chat_message           Chat_Message[]
+  experiencesAsReviewer  Experience[]      @relation("ReviewerExperience")
+  experiencesAsReviewee  Experience[]      @relation("RevieweeExperience")
+  CancellationAsReviewer Cancellation[]    @relation("ReviewerCancellation")
+  CancellationAsReviewee Cancellation[]    @relation("RevieweeCancellation")
+
+  @@index([username, password, user_show_name, interested_gender])
+}
+
+model User_image {
+  id        String   @id @default(uuid())
+  user_id   String
+  imageUrl  String   @unique
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [user_id])
+
+  @@index([user_id, imageUrl])
+}
+
+model User_Information {
+  user_id      String      @id
+  user_height  Int
+  user_bio     String
+  blood_group  Blood_Group
+  language_id  Int
+  education_id Int
+
+  user      User      @relation(fields: [user_id], references: [user_id])
+  language  Language  @relation(fields: [language_id], references: [id])
+  education Education @relation(fields: [education_id], references: [id])
+
+  @@index([user_id, user_bio])
+}
+
+model Language {
+  id    Int                @id @default(autoincrement())
+  name  String             @unique @db.VarChar(50)
+  users User_Information[]
+
+  @@index([name])
+}
+
+model Education {
+  id   Int    @id @default(autoincrement())
+  name String @unique @db.VarChar(50)
+
+  users User_Information[]
+
+  @@index([name])
+}
+
+model User_Life_Style {
+  user_id        String @id
+  looking_for_id Int
+  drinking_id    Int
+  pet_id         Int
+  smoke_id       Int
+  workout_id     Int
+
+  user        User        @relation(fields: [user_id], references: [user_id])
+  looking_for Looking_for @relation(fields: [looking_for_id], references: [id])
+  drinking    Drinking    @relation(fields: [drinking_id], references: [id])
+  pet         Pet         @relation(fields: [pet_id], references: [id])
+  smoke       Smoke       @relation(fields: [smoke_id], references: [id])
+  workout     Workout     @relation(fields: [workout_id], references: [id])
+
+  @@index([looking_for_id])
+}
+
+model Looking_for {
+  id              Int               @id @default(autoincrement())
+  name            String            @unique @db.VarChar(50)
+  user_life_style User_Life_Style[]
+
+  @@index([name])
+}
+
+model Drinking {
+  id              Int               @id @default(autoincrement())
+  name            String            @unique @db.VarChar(50)
+  user_life_style User_Life_Style[]
+
+  @@index([name])
+}
+
+model Pet {
+  id   Int    @id @default(autoincrement())
+  name String @unique @db.VarChar(50)
+
+  user_life_style User_Life_Style[]
+
+  @@index([name])
+}
+
+model Smoke {
+  id   Int    @id @default(autoincrement())
+  name String @unique @db.VarChar(50)
+
+  user_life_style User_Life_Style[]
+
+  @@index([name])
+}
+
+model Workout {
+  id   Int    @id @default(autoincrement())
+  name String @unique @db.VarChar(50)
+
+  user_life_style User_Life_Style[]
+
+  @@index([name])
+}
+
+model Location {
+  id          String  @id @default(uuid())
+  name        String  @db.VarChar(50)
+  description String?
+  phone       String?
+  position_id String
+  activity_id Int
+  open_date   String?
+  open_time   String?
+  close_time  String?
+
+  activity        Activity          @relation(fields: [activity_id], references: [id])
+  position        Position          @relation(fields: [position_id], references: [id])
+  location_image  Location_image[]
+  location_review Location_review[]
+  match           Match[]
+
+  @@index([name, position_id, activity_id, open_date, open_time])
+}
+
+model Location_image {
+  id          String   @id @default(uuid())
+  location_id String
+  imageUrl    String   @unique
+  createdAt   DateTime @default(now())
+
+  location Location @relation(fields: [location_id], references: [id])
+
+  @@index([location_id, imageUrl])
+}
+
+model Location_review {
+  id          String   @id @default(uuid())
+  location_id String
+  user_id     String
+  status      Int // 0 = dislike , 1 = like
+  comment     String?
+  createdAt   DateTime @default(now())
+  match_id    String
+
+  match    Match    @relation(fields: [match_id], references: [id])
+  location Location @relation(fields: [location_id], references: [id])
+  user     User     @relation(fields: [user_id], references: [user_id])
+
+  @@index([location_id, user_id, match_id, status])
+}
+
+model Activity {
+  id   Int    @id @default(autoincrement())
+  name String @unique @db.VarChar(50)
+
+  location    Location[]
+  match       Match[]
+  find_match1 Find_Match[] @relation("activity1")
+  find_match2 Find_Match[] @relation("activity2")
+  find_match3 Find_Match[] @relation("activity3")
+
+  @@index([name])
+}
+
+model Match {
+  id            String    @id @default(uuid())
+  user1_id      String
+  user2_id      String
+  location_id   String
+  activity_id   Int
+  cancel_status Boolean   @default(false)
+  end_date      DateTime?
+  createdAt     DateTime  @default(now())
+
+  user1           User              @relation("User1Match", fields: [user1_id], references: [user_id])
+  user2           User              @relation("User2Match", fields: [user2_id], references: [user_id])
+  location        Location          @relation(fields: [location_id], references: [id])
+  activity        Activity          @relation(fields: [activity_id], references: [id])
+  location_review Location_review[]
+  experience      Experience[]
+  cancellation    Cancellation[]
+
+  @@index([user1_id, user2_id, location_id, activity_id])
+}
+
+model Find_Match {
+  user_id      String @id
+  position_id  String
+  activity_id1 Int?
+  activity_id2 Int?
+  activity_id3 Int?
+
+  user      User      @relation(fields: [user_id], references: [user_id])
+  position  Position  @relation(fields: [position_id], references: [id])
+  activity1 Activity? @relation("activity1", fields: [activity_id1], references: [id])
+  activity2 Activity? @relation("activity2", fields: [activity_id2], references: [id])
+  activity3 Activity? @relation("activity3", fields: [activity_id3], references: [id])
+
+  @@index([position_id])
+}
+
+model Chat {
+  id       String @id @default(uuid())
+  user1_id String
+  user2_id String
+
+  user1        User           @relation("User1Chat", fields: [user1_id], references: [user_id])
+  user2        User           @relation("User2Chat", fields: [user2_id], references: [user_id])
+  chat_message Chat_Message[]
+
+  @@index([user1_id, user2_id])
+}
+
+model Chat_Message {
+  id        String   @id @default(uuid())
+  chat_id   String
+  message   String
+  sender_id String
+  createdAt DateTime @default(now())
+  chattype  String
+
+  chat   Chat @relation(fields: [chat_id], references: [id])
+  sender User @relation(fields: [sender_id], references: [user_id])
+
+  @@index([chat_id, sender_id, message])
+}
+
+model Position {
+  id          String  @id @default(uuid())
+  name        String  @unique @db.VarChar(50)
+  information String?
+  phone       String?
+  open_date   String?
+  open_time   String?
+  close_time  String?
+
+  find_match Find_Match[]
+  location   Location[]
+
+  @@index([name, open_date, open_time])
+}
+
+model Experience {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  content     String?
+  status      Int // 0 = dislike , 1 = like
+  match_id    String
+  reviewer_id String
+  reviewee_id String
+
+  match    Match @relation(fields: [match_id], references: [id])
+  reviewer User  @relation("ReviewerExperience", fields: [reviewer_id], references: [user_id])
+  reviewee User  @relation("RevieweeExperience", fields: [reviewee_id], references: [user_id])
+
+  @@index([match_id, reviewer_id, reviewee_id, status])
+}
+
+model Cancellation {
+  id              String   @id @default(uuid())
+  content         String?
+  match_id        String
+  reviewer_id     String
+  reviewee_id     String
+  quick_select_id Int?
+  createdAt       DateTime @default(now())
+
+  match        Match          @relation(fields: [match_id], references: [id])
+  reviewer     User           @relation("ReviewerCancellation", fields: [reviewer_id], references: [user_id])
+  reviewee     User           @relation("RevieweeCancellation", fields: [reviewee_id], references: [user_id])
+  quick_select Select_Cancel? @relation(fields: [quick_select_id], references: [id])
+
+  @@index([match_id, reviewer_id, reviewee_id])
+}
+
+model Select_Cancel {
+  id   Int    @id @default(autoincrement())
+  name String @unique @db.VarChar(50)
+
+  cancellation Cancellation[]
+
+  @@index([name])
+}
+
+enum Sex {
+  male
+  female
+  lgbtq
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum Blood_Group {
+  A
+  B
+  AB
+  O
+}
