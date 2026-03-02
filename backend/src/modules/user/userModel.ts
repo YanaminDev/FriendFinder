@@ -5,5 +5,5 @@ export const UserSignupSchema = z.object({
     password:z.string().min(8),
     email:z.string().email(),
     sex:z.enum(['MALE','FEMALE ','LGBTQ'])
-    age:
+
 })
