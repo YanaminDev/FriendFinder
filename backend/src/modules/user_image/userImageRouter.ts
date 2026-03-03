@@ -11,7 +11,7 @@ const upload = multer({ storage: multer.memoryStorage() })
 export const userImageRouter = () => {
     const router = Router();
 
-    router.post("/upload/user-image", authenticateToken, upload.single("image"), async (req, res) => {
+    router.post("/upload", authenticateToken, upload.single("image"), async (req, res) => {
         try{
             const userId = (req as any).user.id
             if (!userId) {
@@ -22,13 +22,11 @@ export const userImageRouter = () => {
             }
             const userImageData = CreateUserImageSchema.parse(req.file)
             const uploadResult = await uploadFile(userImageData)
-            
             const userImage = await userImageRepository.createUserImage({userImageData: uploadResult, userId})
 
             return res.status(201).json(userImage);
         }
         catch(err){
-            console.error(err)
             return res.status(500).json({message:"Failed to upload user image" })
         }
     })
