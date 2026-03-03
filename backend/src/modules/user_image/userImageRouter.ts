@@ -13,7 +13,7 @@ export const userImageRouter = () => {
 
     router.post("/upload", authenticateToken, upload.single("image"), async (req, res) => {
         try{
-            const userId = (req as any).user.id
+            const userId = (req as any).user.sub
             if (!userId) {
                 return res.status(400).json({ message: "User ID not found in token" });
             }
@@ -27,7 +27,7 @@ export const userImageRouter = () => {
             return res.status(201).json(userImage);
         }
         catch(err){
-            return res.status(500).json({message:"Failed to upload user image" })
+            return res.status(500).json({message:`Failed to upload user image ${err}` })
         }
     })
 
