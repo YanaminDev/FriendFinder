@@ -31,6 +31,7 @@ export const userRepository = {
         })
         }
         catch(err){
+            console.error(err)
             throw new Error("Registration failed")
         }
         
@@ -44,16 +45,16 @@ export const userRepository = {
                 }
             })
             if (!user) {
-                throw new Error("User not found")
+                throw new Error("Invalid Credentials")
             }
             const isPasswordValid = await verifyPassword(user.password, data.password)
             if (!isPasswordValid) {
-                throw new Error("Invalid password")
+                throw new Error("Invalid Credentials")
             }
             return user
         }
         catch(err){
-            throw new Error("Login failed")
+            throw new Error("Invalid Credentials")
         }
     }
 

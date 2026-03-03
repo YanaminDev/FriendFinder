@@ -29,7 +29,7 @@ export function generateAccessToken(user: userpayload): string {
         role: user.role
     }
     
-    return jwt.sign(payload, JWT_ACCESS_SECRET, { expiresIn: '10m' })
+    return jwt.sign(payload, JWT_ACCESS_SECRET, { expiresIn: '15m' })
 }
 
 export function generateRefreshToken(user: userIdpayload): string {
@@ -47,8 +47,7 @@ export function verifyToken(token: string){
         const decoded = jwt.verify(token, JWT_ACCESS_SECRET) 
         return decoded
     } catch (err) {
-        console.error('Token verification failed:')
-        return null
+        throw err
     }
 }
 
@@ -58,8 +57,7 @@ export function verifyRefreshToken(token: string){
         const decoded = jwt.verify(token, JWT_REFRESH_SECRET) 
         return decoded
     } catch (err) {
-        console.error('Refresh token verification failed:')
-        return null
+        throw err
     }
 }
 
