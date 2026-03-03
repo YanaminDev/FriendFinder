@@ -36,7 +36,7 @@ export const userRouter = () => {
         return res.status(400).json({message:"Failed to register user"})
         }
         catch(err){
-            return res.status(400).json({message:"Failed to register user"})
+            return res.status(400).json({message:"Failed to register user" + err})
         }
         
     })
@@ -46,7 +46,7 @@ export const userRouter = () => {
             const validateData = UserLoginSchema.parse(req.body);
             const responsedata = await userRepository.login(validateData);
             if (responsedata) {
-                const accessToken = generateAccessToken({user_id: responsedata.user_id, username: responsedata.username, role: "user"});
+                const accessToken = generateAccessToken({user_id: responsedata.user_id, username: responsedata.username, role: responsedata.role});
                 const refreshToken = generateRefreshToken({user_id: responsedata.user_id});
 
                 res.cookie('accessToken',accessToken , {
@@ -71,6 +71,17 @@ export const userRouter = () => {
         catch(err){
             return res.status(400).json({message:"Invalid Credentials"})
         }
+    })
+
+
+    
+
+
+
+    router.post("/logout" , authenticateToken , async (req , res) => {
+        res.clearCookie("accessToken");
+        res.clearCookie("refreshToken");
+        res.status(200).json({message:"User logged out successfully"})
     })
 
     return router

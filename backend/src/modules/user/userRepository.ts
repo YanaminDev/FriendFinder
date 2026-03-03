@@ -24,7 +24,7 @@ export const userRepository = {
                 password: data.password,
                 sex: data.sex,
                 age: data.age,
-                birth_of_date: data.birth_of_date,
+                birth_of_date: new Date(data.birth_of_date),
                 interested_gender: data.interested_gender
             }
             

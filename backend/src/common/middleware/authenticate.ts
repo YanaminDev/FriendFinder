@@ -4,53 +4,76 @@ import {Request, Response, NextFunction} from 'express'
 import { prisma } from "../../../lib/prisma";
 import {generateAccessToken , verifyRefreshToken} from "../utils/jwt"
 
+
 const jwt = require('jsonwebtoken')
 
 
 export async function authenticateToken(req : Request , res : Response , next : NextFunction){
-    const token = req.cookies.accessToken
-    
-    if(!token){
-        return res.status(401).json({message:"Access token missing"})
-    }
+    const accessToken = req.cookies.accessToken
+    const refrshtoken = req.cookies.refreshToken
 
     try{
-        const decoded = verifyToken(token)
-        req.user = decoded
-        return next()
-    }
-    catch(err){
-        if(err instanceof jwt.TokenExpiredError){
-            const refreshToken = req.cookies.refreshToken
-            if(refreshToken){
-                try{
-                    const decoded = await verifyRefreshToken(refreshToken)
-                    const user = await prisma.user.findUnique({
-                        where : {user_id : decoded.sub}
-                    })
-                    if(!user){
-                        return res.status(401).json({message:"Refresh token invalid"})
-                    }
-                    const newAccessToken = await generateAccessToken({user_id : user.user_id, username : user.username, role : "user"});
-                    
-                    res.cookie('accessToken', newAccessToken , {
-                        httpOnly : true,
-                        secure : process.env.NODE_ENV === 'development',
-                        sameSite : 'strict',
-                        maxAge : 15 * 60 * 1000
-                    });
-
-                    req.user = verifyToken(newAccessToken)
-                    return next()
-                }
-                catch(err){
-                    return res.status(401).json({message:"Invalid refresh token"})
-                }
-                ;
-            }
-            return res.status(401).json({message:"Resfresh token missing"})
+        if(accessToken){
+            const decoded = await verifyToken(accessToken)
+            ;(req as any).user = decoded
+            return next()
         }
-        return res.status(401).json({message:"Invalid access token"})
-    }
+        if(refrshtoken){
+            const decoded = await verifyRefreshToken(refrshtoken)
+            const user = await prisma.user.findUnique({
+                where : {user_id : decoded.sub}
+            })
+            if(!user){
+                return res.status(401).json({message:"Refresh token invalid"})
+            }
+            const newAccessToken = await generateAccessToken({user_id : user.user_id, username : user.username, role : "user"});
+                    
+            res.cookie('accessToken', newAccessToken , {
+                httpOnly : true,
+                secure : process.env.NODE_ENV === 'development',
+                sameSite : 'strict',
+                maxAge : 15 * 60 * 1000
+            });
 
+            ;(req as any).user = verifyToken(newAccessToken)
+            return next()
+        }
+        return res.status(401).json({ message: "Not authenticated" })
+        
+    }
+    catch(err : any){
+
+        if(err instanceof jwt.TokenExpiredError && refrshtoken){
+            try{
+                const decoded = await verifyRefreshToken(refrshtoken)
+                const user = await prisma.user.findUnique({
+                    where : {user_id : decoded.sub}
+                })
+                if(!user){
+                    return res.status(401).json({message:"Refresh token invalid"})
+                }
+                const newAccessToken = await generateAccessToken({user_id : user.user_id, username : user.username, role : "user"});
+                        
+                res.cookie('accessToken', newAccessToken , {
+                    httpOnly : true,
+                    secure : process.env.NODE_ENV === 'development',
+                    sameSite : 'strict',
+                    maxAge : 15 * 60 * 1000
+                });
+
+                ;(req as any).user = {
+                    sub : user.user_id,
+                    username : user.username,
+                    role : "user"
+                }
+                return next()
+            }
+            catch(err){
+            return res.status(401).json({ message: "Invalid refresh token" })
+            }
+        }  
+        return res.status(401).json({ message: "Invalid access token and refresh token" })
+            
+    }
 }
+
