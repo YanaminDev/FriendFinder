@@ -11,6 +11,19 @@ export const lookingForRepository = {
             throw new Error("Failed to fetch looking for data")
         }
     },
+    
+    getLookingForById : async (id : number) => {
+        try{
+            return await prisma.looking_for.findUnique({
+                where : {
+                    id : id
+                }
+            })
+        }
+        catch(err){
+            throw new Error("Failed to fetch looking for data by id")
+        }
+    },
 
     createLookingFor : async (data : {looking_for : string}) => {
         try{
@@ -53,5 +66,8 @@ export const lookingForRepository = {
         catch(err){
             throw new Error("Failed to update looking for data")
         }
-    }
+    },
+
+    
+
 }

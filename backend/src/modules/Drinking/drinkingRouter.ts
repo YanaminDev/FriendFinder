@@ -1,22 +1,22 @@
 import { Router } from "express";
-import {lookingForRepository} from './looking_forRepository'
+import {drinkingRepository} from './drinkingRepository'
 import { authenticateToken } from "../../common/middleware/authenticate"
 import {CreateLookingForSchema,DeleteLookingForSchema , UpdateLookingForSchema} from './looking_forModel'
 
-export const lookingForRouter = () => {
+export const drinkingRouter = () => {
     const router = Router();
 
-    router.get("/looking-for" , authenticateToken , async (req, res) => {
+    router.get("/drinking" , authenticateToken , async (req, res) => {
         try{
-            const data = await lookingForRepository.getLookingFor();
+            const data = await drinkingRepository.getDrinking();
             res.status(200).json(data)
         }
         catch(err){
-            return res.status(500).json({message:"Failed to fetch looking for data" })
+            return res.status(500).json({message:"Failed to fetch drinking data" })
         }
     })
 
-    router.get("/looking-for/:id", authenticateToken , async (req,res) => {
+    router.get("/drinking/:id", authenticateToken , async (req,res) => {
         try{
             const idParam = req.params.id;
 
@@ -28,7 +28,7 @@ export const lookingForRouter = () => {
                 return res.status(400).json({ message: "ID must be a number" });
             }
 
-            const data = await lookingForRepository.getLookingForById(id);
+            const data = await drinkingRepository.getLookingForById(id);
             res.status(200).json(data)
         }
         catch(err){
@@ -37,7 +37,7 @@ export const lookingForRouter = () => {
         
     })
 
-    router.post("/create/looking-for", authenticateToken , async (req,res) => {
+    router.post("/create/drinking", authenticateToken , async (req,res) => {
         try{
             const validateData = CreateLookingForSchema.parse(req.body)
             const data = await lookingForRepository.createLookingFor(validateData)
@@ -49,7 +49,7 @@ export const lookingForRouter = () => {
     })
 
 
-    router.delete("/delete/looking-for", authenticateToken , async (req,res) => {
+    router.delete("/delete/drinking", authenticateToken , async (req,res) => {
         try{
             const validateData = DeleteLookingForSchema.parse(req.body)
             const data = await lookingForRepository.deleteLookingFor(validateData)
@@ -61,7 +61,7 @@ export const lookingForRouter = () => {
     })
 
 
-    router.put("/update/looking-for", authenticateToken , async (req,res) => {
+    router.put("/update/drinking", authenticateToken , async (req,res) => {
         try{
             const validateData = UpdateLookingForSchema.parse(req.body)
             const data = await lookingForRepository.updateLookingFor(validateData)
