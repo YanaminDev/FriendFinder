@@ -2,6 +2,7 @@ import { Router } from "express";
 import {lookingForRepository} from './looking_forRepository'
 import { authenticateToken } from "../../common/middleware/authenticate"
 import {CreateLookingForSchema,DeleteLookingForSchema , UpdateLookingForSchema} from './looking_forModel'
+import {authorize} from '../../common/middleware/authorize'
 
 export const lookingForRouter = () => {
     const router = Router();
@@ -37,11 +38,11 @@ export const lookingForRouter = () => {
         
     })
 
-    router.post("/create/looking-for", authenticateToken , async (req,res) => {
+    router.post("/create/looking-for", authenticateToken ,authorize("admin") , async (req,res) => {
         try{
             const validateData = CreateLookingForSchema.parse(req.body)
             const data = await lookingForRepository.createLookingFor(validateData)
-            res.status(201).json(`create looking for success ${data}`)
+            res.status(201).json(`create looking for success`)
         }
         catch(err){
             return res.status(500).json({message:"Failed to create looking for data" })
@@ -49,11 +50,11 @@ export const lookingForRouter = () => {
     })
 
 
-    router.delete("/delete/looking-for", authenticateToken , async (req,res) => {
+    router.delete("/delete/looking-for", authenticateToken ,authorize("admin") , async (req,res) => {
         try{
             const validateData = DeleteLookingForSchema.parse(req.body)
             const data = await lookingForRepository.deleteLookingFor(validateData)
-            res.status(200).json(`delete looking for success ${data}`)
+            res.status(200).json(`delete looking for success`)
         }
         catch(err){
             return res.status(500).json({message:"Failed to delete looking for data" })
@@ -61,7 +62,7 @@ export const lookingForRouter = () => {
     })
 
 
-    router.put("/update/looking-for", authenticateToken , async (req,res) => {
+    router.put("/update/looking-for", authenticateToken ,authorize("admin") , async (req,res) => {
         try{
             const validateData = UpdateLookingForSchema.parse(req.body)
             const data = await lookingForRepository.updateLookingFor(validateData)

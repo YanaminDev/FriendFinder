@@ -56,6 +56,37 @@ export const userRepository = {
         catch(err){
             throw new Error("Invalid Credentials")
         }
+    },
+
+
+    deleteUser : async (id : string) => {
+        try{
+            const user = await prisma.user.delete({
+                where :{
+                    user_id : id
+                }
+            })
+            return user
+
+        }
+        catch(err){
+            throw new Error("Failed to delete user")
+        }
+    },
+
+    deleteUserByAdmin : async (id : string) => {
+        try{
+            const user = await prisma.user.delete({
+                where :{
+                    user_id : id
+                }
+            })
+            return user
+
+        }
+        catch(err){
+            throw new Error("Failed to delete user")
+        }
     }
 
 

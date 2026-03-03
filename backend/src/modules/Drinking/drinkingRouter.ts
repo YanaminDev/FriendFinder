@@ -1,7 +1,8 @@
 import { Router } from "express";
 import {drinkingRepository} from './drinkingRepository'
 import { authenticateToken } from "../../common/middleware/authenticate"
-import {CreateLookingForSchema,DeleteLookingForSchema , UpdateLookingForSchema} from './looking_forModel'
+import {CreateDrinkingSchema,DeleteDrinkingSchema , UpdateDrinkingSchema} from './drinkingModel'
+import {authorize} from '../../common/middleware/authorize'
 
 export const drinkingRouter = () => {
     const router = Router();
@@ -28,47 +29,47 @@ export const drinkingRouter = () => {
                 return res.status(400).json({ message: "ID must be a number" });
             }
 
-            const data = await drinkingRepository.getLookingForById(id);
+            const data = await drinkingRepository.getDrinkingById(id);
             res.status(200).json(data)
         }
         catch(err){
-            return res.status(500).json({message:"Failed to fetch looking for data by id" })
+            return res.status(500).json({message:"Failed to fetch drinking data by id" })
         }
         
     })
 
-    router.post("/create/drinking", authenticateToken , async (req,res) => {
+    router.post("/create/drinking", authenticateToken ,authorize("admin")  , async (req,res) => {
         try{
-            const validateData = CreateLookingForSchema.parse(req.body)
-            const data = await lookingForRepository.createLookingFor(validateData)
-            res.status(201).json(`create looking for success ${data}`)
+            const validateData = CreateDrinkingSchema.parse(req.body)
+            const data = await drinkingRepository.createDrinking(validateData)
+            res.status(201).json(`create drinking success ${data}`)
         }
         catch(err){
-            return res.status(500).json({message:"Failed to create looking for data" })
+            return res.status(500).json({message:"Failed to create drinking data" })
         }
     })
 
 
-    router.delete("/delete/drinking", authenticateToken , async (req,res) => {
+    router.delete("/delete/drinking", authenticateToken ,authorize("admin") , async (req,res) => {
         try{
-            const validateData = DeleteLookingForSchema.parse(req.body)
-            const data = await lookingForRepository.deleteLookingFor(validateData)
-            res.status(200).json(`delete looking for success ${data}`)
+            const validateData = DeleteDrinkingSchema.parse(req.body)
+            const data = await drinkingRepository.deleteDrinking(validateData)
+            res.status(200).json(`delete drinking success ${data}`)
         }
         catch(err){
-            return res.status(500).json({message:"Failed to delete looking for data" })
+            return res.status(500).json({message:"Failed to delete drinking data" })
         }
     })
 
 
-    router.put("/update/drinking", authenticateToken , async (req,res) => {
+    router.put("/update/drinking", authenticateToken ,authorize("admin") , async (req,res) => {
         try{
-            const validateData = UpdateLookingForSchema.parse(req.body)
-            const data = await lookingForRepository.updateLookingFor(validateData)
-            res.status(200).json(`update looking for success ${data}`)
+            const validateData = UpdateDrinkingSchema.parse(req.body)
+            const data = await drinkingRepository.updateDrinking(validateData)
+            res.status(200).json(`update drinking success ${data}`)
         }
         catch(err){
-            return res.status(500).json({message:"Failed to update looking for data" })
+            return res.status(500).json({message:"Failed to update drinking data" })
         }
     })
 

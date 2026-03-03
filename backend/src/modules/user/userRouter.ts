@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { userRepository } from "./userRepository";
 import { UserSignupSchema , UserLoginSchema} from "./userModel"
-import {generateAccessToken,generateRefreshToken} from "../../common/utils/jwt"
+import {generateAccessToken,generateRefreshToken , verifyRefreshToken} from "../../common/utils/jwt"
 import "dotenv/config"
 import { authenticateToken } from "../../common/middleware/authenticate"
+import {authorize} from '../../common/middleware/authorize'
+
 
 export const userRouter = () => {
     const router = Router();
@@ -74,11 +76,38 @@ export const userRouter = () => {
     })
 
 
-    
+    router.delete("/delete" , authenticateToken ,authorize("user","admin"), async (req,res) => {
+        try{
+            const refrshtoken = req.cookies.refreshToken
+            const decoded = await verifyRefreshToken(refrshtoken)
+            const responsedata = await userRepository.deleteUser(decoded.sub)
+            res.clearCookie("accessToken");
+            res.clearCookie("refreshToken");
+            return res.status(200).json({message:`User deleted successfully`})
+        }
+        catch(err){
+            return res.status(500).json({message:"Failed to delete user"})
+        }
+    }) 
+
+    router.delete("/delete/:id" , authenticateToken ,authorize("admin"), async (req,res) => {
+        try{
+            const idParam = req.params.id
+
+        if (typeof idParam !== "string") {
+            return res.status(400).json({ message: "Invalid user id" })
+        }
+            const responsedata = await userRepository.deleteUserByAdmin(idParam)
+            return res.status(200).json({message:`User deleted successfully`})
+        }
+        catch(err){
+            return res.status(500).json({message:"Failed to delete user"})
+        }
+    }) 
 
 
 
-    router.post("/logout" , authenticateToken , async (req , res) => {
+    router.post("/logout" , authenticateToken ,authorize("user","admin"), async (req , res) => {
         res.clearCookie("accessToken");
         res.clearCookie("refreshToken");
         res.status(200).json({message:"User logged out successfully"})
