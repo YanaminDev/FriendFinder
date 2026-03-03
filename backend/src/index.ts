@@ -10,7 +10,7 @@ app.use(cookieParser())
 
 
 // login , register , logout
-app.use("/api/auth", userRouter())
+app.use("/v1/api/auth", userRouter())
 
 
 
