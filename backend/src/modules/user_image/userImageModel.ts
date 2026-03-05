@@ -7,3 +7,21 @@ export const CreateUserImageSchema = z.object({
     buffer: z.instanceof(Buffer),
     size: z.number().positive()
 })
+
+export const  GetSignedUrlSchema = z.object({
+    userId: z.string().uuid()
+})
+
+
+export const  GetUserImageUrlSchema = z.object({
+    userId: z.string().uuid()
+})
+
+
+export const DeleteUserImageUrlSchema = z.object({
+    imageId: z.string().uuid()
+})
+
+export const UpdateUserImageUrlSchema = z.object({
+    imageId: z.string().uuid()
+})
