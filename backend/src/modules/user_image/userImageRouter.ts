@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticateToken } from "../../common/middleware/authenticate"
 import { authorize } from '../../common/middleware/authorize'
-import { CreateUserImageSchema  , GetSignedUrlSchema , GetUserImageUrlSchema , DeleteUserImageUrlSchema,UpdateUserImageUrlSchema} from './userImageModel'
+import { CreateUserImageSchema  , GetSignedUrlSchema , GetSignedUrlSchemaWithId , GetUserImageUrlSchema , DeleteUserImageUrlSchema,UpdateUserImageUrlSchema , GetUserImageUrlSchemaUserId} from './userImageModel'
 import {userImageRepository} from './userImageRepository'
 import multer from "multer"
 import { uploadFile } from "../../common/utils/uploadImage";
@@ -41,6 +41,18 @@ export const userImageRouter = () => {
         }
     });
 
+
+    router.get("/get-signed-url/:userId/:id" , authenticateToken , async (req,res) => {
+        try{
+            const { id , userId } = GetSignedUrlSchemaWithId.parse(req.params);
+            const userImage = await userImageRepository.getSignedUrlSchemaWithId(id, userId);
+            return res.status(200).json(userImage);
+        }
+        catch(err){
+            return res.status(500).json({message:`Failed to fetch user image signed url with id ${err}` })
+        }
+    })
+
     //  get public Url ของ user image ทีคนนั้นเป็นเจ้าของ โดยไม่ต้องสร้าง signed URL ซึ่งจะใช้สำหรับการแสดงภาพในหน้าโปรไฟล์ของผู้ใช้ โดยที่ไม่จำเป็นต้องมีการตรวจสอบสิทธิ์การเข้าถึงภาพนั้นๆ เพราะเป็น URL ที่สามารถเข้าถึงได้โดยตรงจาก Supabase Storage
     router.get("/get/:userId", authenticateToken, async (req, res) => {
         try{
@@ -63,6 +75,28 @@ export const userImageRouter = () => {
         }
 
 
+    })
+
+
+    router.get("/get/:userId/:id", authenticateToken, async (req, res) => {
+        try{
+            const {  id , userId } = GetUserImageUrlSchemaUserId.parse(req.params);
+            const usersub = (req as any).user.sub
+            if (!usersub || typeof usersub !== "string") {
+                return res.status(400).json({ message: "User ID not type required" });
+            }
+            
+            if (usersub !== userId) {
+                return res.status(400).json({ message: "User ID not match with token" });
+            }
+
+            const userImages = await userImageRepository.getUserImagesById(id , userId);
+            return res.status(200).json(userImages);
+
+        }
+        catch(err){
+            return res.status(500).json({message:`Failed to fetch user image ${err}` })
+        }
     })
 
     router.delete("/delete/:imageId", authenticateToken, async (req, res) => {

@@ -66,6 +66,50 @@ export const userImageRepository = {
         }
     },
 
+    getSignedUrlSchemaWithId : async (id : string , userId : string) => {
+        try{
+            const userImage = await prisma.user_image.findFirst({
+                where : {
+                    id : id , 
+                    user_id : userId
+                } 
+            })
+            if (!userImage) {
+                throw new Error("User image not found or does not belong to the user");
+            }
+
+            const pathMatch = userImage.imageUrl.match(/user-images\/(.+)$/);
+            const fileName = pathMatch ? pathMatch[1] : null;
+            const filePath = fileName ? `user-images/${fileName}` : null;
+            if (!filePath) {
+                throw new Error("Invalid image URL format, cannot extract file path");
+            }
+
+           
+            const { data, error: signedUrlError } = await supabase.storage
+                .from('userImage')
+                .createSignedUrl(filePath, 5 * 60); // 5 minutes in seconds
+
+            if (signedUrlError) {
+                throw new Error(`Failed to create signed URL: ${signedUrlError.message}`);
+            }
+
+            if (!data?.signedUrl) {
+                throw new Error("Failed to create signed URL - no signedUrl in response");
+            }
+
+            return {
+                ...userImage,
+                imageUrl: data.signedUrl
+            }
+
+
+        }
+        catch(err){
+            throw (err)
+        }
+    },
+
     getUserImages : async (userId : string) => {
         try{
             const userImages = await prisma.user_image.findMany({
@@ -80,7 +124,23 @@ export const userImageRepository = {
         }
     }
     ,
+    getUserImagesById : async (id : string ,userId : string) => {
+        try{
+            const userImage = await prisma.user_image.findFirst({
+                where :{
+                    id : id,
+                    user_id : userId
 
+                }
+                
+            })
+            return userImage
+        }
+        catch(err){
+            throw (err)
+        }
+    }
+    ,
     deleteUserImage : async (imageId : string, userId : string) => {
         try{
             // ดึง image จาก database เพื่อเก็บ path ก่อน

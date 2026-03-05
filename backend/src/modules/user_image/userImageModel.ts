@@ -12,8 +12,18 @@ export const  GetSignedUrlSchema = z.object({
     userId: z.string().uuid()
 })
 
+export const  GetSignedUrlSchemaWithId = z.object({
+    id: z.string().uuid(),
+    userId: z.string().uuid()
+})
+
 
 export const  GetUserImageUrlSchema = z.object({
+    userId: z.string().uuid()
+})
+
+export const  GetUserImageUrlSchemaUserId = z.object({
+    id: z.string().uuid(),
     userId: z.string().uuid()
 })
 
