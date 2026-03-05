@@ -8,13 +8,13 @@ interface FileData {
   size: number
 }
 
-export async function uploadFile(file: FileData) {
+export async function uploadFile(file: FileData , bucket: string , path : string) {
   const timestamp = Date.now()
   const fileName = `${timestamp}-${file.originalname}`
-  const filePath = `user-images/${fileName}`
+  const filePath = `${path}/${fileName}`
 
   const { data, error } = await supabase.storage
-    .from('userImage')
+    .from(bucket)
     .upload(filePath, file.buffer, {
       contentType: file.mimetype
     })
@@ -24,7 +24,7 @@ export async function uploadFile(file: FileData) {
   }
 
   const { data: publicData } = supabase.storage
-    .from('userImage')
+    .from(bucket)
     .getPublicUrl(filePath)
 
   return {

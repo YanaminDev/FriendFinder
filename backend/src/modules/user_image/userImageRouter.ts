@@ -4,7 +4,7 @@ import { authorize } from '../../common/middleware/authorize'
 import { CreateUserImageSchema  , GetSignedUrlSchema , GetUserImageUrlSchema , DeleteUserImageUrlSchema,UpdateUserImageUrlSchema} from './userImageModel'
 import {userImageRepository} from './userImageRepository'
 import multer from "multer"
-import { uploadFile } from "../../common/utils/uploadUserImage";
+import { uploadFile } from "../../common/utils/uploadImage";
 
 const upload = multer({ storage: multer.memoryStorage() })
 
@@ -21,7 +21,7 @@ export const userImageRouter = () => {
                 return res.status(400).json({ message: "No file uploaded" });
             }
             const userImageData = CreateUserImageSchema.parse(req.file)
-            const uploadResult = await uploadFile(userImageData)
+            const uploadResult = await uploadFile(userImageData , "userImage" , "user-images")
             const userImage = await userImageRepository.createUserImage({userImageData: uploadResult, userId})
 
             return res.status(201).json(userImage);
@@ -95,7 +95,7 @@ export const userImageRouter = () => {
                 return res.status(400).json({ message: "No file uploaded" });
             }
             const userImageData = CreateUserImageSchema.parse(req.file)
-            const uploadResult = await uploadFile(userImageData)
+            const uploadResult = await uploadFile(userImageData , "userImage" , "user-images")
             const updatedUserImage = await userImageRepository.updateUserImage(imageId, userId, uploadResult)
 
             return res.status(200).json(updatedUserImage);
