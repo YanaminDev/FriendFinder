@@ -7,7 +7,7 @@ import { authorize } from '../../common/middleware/authorize'
 export const workoutRouter = () => {
     const router = Router();
 
-    router.get("/workout", authenticateToken, async (req, res) => {
+    router.get("/get", authenticateToken, async (req, res) => {
         try {
             const data = await workoutRepository.getWorkout();
             res.status(200).json(data)
@@ -17,7 +17,7 @@ export const workoutRouter = () => {
         }
     })
 
-    router.get("/workout/:id", authenticateToken, async (req, res) => {
+    router.get("/get/:id", authenticateToken, async (req, res) => {
         try {
             const idParam = req.params.id;
 
@@ -37,7 +37,7 @@ export const workoutRouter = () => {
         }
     })
 
-    router.post("/create/workout", authenticateToken, authorize("admin"), async (req, res) => {
+    router.post("/create", authenticateToken, authorize("admin"), async (req, res) => {
         try {
             const validateData = CreateWorkoutSchema.parse(req.body)
             const data = await workoutRepository.createWorkout(validateData)
@@ -48,7 +48,7 @@ export const workoutRouter = () => {
         }
     })
 
-    router.delete("/delete/workout", authenticateToken, authorize("admin"), async (req, res) => {
+    router.delete("/delete", authenticateToken, authorize("admin"), async (req, res) => {
         try {
             const validateData = DeleteWorkoutSchema.parse(req.body)
             const data = await workoutRepository.deleteWorkout(validateData)
@@ -59,7 +59,7 @@ export const workoutRouter = () => {
         }
     })
 
-    router.put("/update/workout", authenticateToken, authorize("admin"), async (req, res) => {
+    router.put("/update", authenticateToken, authorize("admin"), async (req, res) => {
         try {
             const validateData = UpdateWorkoutSchema.parse(req.body)
             const data = await workoutRepository.updateWorkout(validateData)

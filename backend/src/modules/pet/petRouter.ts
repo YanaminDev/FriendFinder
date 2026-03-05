@@ -7,7 +7,7 @@ import { authorize } from '../../common/middleware/authorize'
 export const petRouter = () => {
     const router = Router();
 
-    router.get("/pet", authenticateToken, async (req, res) => {
+    router.get("/get", authenticateToken, async (req, res) => {
         try {
             const data = await petRepository.getPet();
             res.status(200).json(data)
@@ -17,7 +17,7 @@ export const petRouter = () => {
         }
     })
 
-    router.get("/pet/:id", authenticateToken, async (req, res) => {
+    router.get("/get/:id", authenticateToken, async (req, res) => {
         try {
             const idParam = req.params.id;
 
@@ -37,7 +37,7 @@ export const petRouter = () => {
         }
     })
 
-    router.post("/create/pet", authenticateToken, authorize("admin"), async (req, res) => {
+    router.post("/create", authenticateToken, authorize("admin"), async (req, res) => {
         try {
             const validateData = CreatePetSchema.parse(req.body)
             const data = await petRepository.createPet(validateData)
@@ -48,7 +48,7 @@ export const petRouter = () => {
         }
     })
 
-    router.delete("/delete/pet", authenticateToken, authorize("admin"), async (req, res) => {
+    router.delete("/delete", authenticateToken, authorize("admin"), async (req, res) => {
         try {
             const validateData = DeletePetSchema.parse(req.body)
             const data = await petRepository.deletePet(validateData)
@@ -59,7 +59,7 @@ export const petRouter = () => {
         }
     })
 
-    router.put("/update/pet", authenticateToken, authorize("admin"), async (req, res) => {
+    router.put("/update", authenticateToken, authorize("admin"), async (req, res) => {
         try {
             const validateData = UpdatePetSchema.parse(req.body)
             const data = await petRepository.updatePet(validateData)

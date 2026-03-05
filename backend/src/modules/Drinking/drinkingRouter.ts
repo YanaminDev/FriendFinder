@@ -7,7 +7,7 @@ import {authorize} from '../../common/middleware/authorize'
 export const drinkingRouter = () => {
     const router = Router();
 
-    router.get("/drinking" , authenticateToken , async (req, res) => {
+    router.get("/get" , authenticateToken , async (req, res) => {
         try{
             const data = await drinkingRepository.getDrinking();
             res.status(200).json(data)
@@ -17,7 +17,7 @@ export const drinkingRouter = () => {
         }
     })
 
-    router.get("/drinking/:id", authenticateToken , async (req,res) => {
+    router.get("/get/:id", authenticateToken , async (req,res) => {
         try{
             const idParam = req.params.id;
 
@@ -38,7 +38,7 @@ export const drinkingRouter = () => {
         
     })
 
-    router.post("/create/drinking", authenticateToken ,authorize("admin")  , async (req,res) => {
+    router.post("/create", authenticateToken ,authorize("admin")  , async (req,res) => {
         try{
             const validateData = CreateDrinkingSchema.parse(req.body)
             const data = await drinkingRepository.createDrinking(validateData)
@@ -50,7 +50,7 @@ export const drinkingRouter = () => {
     })
 
 
-    router.delete("/delete/drinking", authenticateToken ,authorize("admin") , async (req,res) => {
+    router.delete("/delete", authenticateToken ,authorize("admin") , async (req,res) => {
         try{
             const validateData = DeleteDrinkingSchema.parse(req.body)
             const data = await drinkingRepository.deleteDrinking(validateData)
@@ -62,7 +62,7 @@ export const drinkingRouter = () => {
     })
 
 
-    router.put("/update/drinking", authenticateToken ,authorize("admin") , async (req,res) => {
+    router.put("/update", authenticateToken ,authorize("admin") , async (req,res) => {
         try{
             const validateData = UpdateDrinkingSchema.parse(req.body)
             const data = await drinkingRepository.updateDrinking(validateData)

@@ -17,11 +17,11 @@ app.use(cookieParser())
 // login , register , logout
 app.use("/v1/api/auth", userRouter())
 app.use("/v1/user-image" , userImageRouter())
-app.use("/v1/life-style" , lookingForRouter())
-app.use("/v1/life-style" , drinkingRouter())
-app.use("/v1/life-style" , smokeRouter())
-app.use("/v1/life-style" , workoutRouter())
-app.use("/v1/life-style" , petRouter())
+app.use("/v1/life-style/looking-for" , lookingForRouter())
+app.use("/v1/life-style/drinking" , drinkingRouter())
+app.use("/v1/life-style/smoke" , smokeRouter())
+app.use("/v1/life-style/workout" , workoutRouter())
+app.use("/v1/life-style/pet" , petRouter())
 
 
 app.listen(3000, () => {

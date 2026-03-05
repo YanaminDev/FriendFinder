@@ -7,7 +7,7 @@ import {authorize} from '../../common/middleware/authorize'
 export const lookingForRouter = () => {
     const router = Router();
 
-    router.get("/looking-for" , authenticateToken , async (req, res) => {
+    router.get("/get" , authenticateToken , async (req, res) => {
         try{
             const data = await lookingForRepository.getLookingFor();
             res.status(200).json(data)
@@ -17,7 +17,7 @@ export const lookingForRouter = () => {
         }
     })
 
-    router.get("/looking-for/:id", authenticateToken , async (req,res) => {
+    router.get("/get/:id", authenticateToken , async (req,res) => {
         try{
             const idParam = req.params.id;
 
@@ -38,7 +38,7 @@ export const lookingForRouter = () => {
         
     })
 
-    router.post("/create/looking-for", authenticateToken ,authorize("admin") , async (req,res) => {
+    router.post("/create", authenticateToken ,authorize("admin") , async (req,res) => {
         try{
             const validateData = CreateLookingForSchema.parse(req.body)
             const data = await lookingForRepository.createLookingFor(validateData)
@@ -50,7 +50,7 @@ export const lookingForRouter = () => {
     })
 
 
-    router.delete("/delete/looking-for", authenticateToken ,authorize("admin") , async (req,res) => {
+    router.delete("/delete", authenticateToken ,authorize("admin") , async (req,res) => {
         try{
             const validateData = DeleteLookingForSchema.parse(req.body)
             const data = await lookingForRepository.deleteLookingFor(validateData)
@@ -62,7 +62,7 @@ export const lookingForRouter = () => {
     })
 
 
-    router.put("/update/looking-for", authenticateToken ,authorize("admin") , async (req,res) => {
+    router.put("/update", authenticateToken ,authorize("admin") , async (req,res) => {
         try{
             const validateData = UpdateLookingForSchema.parse(req.body)
             const data = await lookingForRepository.updateLookingFor(validateData)

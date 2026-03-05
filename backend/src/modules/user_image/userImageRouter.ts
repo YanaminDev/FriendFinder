@@ -31,6 +31,18 @@ export const userImageRouter = () => {
         }
     })
 
+    router.get("/get/:userId", authenticateToken, async (req, res) => {
+        try {
+            const userId = req.params.userId;
+            if (!userId || typeof userId !== "string") {
+                return res.status(400).json({ message: "User ID not found" });
+            }
+            const userImages = await userImageRepository.getUserImages(userId);
+            return res.status(200).json(userImages);
+        } catch (err) {
+            return res.status(500).json({ message: `Failed to fetch user images: ${err}` });
+        }
+    });
 
     return router;
 }

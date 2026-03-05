@@ -7,7 +7,7 @@ import { authorize } from '../../common/middleware/authorize'
 export const smokeRouter = () => {
     const router = Router();
 
-    router.get("/smoke", authenticateToken, async (req, res) => {
+    router.get("/get", authenticateToken, async (req, res) => {
         try {
             const data = await smokeRepository.getSmoke();
             res.status(200).json(data)
@@ -17,7 +17,7 @@ export const smokeRouter = () => {
         }
     })
 
-    router.get("/smoke/:id", authenticateToken, async (req, res) => {
+    router.get("/get/:id", authenticateToken, async (req, res) => {
         try {
             const idParam = req.params.id;
 
@@ -37,7 +37,7 @@ export const smokeRouter = () => {
         }
     })
 
-    router.post("/create/smoke", authenticateToken, authorize("admin"), async (req, res) => {
+    router.post("/create", authenticateToken, authorize("admin"), async (req, res) => {
         try {
             const validateData = CreateSmokeSchema.parse(req.body)
             const data = await smokeRepository.createSmoke(validateData)
@@ -48,7 +48,7 @@ export const smokeRouter = () => {
         }
     })
 
-    router.delete("/delete/smoke", authenticateToken, authorize("admin"), async (req, res) => {
+    router.delete("/delete", authenticateToken, authorize("admin"), async (req, res) => {
         try {
             const validateData = DeleteSmokeSchema.parse(req.body)
             const data = await smokeRepository.deleteSmoke(validateData)
@@ -59,7 +59,7 @@ export const smokeRouter = () => {
         }
     })
 
-    router.put("/update/smoke", authenticateToken, authorize("admin"), async (req, res) => {
+    router.put("/update", authenticateToken, authorize("admin"), async (req, res) => {
         try {
             const validateData = UpdateSmokeSchema.parse(req.body)
             const data = await smokeRepository.updateSmoke(validateData)
