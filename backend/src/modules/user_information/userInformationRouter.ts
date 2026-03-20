@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { userInformationRepository } from "./userInformationRepository";
 import { CreateUserInformationSchema ,  GetUserInformationSchema,UpdateUserInformationBioSchema , UpdateUserInformationHeightSchema ,UpdateUserInformationBloodGroupSchema, UpdateUserInformationLanguageSchema , UpdateUserInformationEducationSchema} from "./userInformationModel"
-import {generateAccessToken,generateRefreshToken , verifyRefreshToken} from "../../common/utils/jwt"
 import "dotenv/config"
 import { authenticateToken } from "../../common/middleware/authenticate"
 import {authorize} from '../../common/middleware/authorize'
@@ -43,7 +42,7 @@ export const userInformationRouter = () => {
         }
     })
 
-    router.post("/updateInformation/bio" , authenticateToken , async (req , res) => {
+    router.put("/update/bio" , authenticateToken , async (req , res) => {
         try{
             const userId = (req as any).user.sub
             if (!userId) {
@@ -62,7 +61,7 @@ export const userInformationRouter = () => {
         }
     }),
 
-    router.post("/updateInformation/height" , authenticateToken , async (req , res) => {
+    router.put("/update/height" , authenticateToken , async (req , res) => {
         try{
             const userId = (req as any).user.sub
             if (!userId) {
@@ -81,7 +80,7 @@ export const userInformationRouter = () => {
         }
     }),
 
-    router.post("/updateInformation/blood-group" , authenticateToken , async (req , res) => {
+    router.put("/update/blood-group" , authenticateToken , async (req , res) => {
         try{
             const userId = (req as any).user.sub
             if (!userId) {
@@ -100,7 +99,7 @@ export const userInformationRouter = () => {
         }
     }),
 
-    router.post("/updateInformation/language" , authenticateToken , async (req , res) => {
+    router.put("/update/language" , authenticateToken , async (req , res) => {
         try{
             const userId = (req as any).user.sub
             if (!userId) {
@@ -119,7 +118,7 @@ export const userInformationRouter = () => {
         }
     }),
 
-    router.post("/updateInformation/education" , authenticateToken , async (req , res) => {
+    router.put("/update/education" , authenticateToken , async (req , res) => {
         try{
             const userId = (req as any).user.sub
             if (!userId) {
@@ -135,6 +134,20 @@ export const userInformationRouter = () => {
         }
         catch(err){
             return res.status(400).json({message:"Failed to update user information" + err})
+        }
+    })
+
+    router.delete("/delete" , authenticateToken , async (req , res) => {
+        try{
+            const userId = (req as any).user.sub
+            if (!userId) {
+                return res.status(400).json({ message: "User ID not found in token" });
+            }
+            const responsedata = await userInformationRepository.deleteUserInformation(userId);
+            return res.status(200).json(responsedata);
+        }
+        catch(err){
+            return res.status(400).json({message:"Failed to delete user information" + err})
         }
     })
 

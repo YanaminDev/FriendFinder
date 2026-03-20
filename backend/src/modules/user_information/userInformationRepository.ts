@@ -27,6 +27,10 @@ export const userInformationRepository = {
             const userInformation = await prisma.user_Information.findUnique({
                 where :{
                     user_id : userId
+                },
+                include : {
+                    language : true,
+                    education : true,
                 }
             })
             return userInformation
@@ -92,6 +96,9 @@ export const userInformationRepository = {
                 },
                 data : {
                     language_id : language_id
+                },
+                include : {
+                    language : true
                 }
             })
         }
@@ -108,13 +115,30 @@ export const userInformationRepository = {
                 },
                 data : {
                     education_id : education_id
+                },
+                include : {
+                    education : true
                 }
+
             })
         }
         catch(err){
             throw (err)
         }
    },
+
+   deleteUserInformation : async (userId : string) => {
+        try{
+            return await prisma.user_Information.delete({
+                where : {
+                    user_id : userId
+                }
+            })
+        }
+        catch(err){
+            throw (err)
+        }
+   }
 
 
 
