@@ -1,9 +1,16 @@
 import {z} from 'zod';
 
+const passwordSchema = z.string()
+    .min(8, 'ต้องมีอย่างน้อย 8 ตัวอักษร')
+    .regex(/[A-Z]/, 'ต้องมีตัวพิมพ์ใหญ่')
+    .regex(/[a-z]/, 'ต้องมีตัวพิมพ์เล็ก')
+    .regex(/\d/, 'ต้องมีตัวเลข')
+    .regex(/[@$!%*?&]/, 'ต้องมีอักษรพิเศษ (@$!%*?&)');
+
 export const UserSignupSchema = z.object({
     user_show_name: z.string().max(50),
     username: z.string(),
-    password: z.string().min(8),
+    password: passwordSchema,
     sex: z.enum(['male', 'female', 'lgbtq']),
     age: z.number().int().positive(),
     birth_of_date: z.string().date(),
@@ -12,5 +19,7 @@ export const UserSignupSchema = z.object({
 
 export const UserLoginSchema = z.object({
     username: z.string(),
-    password: z.string().min(8)
+    password: passwordSchema
 })
+
+
