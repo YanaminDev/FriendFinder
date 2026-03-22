@@ -5,10 +5,10 @@ export const CreateActivitySchema = z.object({
 })
 
 export const DeleteActivitySchema = z.object({
-    id: z.number().positive()
+    id: z.string()
 })
 
 export const UpdateActivitySchema = z.object({
-    id: z.number().positive(),
+    id: z.string(),
     name: z.string().max(50)
 })

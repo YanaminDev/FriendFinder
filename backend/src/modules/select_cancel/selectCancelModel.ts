@@ -5,10 +5,10 @@ export const CreateSelectCancelSchema = z.object({
 })
 
 export const DeleteSelectCancelSchema = z.object({
-    id: z.number().positive()
+    id: z.string()
 })
 
 export const UpdateSelectCancelSchema = z.object({
-    id: z.number().positive(),
+    id: z.string(),
     name: z.string().max(50)
 })

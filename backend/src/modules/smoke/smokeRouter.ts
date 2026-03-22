@@ -24,10 +24,8 @@ export const smokeRouter = () => {
             if (typeof idParam !== "string") {
                 return res.status(400).json({ message: "Invalid id parameter" });
             }
-            const id = Number(idParam);
-            if (isNaN(id)) {
-                return res.status(400).json({ message: "ID must be a number" });
-            }
+            const id = String(idParam);
+            
 
             const data = await smokeRepository.getSmokeById(id);
             res.status(200).json(data)

@@ -11,7 +11,7 @@ export const selectCancelRepository = {
         }
     },
 
-    getSelectCancelById: async (id: number) => {
+    getSelectCancelById: async (id: string) => {
         try {
             return await prisma.select_Cancel.findUnique({
                 where: {
@@ -37,7 +37,7 @@ export const selectCancelRepository = {
         }
     },
 
-    deleteSelectCancel: async (data: { id: number }) => {
+    deleteSelectCancel: async (data: { id: string }) => {
         try {
             return await prisma.select_Cancel.delete({
                 where: {
@@ -50,7 +50,7 @@ export const selectCancelRepository = {
         }
     },
 
-    updateSelectCancel: async (data: { id: number, name: string }) => {
+    updateSelectCancel: async (data: { id: string, name: string }) => {
         try {
             return await prisma.select_Cancel.update({
                 where: {

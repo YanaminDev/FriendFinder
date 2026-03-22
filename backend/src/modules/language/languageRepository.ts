@@ -12,7 +12,7 @@ export const languageRepository = {
         }
     },
     
-    getLanguageById : async (id : number) => {
+    getLanguageById : async (id : string) => {
         try{
             return await prisma.language.findUnique({
                 where : {
@@ -39,7 +39,7 @@ export const languageRepository = {
     },
 
 
-    deleteLanguage : async (data : {id : number}) => {
+    deleteLanguage : async (data : {id : string}) => {
         try{
             return await prisma.language.delete({
                 where : {
@@ -52,7 +52,7 @@ export const languageRepository = {
         }
     },
 
-    updateLanguage : async (data : {id : number , name : string}) => {
+    updateLanguage : async (data : {id : string , name : string}) => {
         try{
             return await prisma.language.update({
                 where : {

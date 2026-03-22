@@ -5,10 +5,10 @@ export const CreateLookingForSchema = z.object({
 })
 
 export const DeleteLookingForSchema = z.object({
-    id: z.number().positive()
+    id: z.string()
 })
 
 export const UpdateLookingForSchema = z.object({
-    id: z.number().positive(),
+    id: z.string(),
     name: z.string().max(50)
 })

@@ -5,10 +5,10 @@ export const CreateSmokeSchema = z.object({
 })
 
 export const DeleteSmokeSchema = z.object({
-    id: z.number().positive()
+    id: z.string()
 })
 
 export const UpdateSmokeSchema = z.object({
-    id: z.number().positive(),
+    id: z.string(),
     name: z.string().max(50)
 })

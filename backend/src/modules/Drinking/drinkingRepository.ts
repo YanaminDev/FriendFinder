@@ -12,7 +12,7 @@ export const drinkingRepository = {
         }
     },
 
-    getDrinkingById : async (id : number) => {
+    getDrinkingById : async (id : string) => {
         try{
             return await prisma.drinking.findUnique({
                 where : {
@@ -39,7 +39,7 @@ export const drinkingRepository = {
     },
 
 
-    deleteDrinking : async (data : {id : number}) => {
+    deleteDrinking : async (data : {id :string}) => {
         try{
             return await prisma.drinking.delete({
                 where : {
@@ -52,7 +52,7 @@ export const drinkingRepository = {
         }
     },
 
-    updateDrinking : async (data : {id : number , name : string}) => {
+    updateDrinking : async (data : {id : string , name : string}) => {
         try{
             return await prisma.drinking.update({
                 where : {

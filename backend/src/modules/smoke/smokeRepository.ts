@@ -11,7 +11,7 @@ export const smokeRepository = {
         }
     },
 
-    getSmokeById: async (id: number) => {
+    getSmokeById: async (id: string) => {
         try {
             return await prisma.smoke.findUnique({
                 where: {
@@ -37,7 +37,7 @@ export const smokeRepository = {
         }
     },
 
-    deleteSmoke: async (data: { id: number }) => {
+    deleteSmoke: async (data: { id: string }) => {
         try {
             return await prisma.smoke.delete({
                 where: {
@@ -50,7 +50,7 @@ export const smokeRepository = {
         }
     },
 
-    updateSmoke: async (data: { id: number, name: string }) => {
+    updateSmoke: async (data: { id: string, name: string }) => {
         try {
             return await prisma.smoke.update({
                 where: {

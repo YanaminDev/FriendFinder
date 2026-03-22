@@ -11,7 +11,7 @@ export const activityRepository = {
         }
     },
 
-    getActivityById: async (id: number) => {
+    getActivityById: async (id: string) => {
         try {
             return await prisma.activity.findUnique({
                 where: {
@@ -37,7 +37,7 @@ export const activityRepository = {
         }
     },
 
-    deleteActivity: async (data: { id: number }) => {
+    deleteActivity: async (data: { id: string }) => {
         try {
             return await prisma.activity.delete({
                 where: {
@@ -50,7 +50,7 @@ export const activityRepository = {
         }
     },
 
-    updateActivity: async (data: { id: number, name: string }) => {
+    updateActivity: async (data: { id: string, name: string }) => {
         try {
             return await prisma.activity.update({
                 where: {

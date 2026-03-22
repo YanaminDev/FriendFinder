@@ -5,10 +5,10 @@ export const CreatePetSchema = z.object({
 })
 
 export const DeletePetSchema = z.object({
-    id: z.number().positive()
+    id: z.string()
 })
 
 export const UpdatePetSchema = z.object({
-    id: z.number().positive(),
+    id: z.string(),
     name: z.string().max(50)
 })

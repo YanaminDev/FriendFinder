@@ -5,10 +5,10 @@ export const CreateDrinkingSchema = z.object({
 })
 
 export const DeleteDrinkingSchema = z.object({
-    id: z.number().positive()
+    id: z.string()
 })
 
 export const UpdateDrinkingSchema = z.object({
-    id: z.number().positive(),
+    id: z.string(),
     name: z.string().max(50)
 })

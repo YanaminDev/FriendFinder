@@ -11,7 +11,7 @@ export const educationRepository = {
         }
     },
 
-    getEducationById: async (id: number) => {
+    getEducationById: async (id: string) => {
         try {
             return await prisma.education.findUnique({
                 where: {
@@ -37,7 +37,7 @@ export const educationRepository = {
         }
     },
 
-    deleteEducation: async (data: { id: number }) => {
+    deleteEducation: async (data: { id: string }) => {
         try {
             return await prisma.education.delete({
                 where: {
@@ -50,7 +50,7 @@ export const educationRepository = {
         }
     },
 
-    updateEducation: async (data: { id: number, name: string }) => {
+    updateEducation: async (data: { id: string, name: string }) => {
         try {
             return await prisma.education.update({
                 where: {

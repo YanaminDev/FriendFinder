@@ -20,15 +20,7 @@ export const activityRouter = () => {
     router.get("/activity/:id", authenticateToken, async (req, res) => {
         try {
             const idParam = req.params.id;
-
-            if (typeof idParam !== "string") {
-                return res.status(400).json({ message: "Invalid id parameter" });
-            }
-            const id = Number(idParam);
-            if (isNaN(id)) {
-                return res.status(400).json({ message: "ID must be a number" });
-            }
-
+            const id = String(idParam);
             const data = await activityRepository.getActivityById(id);
             res.status(200).json(data)
         }

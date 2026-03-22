@@ -11,7 +11,7 @@ export const workoutRepository = {
         }
     },
 
-    getWorkoutById: async (id: number) => {
+    getWorkoutById: async (id: string) => {
         try {
             return await prisma.workout.findUnique({
                 where: {
@@ -37,7 +37,7 @@ export const workoutRepository = {
         }
     },
 
-    deleteWorkout: async (data: { id: number }) => {
+    deleteWorkout: async (data: { id: string }) => {
         try {
             return await prisma.workout.delete({
                 where: {
@@ -50,7 +50,7 @@ export const workoutRepository = {
         }
     },
 
-    updateWorkout: async (data: { id: number, name: string }) => {
+    updateWorkout: async (data: { id: string, name: string }) => {
         try {
             return await prisma.workout.update({
                 where: {

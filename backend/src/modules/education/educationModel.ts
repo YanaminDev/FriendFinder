@@ -5,10 +5,10 @@ export const CreateEducationSchema = z.object({
 })
 
 export const DeleteEducationSchema = z.object({
-    id: z.number().positive()
+    id: z.string()
 })
 
 export const UpdateEducationSchema = z.object({
-    id: z.number().positive(),
+    id: z.string(),
     name: z.string().max(50)
 })

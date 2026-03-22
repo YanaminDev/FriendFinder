@@ -11,7 +11,7 @@ export const petRepository = {
         }
     },
 
-    getPetById: async (id: number) => {
+    getPetById: async (id: string) => {
         try {
             return await prisma.pet.findUnique({
                 where: {
@@ -37,7 +37,7 @@ export const petRepository = {
         }
     },
 
-    deletePet: async (data: { id: number }) => {
+    deletePet: async (data: { id: string }) => {
         try {
             return await prisma.pet.delete({
                 where: {
@@ -50,7 +50,7 @@ export const petRepository = {
         }
     },
 
-    updatePet: async (data: { id: number, name: string }) => {
+    updatePet: async (data: { id: string, name: string }) => {
         try {
             return await prisma.pet.update({
                 where: {

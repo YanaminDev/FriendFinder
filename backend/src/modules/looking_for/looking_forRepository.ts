@@ -12,7 +12,7 @@ export const lookingForRepository = {
         }
     },
     
-    getLookingForById : async (id : number) => {
+    getLookingForById : async (id : string) => {
         try{
             return await prisma.looking_for.findUnique({
                 where : {
@@ -39,7 +39,7 @@ export const lookingForRepository = {
     },
 
 
-    deleteLookingFor : async (data : {id : number}) => {
+    deleteLookingFor : async (data : {id : string}) => {
         try{
             return await prisma.looking_for.delete({
                 where : {
@@ -52,7 +52,7 @@ export const lookingForRepository = {
         }
     },
 
-    updateLookingFor : async (data : {id : number , name : string}) => {
+    updateLookingFor : async (data : {id : string , name : string}) => {
         try{
             return await prisma.looking_for.update({
                 where : {

@@ -5,10 +5,10 @@ export const CreateWorkoutSchema = z.object({
 })
 
 export const DeleteWorkoutSchema = z.object({
-    id: z.number().positive()
+    id: z.string()
 })
 
 export const UpdateWorkoutSchema = z.object({
-    id: z.number().positive(),
+    id: z.string(),
     name: z.string().max(50)
 })
