@@ -257,6 +257,8 @@ model Position {
   open_date   String?
   open_time   String?
   close_time  String?
+  latitude    Float
+  longitude   Float
   find_match  Find_Match[]
   location    Location[]
   match       Match[]
