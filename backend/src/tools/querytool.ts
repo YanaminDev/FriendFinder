@@ -1,9 +1,5 @@
-import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../../generated/prisma/client";
-import { z } from "zod";
-
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
-const prisma = new PrismaClient({ adapter });
+import { prisma } from "../../lib/prisma";
+import { z } from "zod"
 
 // อนุญาต
 const ALLOWED_ACTIONS = ["findMany", "findFirst", "findUnique"] as const;

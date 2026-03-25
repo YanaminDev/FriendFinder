@@ -1,4 +1,4 @@
-import "dotenv/config"
+import "dotenv/config";
 import Anthropic from "@anthropic-ai/sdk";
 import { getSchemaAsText } from "../src/tools/schemaReader";
 
@@ -9,10 +9,9 @@ interface AIResponse {
 }
 
 export const claude = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY,
+  apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// Tool definition ที่ส่งให้ Claude รู้จัก
 const tools: Anthropic.Tool[] = [
   {
     name: "query",
@@ -39,65 +38,96 @@ const tools: Anthropic.Tool[] = [
   },
 ];
 
-export async function askAI(userMessage: string): Promise<AIResponse> {
-    const schemaText = getSchemaAsText();
+export async function askAI(
+  userMessage: string,
+  queryFn: (input: unknown) => Promise<unknown> 
+): Promise<AIResponse> {
+  const schemaText = getSchemaAsText();
 
-    const systemInstruction = `
-    You are an AI assistant that helps users query a database.
-    You have access to the following database schema:
+  const systemInstruction = `
+You are an AI assistant that helps users query a database.
+You have access to the following database schema:
 
-    ${schemaText}
+${schemaText}
 
-    Rules:
-    - Always use the "query" tool to retrieve data. Never answer from memory.
-    - Never write raw SQL.
-    - Only use the models and fields defined in the schema above.
-    - Always respond in JSON object format only. No extra text outside the JSON.
+Rules:
+- Always use the "query" tool to retrieve data. Never answer from memory.
+- Never write raw SQL.
+- Only use the models and fields defined in the schema above.
+- Always respond in JSON object format only. No extra text outside the JSON.
 
-    Response format:
-    {
-    "success": true,
-    "message": "อธิบายสั้นๆ ว่าทำอะไร",
-    "data": [] or {}
-    }
+Response format:
+{
+  "success": true,
+  "message": "อธิบายสั้นๆ ว่าทำอะไร",
+  "data": [] or {}
+}
 
-    If error:
-    {
-    "success": false,
-    "message": "อธิบายว่าเกิด error อะไร",
-    "data": null
-    }
+If error:
+{
+  "success": false,
+  "message": "อธิบายว่าเกิด error อะไร",
+  "data": null
+}
   `.trim();
 
-  const response = await claude.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 1024,
-    system: systemInstruction,
-    tools,
-    messages: [
-      {
-        role: "user",
-        content: userMessage,
-      },
-    ],
-  });
+  const messages: Anthropic.MessageParam[] = [
+    { role: "user", content: userMessage },
+  ];
 
+  while (true) {
+    const response = await claude.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 1024,
+      system: systemInstruction,
+      tools,
+      messages,
+    });
 
-  const raw = response.content.reduce((acc, b) =>
-    b.type === "text" ? acc + b.text : acc,
-    ""
-  );
+    messages.push({ role: "assistant", content: response.content });
 
-  try {
-    const clean = raw.replace(/```json|```/g, "").trim();
-    return JSON.parse(clean) as AIResponse;
-  } catch {
-    // ถ้า parse ไม่ได้ return error object แทน
-    return {
-      success: false,
-      message: "Failed to parse AI response",
-      data: null,
-    };
+    if (response.stop_reason === "end_turn") {
+      const raw = response.content.reduce(
+        (acc, b) => (b.type === "text" ? acc + b.text : acc),
+        ""
+      );
+
+      try {
+        const clean = raw.replace(/```json|```/g, "").trim();
+        return JSON.parse(clean) as AIResponse;
+      } catch {
+        return {
+          success: false,
+          message: "Failed to parse AI response",
+          data: null,
+        };
+      }
+    }
+
+    if (response.stop_reason === "tool_use") {
+      const toolResults: Anthropic.ToolResultBlockParam[] = [];
+
+      for (const block of response.content) {
+        if (block.type !== "tool_use") continue;
+
+        let result: unknown;
+
+        try {
+          result = await queryFn(block.input); 
+        } catch (err: unknown) {
+          result = {
+            error: err instanceof Error ? err.message : "Query failed",
+          };
+        }
+
+        toolResults.push({
+          type: "tool_result",
+          tool_use_id: block.id,
+          content: JSON.stringify(result),
+        });
+      }
+
+      messages.push({ role: "user", content: toolResults });
+    }
   }
-  
 }
