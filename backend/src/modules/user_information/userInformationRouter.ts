@@ -151,5 +151,7 @@ export const userInformationRouter = () => {
         }
     })
 
+    return router;
+
 
 }
