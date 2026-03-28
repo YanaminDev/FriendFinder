@@ -1,7 +1,7 @@
-import BottomNav from "../components/BottomNav"
-import TopBar from "../components/TopBar"
+import BottomNav from "../../components/BottomNav"
+import TopBar from "../../components/TopBar"
 
-export default function User() {
+export default function Feedback() {
   return (
     <div className="relative min-h-screen bg-gray-100">
 

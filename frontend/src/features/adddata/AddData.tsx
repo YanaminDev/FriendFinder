@@ -1,5 +1,5 @@
-import BottomNav from "../components/BottomNav"
-import TopBar from "../components/TopBar"
+import BottomNav from "../../components/BottomNav"
+import TopBar from "../../components/TopBar"
 
 export default function AddData() {
   return (
