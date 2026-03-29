@@ -1,6 +1,6 @@
-import BottomNav from "../components/BottomNav"
-import TopBar from "../components/TopBar"
-import Button from "../components/Button"
+import BottomNav from "../../components/BottomNav"
+import TopBar from "../../components/TopBar"
+import Button from "../../components/Button"
 
 export default function Home() {
   return (
