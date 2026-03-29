@@ -1,3 +1,4 @@
+import './loadEnv';
 import express from 'express';
 import cookieParser from "cookie-parser"
 import { userRouter } from "./modules/user/userRouter";
@@ -12,6 +13,8 @@ import { locationImageRouter } from "./modules/location_image/locationImageRoute
 import { locationReviewRouter } from "./modules/location_review/locationReviewRouter"
 import {selectCancelRouter} from "./modules/select_cancel/selectCancelRouter"
 import {userInformationRouter} from "./modules/user_information/userInformationRouter"
+
+import { mapRouter } from "./modules/map/mapRouter";
 import {userLifeStyleRouter} from "./modules/user_life_style/userLifeStyleRouter"
 
 
@@ -35,6 +38,9 @@ app.use("/v1/location-review" , locationReviewRouter())
 app.use("/v1/select-cancel" , selectCancelRouter())
 app.use("/v1/user-information" , userInformationRouter())
 app.use("/v1/user-life-style" , userLifeStyleRouter())
+
+// Mapbox token endpoint
+app.use("/v1/map", mapRouter());
 
 
 
