@@ -13,6 +13,8 @@ import { locationReviewRouter } from "./modules/location_review/locationReviewRo
 import {selectCancelRouter} from "./modules/select_cancel/selectCancelRouter"
 import {userInformationRouter} from "./modules/user_information/userInformationRouter"
 import {userLifeStyleRouter} from "./modules/user_life_style/userLifeStyleRouter"
+import { matchRouter } from "./modules/match/matchRouter";
+import {findMatchRouter} from "./modules/find_match/findMatchRouter";
 
 
 const app = express()
@@ -35,6 +37,7 @@ app.use("/v1/location-review" , locationReviewRouter())
 app.use("/v1/select-cancel" , selectCancelRouter())
 app.use("/v1/user-information" , userInformationRouter())
 app.use("/v1/user-life-style" , userLifeStyleRouter())
+app.use("/v1/match" , matchRouter())
 
 
 

@@ -226,13 +226,15 @@ model Find_Match {
 }
 
 model Chat {
-  id           String         @id @default(uuid())
+  id           String        @id @default(uuid())
   user1_id     String
   user2_id     String
-  user1        User           @relation("User1Chat", fields: [user1_id], references: [user_id])
-  user2        User           @relation("User2Chat", fields: [user2_id], references: [user_id])
-  chat_message Chat_Message[]
+  createdAt    DateTime      @default(now())
+  user1        User          @relation("User1Chat", fields: [user1_id], references: [user_id])
+  user2        User          @relation("User2Chat", fields: [user2_id], references: [user_id])
+  chatMessage  Chat_Message[]
 
+  @@unique([user1_id, user2_id])
   @@index([user1_id, user2_id])
 }
 
@@ -242,7 +244,7 @@ model Chat_Message {
   message   String
   sender_id String
   createdAt DateTime @default(now())
-  chattype  String
+  chatType  String
   chat      Chat     @relation(fields: [chat_id], references: [id])
   sender    User     @relation(fields: [sender_id], references: [user_id])
 

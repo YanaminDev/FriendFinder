@@ -110,7 +110,7 @@ export const locationReviewRouter = () => {
         }
     });
 
-    router.delete("/delete", authenticateToken,authorize("user","admin"),  async (req, res) => {
+    router.delete("/delete", authenticateToken,authorize("admin"),  async (req, res) => {
         try {
             
             const validateData = DeleteLocationReviewSchema.parse(req.body);
