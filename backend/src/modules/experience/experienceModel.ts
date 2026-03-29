@@ -34,7 +34,9 @@ export const DeleteExperienceSchema = z.object({
   experience_id: z.string(),
 });
 
-
+export const GettotalExperienceFromUserSchema = z.object({
+  user_id: z.string(),
+});
 
 export type CreateExperience = z.infer<typeof CreateExperienceSchema>;
 export type GetExperience = z.infer<typeof GetExperienceSchema>;
@@ -43,3 +45,4 @@ export type GetExperienceByReviewer = z.infer<typeof GetExperienceByReviewerSche
 export type GetExperienceByReviewee = z.infer<typeof GetExperienceByRevieweeSchema>;
 export type UpdateExperience = z.infer<typeof UpdateExperienceSchema>;
 export type DeleteExperience = z.infer<typeof DeleteExperienceSchema>;
+export type GettotalExperienceFromUser = z.infer<typeof GettotalExperienceFromUserSchema>;

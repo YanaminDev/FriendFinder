@@ -6,7 +6,8 @@ import {
     GetExperienceByReviewerSchema,
     GetExperienceByRevieweeSchema,
     UpdateExperienceSchema,
-    DeleteExperienceSchema
+    DeleteExperienceSchema,
+    GettotalExperienceFromUserSchema
 } from "./experienceModel";
 import { z } from "zod";
 
@@ -17,6 +18,7 @@ type GetExperienceByReviewerInput = z.infer<typeof GetExperienceByReviewerSchema
 type GetExperienceByRevieweeInput = z.infer<typeof GetExperienceByRevieweeSchema>;
 type UpdateExperienceInput = z.infer<typeof UpdateExperienceSchema>;
 type DeleteExperienceInput = z.infer<typeof DeleteExperienceSchema>;
+type GettotalExperienceFromUserInput = z.infer<typeof GettotalExperienceFromUserSchema>;
 
 export const experienceRepository = {
     createExperience: async (data: CreateExperienceInput) => {
@@ -148,6 +150,41 @@ export const experienceRepository = {
                     id: data.experience_id
                 }
             });
+        }
+        catch (err) {
+            throw err;
+        }
+    },
+
+    getTotalExperienceFromUser: async (data: GettotalExperienceFromUserInput) => {
+        try {
+            const experiences = await prisma.experience.findMany({
+                where: {
+                    reviewee_id: data.user_id
+                }
+            });
+
+            const { totalLikes, totalDislikes } = experiences.reduce(
+                (acc, exp) => {
+                    if (exp.status === 1) {
+                        acc.totalLikes++;
+                    } else if (exp.status === 0) {
+                        acc.totalDislikes++;
+                    }
+                    return acc;
+                },
+                { totalLikes: 0, totalDislikes: 0 }
+            );
+
+            const totalRating = experiences.length > 0 ? (totalLikes / experiences.length) * 100 : 0;
+
+            return {
+                user_id: data.user_id,
+                totalReviews: experiences.length,
+                totalLikes,
+                totalDislikes,
+                ratingPercentage: Math.round(totalRating)
+            };
         }
         catch (err) {
             throw err;

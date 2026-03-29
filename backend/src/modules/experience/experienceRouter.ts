@@ -7,7 +7,8 @@ import {
     GetExperienceByReviewerSchema,
     GetExperienceByRevieweeSchema,
     UpdateExperienceSchema,
-    DeleteExperienceSchema
+    DeleteExperienceSchema,
+    GettotalExperienceFromUserSchema
 } from "./experienceModel";
 import { authenticateToken } from "../../common/middleware/authenticate";
 
@@ -119,6 +120,22 @@ export const experienceRouter = () => {
         }
         catch (err) {
             return res.status(500).json({ message: "Failed to delete experience" });
+        }
+    });
+
+    // Get total experience stats for user
+    router.get("/stats/:user_id", authenticateToken, async (req, res) => {
+        try {
+            const user_id = String(req.params.user_id);
+            if (!user_id) {
+                return res.status(400).json({ message: "User ID is required" });
+            }
+            const validateData = GettotalExperienceFromUserSchema.parse({ user_id });
+            const data = await experienceRepository.getTotalExperienceFromUser(validateData);
+            res.status(200).json(data);
+        }
+        catch (err) {
+            return res.status(500).json({ message: "Failed to fetch experience stats" });
         }
     });
 
