@@ -1,6 +1,7 @@
 import BottomNav from "../../components/BottomNav"
 import TopBar from "../../components/TopBar"
 import Button from "../../components/Button"
+import MapView from "../map/MapView"
 
 export default function Home() {
   return (
@@ -9,7 +10,7 @@ export default function Home() {
         {/* Map Area */}
       
       <div className="pt-16 pb-16 h-screen">
-        {/* ตรงนี้คือ Map ของท่าน */}
+        <MapView className="w-full h-full" />
       </div>
       {/* Floating Button */}
       <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40">
