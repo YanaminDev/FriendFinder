@@ -24,14 +24,26 @@ const MapView: React.FC<MapProps> = ({ className = '', onLocationClick }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [tokenLoaded, setTokenLoaded] = useState(false);
+  const [mousePos, setMousePos] = useState<{ lat: number; lng: number; x: number; y: number } | null>(null);
 
   useEffect(() => {
-    fetch('http://localhost:3000/v1/map/token')
-      .then(res => res.json())
-      .then(data => {
-        mapboxgl.accessToken = data.token;
-        setTokenLoaded(true);
-      });
+    // Try to get token from frontend env first, fallback to backend
+    const token = import.meta.env.VITE_MAPBOX_TOKEN;
+    if (token) {
+      mapboxgl.accessToken = token;
+      setTokenLoaded(true);
+    } else {
+      // Fallback to backend if no frontend token
+      fetch('http://localhost:3000/v1/map/token')
+        .then(res => res.json())
+        .then(data => {
+          mapboxgl.accessToken = data.token;
+          setTokenLoaded(true);
+        })
+        .catch(err => {
+          console.error('Failed to load Mapbox token:', err);
+        });
+    }
   }, []);
 
   useEffect(() => {
@@ -81,6 +93,19 @@ const MapView: React.FC<MapProps> = ({ className = '', onLocationClick }) => {
       });
     });
 
+    // Add mouse move listener to show coordinates
+    const handleMouseMove = (e: mapboxgl.MapMouseEvent) => {
+      const { lng, lat } = e.lngLat;
+      setMousePos({ lat: parseFloat(lat.toFixed(4)), lng: parseFloat(lng.toFixed(4)), x: e.originalEvent.clientX, y: e.originalEvent.clientY });
+    };
+
+    const handleMouseLeave = () => {
+      setMousePos(null);
+    };
+
+    map.current.on('mousemove', handleMouseMove);
+    map.current.on('mouseleave', handleMouseLeave);
+
     return () => {
       if (map.current) {
         map.current.remove();
@@ -89,7 +114,21 @@ const MapView: React.FC<MapProps> = ({ className = '', onLocationClick }) => {
     };
   }, [tokenLoaded, onLocationClick]);
 
-  return <div ref={mapContainer} className={`w-full h-full ${className}`} />;
+  return <div ref={mapContainer} className={`w-full h-full ${className}`}>
+    {mousePos && (
+      <div
+        className="fixed bg-gray-900 text-white px-3 py-2 rounded shadow-lg text-sm font-mono z-50"
+        style={{
+          left: `${mousePos.x + 10}px`,
+          top: `${mousePos.y + 10}px`,
+          pointerEvents: 'none',
+        }}
+      >
+        <div>Lat: {mousePos.lat}</div>
+        <div>Lng: {mousePos.lng}</div>
+      </div>
+    )}
+  </div>;
 };
 
 export default MapView;

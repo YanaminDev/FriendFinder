@@ -1,53 +1,99 @@
 import BottomNav from "../../components/BottomNav"
 import TopBar from "../../components/TopBar"
-import Button from "../../components/Button"
-import MapView, { type LocationData } from "../map/MapView"
-import LocationDetail from "../map/LocationDetail"
-import { useState } from "react"
+import LocationPicker, { type SelectedLocation } from "../map/LocationPicker"
+import AddLocationModal from "../map/AddLocationModal"
+import LocationMarkers from "../map/LocationMarkers"
+import { useState, useRef } from "react"
+import mapboxgl from "mapbox-gl"
+
+interface Location {
+  id: string
+  name: string
+  description?: string
+  phone?: string
+  activityId?: string
+  openDate?: string
+  openTime?: string
+  closeTime?: string
+  lat: number
+  lng: number
+}
 
 export default function Home() {
-  const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null)
-  const [isLocationDetailOpen, setIsLocationDetailOpen] = useState(false)
+  const mapRef = useRef<mapboxgl.Map | null>(null)
+  const [isAddLocationModalOpen, setIsAddLocationModalOpen] = useState(false)
+  const [selectedPickerCoords, setSelectedPickerCoords] = useState<SelectedLocation | null>(null)
+  const [locations, setLocations] = useState<Location[]>([])
 
-  const handleLocationClick = (location: LocationData) => {
-    setSelectedLocation(location)
-    setIsLocationDetailOpen(true)
+  const handleMapReady = (map: mapboxgl.Map) => {
+    mapRef.current = map
   }
 
-  const handleAddLocationClick = () => {
-    setSelectedLocation(null)
-    setIsLocationDetailOpen(true)
+  const handleAddLocationClick = (coords: SelectedLocation) => {
+    setSelectedPickerCoords(coords)
+    setIsAddLocationModalOpen(true)
   }
 
-  const handleCloseLocationDetail = () => {
-    setIsLocationDetailOpen(false)
-    setTimeout(() => setSelectedLocation(null), 300) // Wait for animation
+  const handleSaveLocation = (formData: {
+    name: string
+    description: string
+    phone: string
+    activityId: string
+    openDate: string
+    openTime: string
+    closeTime: string
+    lat: number
+    lng: number
+  }) => {
+    const newLocation: Location = {
+      id: Date.now().toString(),
+      name: formData.name,
+      description: formData.description,
+      phone: formData.phone,
+      activityId: formData.activityId,
+      openDate: formData.openDate,
+      openTime: formData.openTime,
+      closeTime: formData.closeTime,
+      lat: formData.lat,
+      lng: formData.lng,
+    }
+    
+    setLocations(prev => [...prev, newLocation])
+    setIsAddLocationModalOpen(false)
+    console.log('Location saved:', newLocation)
   }
 
   return (
-    <div className="relative min-h-screen bg-gray-100">
+    <div className="relative w-full h-screen flex flex-col">
       <TopBar />
-        {/* Map Area */}
       
-      <div className="pt-16 pb-16 h-screen">
-        <MapView className="w-full h-full" onLocationClick={handleLocationClick} />
-      </div>
-      {/* Floating Button */}
-      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-40">
-        <Button size="sm" onClick={handleAddLocationClick}>
-          ADD LOCATION
-        </Button>
+      {/* Main Location Picker */}
+      <div className="flex-1 pt-16 relative">
+        <LocationPicker 
+          onAddLocationClick={handleAddLocationClick}
+          onMapReady={handleMapReady}
+        />
+        
+        {/* Saved Locations Counter */}
+        {locations.length > 0 && (
+          <div className="absolute top-20 right-6 z-30 bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg shadow-lg">
+            {locations.length}
+          </div>
+        )}
+        
+        {/* Display location markers - always render, checks map.current internally */}
+        <LocationMarkers map={mapRef} locations={locations} />
       </div>
 
-      {/* Location Detail Modal */}
-      <LocationDetail
-        location={selectedLocation}
-        isOpen={isLocationDetailOpen}
-        onClose={handleCloseLocationDetail}
+      {/* Add Location Modal */}
+      <AddLocationModal
+        isOpen={isAddLocationModalOpen}
+        onClose={() => setIsAddLocationModalOpen(false)}
+        onSave={handleSaveLocation}
+        initialCoords={selectedPickerCoords}
       />
         
       <BottomNav />
-
     </div>
   )
 }
