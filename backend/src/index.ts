@@ -1,3 +1,4 @@
+import './loadEnv';
 import express from 'express';
 import cookieParser from "cookie-parser"
 import { userRouter } from "./modules/user/userRouter";
@@ -12,6 +13,8 @@ import { locationImageRouter } from "./modules/location_image/locationImageRoute
 import { locationReviewRouter } from "./modules/location_review/locationReviewRouter"
 import {selectCancelRouter} from "./modules/select_cancel/selectCancelRouter"
 import {userInformationRouter} from "./modules/user_information/userInformationRouter"
+
+import { mapRouter } from "./modules/map/mapRouter";
 import {userLifeStyleRouter} from "./modules/user_life_style/userLifeStyleRouter"
 import { matchRouter } from "./modules/match/matchRouter";
 import {findMatchRouter} from "./modules/find_match/findMatchRouter";
@@ -42,6 +45,9 @@ app.use("/v1/match" , matchRouter())
 app.use("/v1/find-match" , findMatchRouter())
 app.use("/v1/chat" , chatRouter())
 app.use("/v1/chat-message" , chatMessageRouter())
+
+// Mapbox token endpoint
+app.use("/v1/map", mapRouter());
 
 
 
