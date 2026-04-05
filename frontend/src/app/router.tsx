@@ -5,6 +5,9 @@ import HomePage from "../pages/HomePage"
 import UserPage from "../pages/UserPage"
 import FeedbackPage from "../pages/FeedbackPage"
 import AddDataPage from "../pages/AddDataPage"
+import RegisterPage from "../pages/RegisterPage"
+import ForgotPasswordPage from "../pages/ForgotPasswordPage"
+
 export default function Router() {
   return (
     <BrowserRouter>
@@ -12,6 +15,8 @@ export default function Router() {
           <Route element={<PageWrapper />}>
             <Route path="/" element={<LoginPage /> } />
             <Route path="/login" element={<LoginPage /> } />
+            <Route path="/register" element={<RegisterPage /> } />
+            <Route path="/forgot-password" element={<ForgotPasswordPage /> } />
             <Route path="/user" element={<UserPage /> } />
             <Route path="/feedback" element={<FeedbackPage /> } />
             <Route path="/adddata" element={<AddDataPage /> } />
