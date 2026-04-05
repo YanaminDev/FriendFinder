@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from '../../components/Card';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
@@ -45,6 +45,17 @@ const AddLocationModal: React.FC<AddLocationModalProps> = ({ isOpen, onClose, on
     lat: initialCoords?.lat || 0,
     lng: initialCoords?.lng || 0,
   });
+
+  // Sync lat/lng whenever initialCoords changes (useState initializer only runs once)
+  useEffect(() => {
+    if (initialCoords) {
+      setFormData(prev => ({
+        ...prev,
+        lat: initialCoords.lat,
+        lng: initialCoords.lng,
+      }));
+    }
+  }, [initialCoords]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

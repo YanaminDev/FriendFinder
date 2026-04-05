@@ -2,9 +2,7 @@ import BottomNav from "../../components/BottomNav"
 import TopBar from "../../components/TopBar"
 import LocationPicker, { type SelectedLocation } from "../map/LocationPicker"
 import AddLocationModal from "../map/AddLocationModal"
-import LocationMarkers from "../map/LocationMarkers"
-import { useState, useRef } from "react"
-import mapboxgl from "mapbox-gl"
+import { useState, useEffect } from "react"
 
 interface Location {
   id: string
@@ -20,14 +18,43 @@ interface Location {
 }
 
 export default function Home() {
-  const mapRef = useRef<mapboxgl.Map | null>(null)
   const [isAddLocationModalOpen, setIsAddLocationModalOpen] = useState(false)
   const [selectedPickerCoords, setSelectedPickerCoords] = useState<SelectedLocation | null>(null)
   const [locations, setLocations] = useState<Location[]>([])
 
-  const handleMapReady = (map: mapboxgl.Map) => {
-    mapRef.current = map
-  }
+  // Fetch saved locations from backend on mount
+  useEffect(() => {
+    fetch('http://localhost:3000/v1/location/get', { credentials: 'include' })
+      .then(res => res.json())
+      .then((data: Array<{
+        id: string;
+        name: string;
+        description?: string;
+        phone?: string;
+        activity_id?: string;
+        open_date?: string;
+        open_time?: string;
+        close_time?: string;
+        position?: { latitude: number; longitude: number };
+      }>) => {
+        const mapped: Location[] = data
+          .filter(item => item.position)
+          .map(item => ({
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            phone: item.phone,
+            activityId: item.activity_id,
+            openDate: item.open_date,
+            openTime: item.open_time,
+            closeTime: item.close_time,
+            lat: item.position!.latitude,
+            lng: item.position!.longitude,
+          }))
+        setLocations(mapped)
+      })
+      .catch(err => console.error('Failed to fetch locations:', err))
+  }, [])
 
   const handleAddLocationClick = (coords: SelectedLocation) => {
     setSelectedPickerCoords(coords)
@@ -71,18 +98,8 @@ export default function Home() {
       <div className="flex-1 pt-16 relative">
         <LocationPicker 
           onAddLocationClick={handleAddLocationClick}
-          onMapReady={handleMapReady}
+          locations={locations}
         />
-        
-        {/* Saved Locations Counter */}
-        {locations.length > 0 && (
-          <div className="absolute top-20 right-6 z-30 bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg shadow-lg">
-            {locations.length}
-          </div>
-        )}
-        
-        {/* Display location markers - always render, checks map.current internally */}
-        <LocationMarkers map={mapRef} locations={locations} />
       </div>
 
       {/* Add Location Modal */}
