@@ -2,14 +2,16 @@ import {z} from 'zod';
 import { de } from 'zod/v4/locales';
 
 export const CreateLocationSchema = z.object({
-    name : z.string().max(50),
-    description : z.string().max(500).optional(),
-    phone : z.string().max(10).optional(),
-    position_id : z.string(),
-    activity_id : z.string(),
-    open_date : z.string().max(10).optional(),
-    open_time : z.string().max(5).optional(),
-    close_time : z.string().max(5).optional()
+    name : z.string().trim().min(1).max(50),
+    description : z.string().trim().max(500).optional(),
+    phone : z.string().trim().max(10).optional(),
+    activity_id : z.string().trim(),
+    latitude : z.number().min(-90).max(90),
+    longitude : z.number().min(-180).max(180),
+    position_id : z.string().trim().optional(),
+    open_date : z.string().trim().max(10).optional(),
+    open_time : z.string().trim().max(5).optional(),
+    close_time : z.string().trim().max(5).optional()
 })
 
 export const GetLocationByIdSchema = z.object({
@@ -21,11 +23,11 @@ export const DeleteLocationSchema = z.object({
 })
 
 export const UpdateLocationSchema = z.object({
-    description : z.string().max(500).optional(),
-    phone : z.string().max(10).optional(),
-    open_date : z.string().max(10).optional(),
-    open_time : z.string().max(5).optional(),
-    close_time : z.string().max(5).optional()
+    description : z.string().trim().max(500).optional(),
+    phone : z.string().trim().max(10).optional(),
+    open_date : z.string().trim().max(10).optional(),
+    open_time : z.string().trim().max(5).optional(),
+    close_time : z.string().trim().max(5).optional()
 })
 
 export const GetLocationForMatchSchema = z.object({
