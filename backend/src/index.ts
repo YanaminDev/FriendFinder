@@ -1,6 +1,7 @@
 import './loadEnv';
 import express from 'express';
 import cookieParser from "cookie-parser"
+import { corsMiddleware } from "./common/middleware/cors";
 import { userRouter } from "./modules/user/userRouter";
 import { lookingForRouter } from "./modules/looking_for/looking_forRouter"
 import { drinkingRouter } from "./modules/drinking/drinkingRouter"
@@ -16,12 +17,14 @@ import {userInformationRouter} from "./modules/user_information/userInformationR
 
 import { mapRouter } from "./modules/map/mapRouter";
 import {userLifeStyleRouter} from "./modules/user_life_style/userLifeStyleRouter"
+import { activityRouter } from "./modules/activity/activityRouter"
 
 
 const app = express()
 
 app.use(express.json())
 app.use(cookieParser())
+app.use(corsMiddleware)
 
 
 // login , register , logout
@@ -38,6 +41,7 @@ app.use("/v1/location-review" , locationReviewRouter())
 app.use("/v1/select-cancel" , selectCancelRouter())
 app.use("/v1/user-information" , userInformationRouter())
 app.use("/v1/user-life-style" , userLifeStyleRouter())
+app.use("/v1/activity", activityRouter())
 
 // Mapbox token endpoint
 app.use("/v1/map", mapRouter());
