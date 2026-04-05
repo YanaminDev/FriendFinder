@@ -1,0 +1,88 @@
+import axiosInstance from '../apis/main.api';
+import {
+  AUTH_LOGIN,
+  AUTH_REGISTER,
+  AUTH_LOGOUT,
+  AUTH_FORGOT_PASSWORD,
+} from '../apis/endpoint.api';
+import type { LoginRequest, RegisterRequest, ForgotPasswordRequest } from '../types/requests';
+import type { AuthResponse } from '../types/responses';
+
+export const authService = {
+  async login(credentials: LoginRequest): Promise<AuthResponse> {
+    try {
+      const response = await axiosInstance.post<AuthResponse>(AUTH_LOGIN, credentials);
+
+      // Store tokens if returned
+      if (response.data.accessToken) {
+        localStorage.setItem('accessToken', response.data.accessToken);
+      }
+      if (response.data.refreshToken) {
+        localStorage.setItem('refreshToken', response.data.refreshToken);
+      }
+      if (response.data.username) {
+        localStorage.setItem('username', response.data.username);
+      }
+      if (response.data.user_id) {
+        localStorage.setItem('userId', response.data.user_id);
+      }
+
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Login failed';
+      throw new Error(message);
+    }
+  },
+
+  async register(data: RegisterRequest): Promise<AuthResponse> {
+    try {
+      const response = await axiosInstance.post<AuthResponse>(AUTH_REGISTER, data);
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Registration failed';
+      throw new Error(message);
+    }
+  },
+
+  async logout(): Promise<void> {
+    try {
+      await axiosInstance.post(AUTH_LOGOUT);
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear storage regardless
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('username');
+      localStorage.removeItem('userId');
+    }
+  },
+
+  async forgotPassword(request: ForgotPasswordRequest): Promise<void> {
+    try {
+      await axiosInstance.post(AUTH_FORGOT_PASSWORD, request);
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Password reset failed';
+      throw new Error(message);
+    }
+  },
+
+  isAuthenticated(): boolean {
+    return !!localStorage.getItem('accessToken');
+  },
+
+  clearAuth(): void {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('username');
+    localStorage.removeItem('userId');
+  },
+
+  getStoredUser() {
+    return {
+      username: localStorage.getItem('username'),
+      userId: localStorage.getItem('userId'),
+      accessToken: localStorage.getItem('accessToken'),
+    };
+  },
+};
