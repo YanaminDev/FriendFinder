@@ -1,30 +1,31 @@
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
-import { useNavigate } from "react-router-dom";
 import Logo from "../../components/logo";
 import { LuEyeClosed } from "react-icons/lu";
 import { GiBoltEye } from "react-icons/gi";
 import Footer from "../footer/Footer";
+import { useAuth } from "../../hooks";
 
 export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
     const [showPass, setShowPass] = useState(false);
 
     const navigate = useNavigate();
+    const { login, loading, error } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError("");
-        setIsLoading(true);
-        // TODO: Add real authentication logic here
-        setTimeout(() => {
-            setIsLoading(false);
+
+        try {
+            await login({ username, password });
             navigate("/home");
-        }, 800);
+        } catch (err) {
+            // Error is handled in useAuth hook and stored in error state
+            console.error("Login error:", err);
+        }
     };
 
     return (
@@ -51,7 +52,7 @@ export default function Login() {
                             placeholder="Username"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            disabled={isLoading}
+                            disabled={loading}
                             className="rounded-xl border-gray-300 focus:border-blue-400 shadow-sm w-full"
                         />
                         <div className="relative w-full">
@@ -60,7 +61,7 @@ export default function Login() {
                                 placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                disabled={isLoading}
+                                disabled={loading}
                                 className="pr-12 rounded-xl border-gray-300 focus:border-blue-400 shadow-sm w-full"
                             />
                             <button
@@ -72,14 +73,36 @@ export default function Login() {
                                 {showPass ? <LuEyeClosed size={22} /> : <GiBoltEye size={22} />}
                             </button>
                         </div>
+                        
+                        {/* Forgot Password Link */}
+                        <div className="flex justify-end">
+                            <Link
+                                to="/forgot-password"
+                                className="text-sm text-blue-600 hover:text-blue-800 transition"
+                            >
+                                Forgot Password?
+                            </Link>
+                        </div>
+
                         <Button
                             type="submit"
                             size="md"
                             className="w-full mt-4 sm:mt-6"
-                            disabled={isLoading}
+                            disabled={loading}
                         >
-                            {isLoading ? "Logging in..." : "Login"}
+                            {loading ? "Logging in..." : "Login"}
                         </Button>
+
+                        {/* Register Link */}
+                        <div className="text-center mt-2">
+                            <span className="text-gray-600 text-sm">Don't have an account? </span>
+                            <Link
+                                to="/register"
+                                className="text-blue-600 hover:text-blue-800 font-semibold transition"
+                            >
+                                Register here
+                            </Link>
+                        </div>
                     </div>
                 </form>
             </main>
