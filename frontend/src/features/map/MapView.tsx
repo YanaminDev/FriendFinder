@@ -10,8 +10,8 @@ export interface LocationData {
   address: string;
   phone: string;
   hours: string;
-  lat: number;
-  lng: number;
+  latitude: number;
+  longitude: number;
   tags?: string[];
 }
 
@@ -24,26 +24,21 @@ const MapView: React.FC<MapProps> = ({ className = '', onLocationClick }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [tokenLoaded, setTokenLoaded] = useState(false);
-  const [mousePos, setMousePos] = useState<{ lat: number; lng: number; x: number; y: number } | null>(null);
+  const [mousePos, setMousePos] = useState<{ latitude: number; longitude: number; x: number; y: number } | null>(null);
 
   useEffect(() => {
-    // Try to get token from frontend env first, fallback to backend
-    const token = import.meta.env.VITE_MAPBOX_TOKEN;
-    if (token) {
-      mapboxgl.accessToken = token;
-      setTokenLoaded(true);
-    } else {
-      // Fallback to backend if no frontend token
-      fetch('http://localhost:3000/v1/map/token')
-        .then(res => res.json())
-        .then(data => {
+    // Fetch Mapbox token from backend
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/v1/map/token`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.token) {
           mapboxgl.accessToken = data.token;
           setTokenLoaded(true);
-        })
-        .catch(err => {
-          console.error('Failed to load Mapbox token:', err);
-        });
-    }
+        }
+      })
+      .catch(err => {
+        console.error('Failed to load Mapbox token:', err);
+      });
   }, []);
 
   useEffect(() => {
@@ -64,8 +59,8 @@ const MapView: React.FC<MapProps> = ({ className = '', onLocationClick }) => {
         address: '1790 น. พหลโยธิน แขวงจตุจักร กรุงเทพมหานคร 11000',
         phone: '0873568243',
         hours: 'open Mon-Fri 8:30 AM - 9:30 PM',
-        lat: 13.6919,
-        lng: 100.5581,
+        latitude: 13.6919,
+        longitude: 100.5581,
         tags: ['Cinema', 'Karaoke', 'Shopping']
       }
     ];
@@ -82,7 +77,7 @@ const MapView: React.FC<MapProps> = ({ className = '', onLocationClick }) => {
       markerElement.style.cursor = 'pointer';
 
       new mapboxgl.Marker({ element: markerElement })
-        .setLngLat([location.lng, location.lat])
+        .setLngLat([location.longitude, location.latitude])
         .addTo(map.current!);
 
       // Add click handler to marker
@@ -96,7 +91,7 @@ const MapView: React.FC<MapProps> = ({ className = '', onLocationClick }) => {
     // Add mouse move listener to show coordinates
     const handleMouseMove = (e: mapboxgl.MapMouseEvent) => {
       const { lng, lat } = e.lngLat;
-      setMousePos({ lat: parseFloat(lat.toFixed(4)), lng: parseFloat(lng.toFixed(4)), x: e.originalEvent.clientX, y: e.originalEvent.clientY });
+      setMousePos({ latitude: parseFloat(lat.toFixed(4)), longitude: parseFloat(lng.toFixed(4)), x: e.originalEvent.clientX, y: e.originalEvent.clientY });
     };
 
     const handleMouseLeave = () => {
@@ -124,8 +119,8 @@ const MapView: React.FC<MapProps> = ({ className = '', onLocationClick }) => {
           pointerEvents: 'none',
         }}
       >
-        <div>Lat: {mousePos.lat}</div>
-        <div>Lng: {mousePos.lng}</div>
+        <div>Lat: {mousePos.latitude}</div>
+        <div>Lng: {mousePos.longitude}</div>
       </div>
     )}
   </div>;

@@ -2,48 +2,39 @@ import React, { useState, useEffect } from 'react';
 import Card from '../../components/Card';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
+import { useActivities } from '../../hooks/useActivities';
 
 interface LocationFormData {
   name: string;
   description: string;
   phone: string;
-  activityId: string;
-  openDate: string;
-  openTime: string;
-  closeTime: string;
-  lat: number;
-  lng: number;
+  activity_id: string;
+  open_date: string;
+  open_time: string;
+  close_time: string;
+  latitude: number;
+  longitude: number;
 }
 
 interface AddLocationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (location: LocationFormData) => void;
-  initialCoords?: { lat: number; lng: number } | null;
+  initialCoords?: { latitude: number; longitude: number } | null;
 }
 
-// Sample activities - in real app would fetch from API
-const ACTIVITY_OPTIONS = [
-  { id: '1', name: 'Cafe' },
-  { id: '2', name: 'Restaurant' },
-  { id: '3', name: 'Cinema' },
-  { id: '4', name: 'Shopping Mall' },
-  { id: '5', name: 'Park' },
-  { id: '6', name: 'Karaoke' },
-  { id: '7', name: 'Gym' },
-];
-
 const AddLocationModal: React.FC<AddLocationModalProps> = ({ isOpen, onClose, onSave, initialCoords }) => {
+  const { activities } = useActivities();
   const [formData, setFormData] = useState<LocationFormData>({
     name: '',
     description: '',
     phone: '',
-    activityId: '',
-    openDate: '',
-    openTime: '',
-    closeTime: '',
-    lat: initialCoords?.lat || 0,
-    lng: initialCoords?.lng || 0,
+    activity_id: '',
+    open_date: '',
+    open_time: '',
+    close_time: '',
+    latitude: initialCoords?.latitude || 0,
+    longitude: initialCoords?.longitude || 0,
   });
 
   // Sync lat/lng whenever initialCoords changes (useState initializer only runs once)
@@ -51,8 +42,8 @@ const AddLocationModal: React.FC<AddLocationModalProps> = ({ isOpen, onClose, on
     if (initialCoords) {
       setFormData(prev => ({
         ...prev,
-        lat: initialCoords.lat,
-        lng: initialCoords.lng,
+        latitude: initialCoords.latitude,
+        longitude: initialCoords.longitude,
       }));
     }
   }, [initialCoords]);
@@ -70,7 +61,7 @@ const AddLocationModal: React.FC<AddLocationModalProps> = ({ isOpen, onClose, on
       alert('Please enter location name');
       return;
     }
-    if (!formData.activityId) {
+    if (!formData.activity_id) {
       alert('Please select an activity');
       return;
     }
@@ -82,12 +73,12 @@ const AddLocationModal: React.FC<AddLocationModalProps> = ({ isOpen, onClose, on
       name: '',
       description: '',
       phone: '',
-      activityId: '',
-      openDate: '',
-      openTime: '',
-      closeTime: '',
-      lat: initialCoords?.lat || 0,
-      lng: initialCoords?.lng || 0,
+      activity_id: '',
+      open_date: '',
+      open_time: '',
+      close_time: '',
+      latitude: initialCoords?.latitude || 0,
+      longitude: initialCoords?.longitude || 0,
     });
     onClose();
   };
@@ -99,7 +90,7 @@ const AddLocationModal: React.FC<AddLocationModalProps> = ({ isOpen, onClose, on
       <Card className="w-full max-w-2xl max-h-[80vh] flex flex-col p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-4 pb-4 border-b">
-          <h2 className="text-xl font-bold">Add Location Details</h2>
+          <h2 className="text-xl font-bold">Add Location </h2>
           <button
             onClick={handleClose}
             className="text-gray-500 hover:text-gray-800 transition text-2xl"
@@ -146,13 +137,13 @@ const AddLocationModal: React.FC<AddLocationModalProps> = ({ isOpen, onClose, on
               Activity Type *
             </label>
             <select
-              name="activityId"
-              value={formData.activityId}
+              name="activity_id"
+              value={formData.activity_id}
               onChange={handleInputChange}
               className="w-full px-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white"
             >
               <option value="">Select an activity...</option>
-              {ACTIVITY_OPTIONS.map(activity => (
+              {activities.map(activity => (
                 <option key={activity.id} value={activity.id}>
                   {activity.name}
                 </option>
@@ -182,8 +173,8 @@ const AddLocationModal: React.FC<AddLocationModalProps> = ({ isOpen, onClose, on
               </label>
               <Input
                 type="text"
-                name="openDate"
-                value={formData.openDate}
+                name="open_date"
+                value={formData.open_date}
                 onChange={handleInputChange}
                 placeholder="e.g., Mon-Fri"
               />
@@ -194,8 +185,8 @@ const AddLocationModal: React.FC<AddLocationModalProps> = ({ isOpen, onClose, on
               </label>
               <Input
                 type="text"
-                name="openTime"
-                value={formData.openTime}
+                name="open_time"
+                value={formData.open_time}
                 onChange={handleInputChange}
                 placeholder="09:00"
               />
@@ -206,8 +197,8 @@ const AddLocationModal: React.FC<AddLocationModalProps> = ({ isOpen, onClose, on
               </label>
               <Input
                 type="text"
-                name="closeTime"
-                value={formData.closeTime}
+                name="close_time"
+                value={formData.close_time}
                 onChange={handleInputChange}
                 placeholder="21:00"
               />
@@ -218,8 +209,8 @@ const AddLocationModal: React.FC<AddLocationModalProps> = ({ isOpen, onClose, on
           <div className="bg-gray-100 p-4 rounded-lg">
             <p className="text-sm font-semibold mb-2">Selected Location Coordinates</p>
             <div className="font-mono text-sm">
-              <div>Latitude: <span className="font-bold">{formData.lat.toFixed(6)}</span></div>
-              <div>Longitude: <span className="font-bold">{formData.lng.toFixed(6)}</span></div>
+              <div>Latitude: <span className="font-bold">{formData.latitude.toFixed(6)}</span></div>
+              <div>Longitude: <span className="font-bold">{formData.longitude.toFixed(6)}</span></div>
             </div>
           </div>
           </div>

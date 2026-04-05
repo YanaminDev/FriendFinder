@@ -4,8 +4,8 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import Button from '../../components/Button';
 
 export interface SelectedLocation {
-  lat: number;
-  lng: number;
+  latitude: number;
+  longitude: number;
 }
 
 export interface Location {
@@ -13,12 +13,12 @@ export interface Location {
   name: string;
   description?: string;
   phone?: string;
-  activityId?: string;
-  openDate?: string;
-  openTime?: string;
-  closeTime?: string;
-  lat: number;
-  lng: number;
+  activity_id?: string;
+  open_date?: string;
+  open_time?: string;
+  close_time?: string;
+  latitude: number;
+  longitude: number;
 }
 
 interface LocationPickerProps {
@@ -41,12 +41,12 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const coordsRef = useRef<SelectedLocation>({
-    lat: initialCenter[1],
-    lng: initialCenter[0],
+    latitude: initialCenter[1],
+    longitude: initialCenter[0],
   });
   const [displayCoords, setDisplayCoords] = useState<SelectedLocation>({
-    lat: initialCenter[1],
-    lng: initialCenter[0],
+    latitude: initialCenter[1],
+    longitude: initialCenter[0],
   });
   const lastUpdateRef = useRef(0);
   const THROTTLE_MS = 500;
@@ -73,8 +73,8 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
       if (!map.current) return;
       const center = map.current.getCenter();
       const newCoords = {
-        lat: parseFloat(center.lat.toFixed(6)),
-        lng: parseFloat(center.lng.toFixed(6)),
+        latitude: parseFloat(center.lat.toFixed(6)),
+        longitude: parseFloat(center.lng.toFixed(6)),
       };
       coordsRef.current = newCoords;
       const now = Date.now();
@@ -133,12 +133,12 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
         ${location.description ? `<div style="font-size:12px;color:#666;margin-bottom:4px">${location.description}</div>` : ''}
         ${location.phone ? `<div style="font-size:12px">📞 ${location.phone}</div>` : ''}
         <div style="font-size:11px;color:#999;margin-top:4px">
-          Lat: ${location.lat.toFixed(4)}<br/>Lng: ${location.lng.toFixed(4)}
+          Lat: ${location.latitude.toFixed(4)}<br/>Lng: ${location.longitude.toFixed(4)}
         </div>
       `);
 
       const marker = new mapboxgl.Marker({ element: el })
-        .setLngLat([location.lng, location.lat])
+        .setLngLat([location.longitude, location.latitude])
         .setPopup(popup)
         .addTo(map.current!);
 
@@ -176,8 +176,8 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
       <div className="absolute top-6 left-6 bg-white bg-opacity-90 px-4 py-3 rounded-lg shadow-lg z-20 font-mono text-sm">
         <div className="font-semibold text-gray-800 mb-2">Selected Location</div>
         <div className="text-gray-700">
-          <div>Lat: <span className="font-bold">{displayCoords.lat}</span></div>
-          <div>Lng: <span className="font-bold">{displayCoords.lng}</span></div>
+          <div>Lat: <span className="font-bold">{displayCoords.latitude}</span></div>
+          <div>Lng: <span className="font-bold">{displayCoords.longitude}</span></div>
         </div>
       </div>
 
