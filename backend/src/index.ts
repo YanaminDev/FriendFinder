@@ -1,6 +1,7 @@
 import './loadEnv';
 import express from 'express';
 import cookieParser from "cookie-parser"
+import { corsMiddleware } from "./common/middleware/cors";
 import { userRouter } from "./modules/user/userRouter";
 import { lookingForRouter } from "./modules/looking_for/looking_forRouter"
 import { drinkingRouter } from "./modules/drinking/drinkingRouter"
@@ -13,18 +14,20 @@ import { locationImageRouter } from "./modules/location_image/locationImageRoute
 import { locationReviewRouter } from "./modules/location_review/locationReviewRouter"
 import {selectCancelRouter} from "./modules/select_cancel/selectCancelRouter"
 import {userInformationRouter} from "./modules/user_information/userInformationRouter"
-
 import { mapRouter } from "./modules/map/mapRouter";
 import {userLifeStyleRouter} from "./modules/user_life_style/userLifeStyleRouter"
 import { matchRouter } from "./modules/match/matchRouter";
 import {findMatchRouter} from "./modules/find_match/findMatchRouter";
 import {chatRouter} from "./modules/chat/chatRouter";
 import { chatMessageRouter } from './modules/chat_message/chatMessageRouter'
+import { activityRouter } from "./modules/activity/activityRouter"
+
 
 const app = express()
 
 app.use(express.json())
 app.use(cookieParser())
+app.use(corsMiddleware)
 
 
 // login , register , logout
@@ -45,6 +48,7 @@ app.use("/v1/match" , matchRouter())
 app.use("/v1/find-match" , findMatchRouter())
 app.use("/v1/chat" , chatRouter())
 app.use("/v1/chat-message" , chatMessageRouter())
+app.use("/v1/activity", activityRouter())
 
 // Mapbox token endpoint
 app.use("/v1/map", mapRouter());

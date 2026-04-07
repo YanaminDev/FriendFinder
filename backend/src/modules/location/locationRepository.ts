@@ -53,10 +53,23 @@ export const locationRepository = {
 
     createLocation : async (data : CreateLocationInput) => {
         try {
+            // Create Position first if not provided
+            let positionId = data.position_id;
+            if (!positionId) {
+                const newPosition = await prisma.position.create({
+                    data: {
+                        name: data.name,
+                        latitude: data.latitude,
+                        longitude: data.longitude,
+                    }
+                });
+                positionId = newPosition.id;
+            }
+
             return await prisma.location.create({
                 data: {
                     name: data.name,
-                    position_id : data.position_id,
+                    position_id : positionId,
                     activity_id : data.activity_id,
                     ...(data.description !== undefined && { description: data.description }),
                     ...(data.phone !== undefined && { phone: data.phone }),
