@@ -1,8 +1,9 @@
 // ─── AppLogo ──────────────────────────────────────────────────────────────────
 
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Image } from 'react-native';
 import { cn } from '../../utils/cn';
+import logoImage from '../../image/logo/logo.png';
 
 interface AppLogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -11,9 +12,9 @@ interface AppLogoProps {
 }
 
 const SIZE_CONFIG = {
-  sm: { wrapper: 'w-8 h-8',  emoji: 'text-xl',   title: 'text-lg'  },
-  md: { wrapper: 'w-16 h-16', emoji: 'text-4xl',  title: 'text-2xl' },
-  lg: { wrapper: 'w-24 h-24', emoji: 'text-5xl',  title: 'text-3xl' },
+  sm: { wrapper: 'w-8 h-8',  imageSize: { width: 32, height: 32 },    title: 'text-lg'  },
+  md: { wrapper: 'w-16 h-16', imageSize: { width: 64, height: 64 },   title: 'text-2xl' },
+  lg: { wrapper: 'w-24 h-24', imageSize: { width: 96, height: 96 },   title: 'text-3xl' },
 } as const;
 
 const AppLogo: React.FC<AppLogoProps> = ({ size = 'md', showText = true, light = false }) => {
@@ -21,9 +22,11 @@ const AppLogo: React.FC<AppLogoProps> = ({ size = 'md', showText = true, light =
 
   return (
     <View className="items-center gap-2">
-      <View className={cn('rounded-full bg-primary-light items-center justify-center', cfg.wrapper)}>
-        <Text className={cfg.emoji}>💗</Text>
-      </View>
+      <Image
+        source={logoImage}
+        style={{ width: cfg.imageSize.width, height: cfg.imageSize.height }}
+        resizeMode="contain"
+      />
 
       {showText && (
         <Text className={cn('font-bold tracking-wide', cfg.title, light ? 'text-white' : 'text-primary')}>

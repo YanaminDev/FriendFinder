@@ -60,13 +60,14 @@ export const MOCK_VENUES: Venue[] = [
     successfulMatches: 12, address: '1799 ถ. พหลโยธิน แขวงจตุจักร เขตจตุจักร', phone: '0873568243',
     openHours: 'open Mon-Fri 8:30 AM - 9:30 PM',
     description: 'A comfortable and immersive place to enjoy movies together.',
+    latitude: 13.7722, longitude: 100.5575,
     reviews: [
       { id: 'r1', userId: 'u2', username: 'Gussuke', avatar: 'https://i.pravatar.cc/150?img=5', comment: 'A comfortable cinema with great sound and a clear screen.', liked: true },
       { id: 'r2', userId: 'user_001', username: 'SXN_BOXS', avatar: 'https://picsum.photos/seed/sxn1/50/50', comment: 'Perfect for relaxing and enjoying a movie together.', liked: true },
     ],
   },
-  { id: 'v2', name: 'Game Center', category: 'GAMING', image: 'https://picsum.photos/seed/game/200/150', successfulMatches: 6, address: '123 ถนนสุขุมวิท', phone: '0812345678', openHours: 'open Daily 10:00 AM - 10:00 PM', description: 'Fun gaming center with a wide variety of arcade games.', reviews: [] },
-  { id: 'v3', name: 'BLUE CAT CAFE', category: 'Coffee', image: 'https://picsum.photos/seed/cafe/200/150', successfulMatches: 2, address: '456 ถนนสีลม', phone: '0898765432', openHours: 'open Daily 8:00 AM - 8:00 PM', description: 'Cozy cat cafe with great coffee.', reviews: [] },
+  { id: 'v2', name: 'Game Center', category: 'GAMING', image: 'https://picsum.photos/seed/game/200/150', successfulMatches: 6, address: '123 ถนนสุขุมวิท', phone: '0812345678', openHours: 'open Daily 10:00 AM - 10:00 PM', description: 'Fun gaming center with a wide variety of arcade games.', latitude: 13.7194, longitude: 100.5613, reviews: [] },
+  { id: 'v3', name: 'BLUE CAT CAFE', category: 'Coffee', image: 'https://picsum.photos/seed/cafe/200/150', successfulMatches: 2, address: '456 ถนนสีลม', phone: '0898765432', openHours: 'open Daily 8:00 AM - 8:00 PM', description: 'Cozy cat cafe with great coffee.', latitude: 13.7270, longitude: 100.5321, reviews: [] },
 ];
 
 export const MOCK_HISTORY: HistoryItem[] = [

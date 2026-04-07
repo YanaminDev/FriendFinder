@@ -171,3 +171,6 @@ export const GET_POSITION_BY_ID = "/v1/position/get/:position_id";
 export const UPDATE_POSITION = "/v1/position/update/:position_id";
 export const DELETE_POSITION = "/v1/position/delete/:position_id";
 export const SEARCH_NEARBY_POSITION = "/v1/position/search-nearby";
+
+// ==================== Map ====================
+export const GET_MAPBOX_TOKEN = "/v1/map/token";

@@ -92,6 +92,8 @@ export interface Venue {
   openHours: string;
   description: string;
   reviews: VenueReview[];
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface HistoryItem {
