@@ -74,15 +74,6 @@ export default function Login() {
                             </button>
                         </div>
                         
-                        {/* Forgot Password Link */}
-                        <div className="flex justify-end">
-                            <Link
-                                to="/forgot-password"
-                                className="text-sm text-blue-600 hover:text-blue-800 transition"
-                            >
-                                Forgot Password?
-                            </Link>
-                        </div>
 
                         <Button
                             type="submit"
@@ -95,13 +86,7 @@ export default function Login() {
 
                         {/* Register Link */}
                         <div className="text-center mt-2">
-                            <span className="text-gray-600 text-sm">Don't have an account? </span>
-                            <Link
-                                to="/register"
-                                className="text-blue-600 hover:text-blue-800 font-semibold transition"
-                            >
-                                Register here
-                            </Link>
+                            
                         </div>
                     </div>
                 </form>

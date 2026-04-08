@@ -3,7 +3,7 @@ import TopBar from "../../components/TopBar"
 import LocationPicker, { type SelectedLocation } from "../map/LocationPicker"
 import AddLocationModal from "../map/AddLocationModal"
 import EditLocationModal from "../map/EditLocationModal"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 
 interface Location {
   id: string
@@ -18,46 +18,75 @@ interface Location {
   longitude: number
 }
 
+const MOCK_LOCATIONS: Location[] = [
+  {
+    id: "loc-1",
+    name: "Blue Sky Café",
+    description: "Cozy café with great coffee and pastries",
+    phone: "0812345678",
+    activity_id: "1",
+    open_date: "Mon-Fri",
+    open_time: "08:00",
+    close_time: "20:00",
+    latitude: 13.7945,
+    longitude: 100.3254,
+  },
+  {
+    id: "loc-2",
+    name: "Major Cineplex Ratchayothin",
+    description: "Modern cinema with IMAX screens",
+    phone: "0898765432",
+    activity_id: "3",
+    open_date: "Everyday",
+    open_time: "10:00",
+    close_time: "23:00",
+    latitude: 13.8387,
+    longitude: 100.5696,
+  },
+  {
+    id: "loc-3",
+    name: "Lumpini Park",
+    description: "Large public park in central Bangkok, great for jogging",
+    phone: "",
+    activity_id: "5",
+    open_date: "Everyday",
+    open_time: "04:30",
+    close_time: "21:00",
+    latitude: 13.7318,
+    longitude: 100.5415,
+  },
+  {
+    id: "loc-4",
+    name: "CentralWorld",
+    description: "One of the largest shopping malls in Bangkok",
+    phone: "0221001000",
+    activity_id: "4",
+    open_date: "Everyday",
+    open_time: "10:00",
+    close_time: "22:00",
+    latitude: 13.7466,
+    longitude: 100.5392,
+  },
+  {
+    id: "loc-5",
+    name: "Zen Studio Thonglor",
+    description: "Yoga and wellness studio",
+    phone: "0654321098",
+    activity_id: "7",
+    open_date: "Mon-Sat",
+    open_time: "06:00",
+    close_time: "21:00",
+    latitude: 13.7326,
+    longitude: 100.5845,
+  },
+]
+
 export default function Home() {
   const [isAddLocationModalOpen, setIsAddLocationModalOpen] = useState(false)
   const [isEditLocationModalOpen, setIsEditLocationModalOpen] = useState(false)
   const [selectedPickerCoords, setSelectedPickerCoords] = useState<SelectedLocation | null>(null)
   const [selectedEditLocation, setSelectedEditLocation] = useState<Location | null>(null)
-  const [locations, setLocations] = useState<Location[]>([])
-
-  // Fetch saved locations from backend on mount
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/v1/location/get`, { credentials: 'include' })
-      .then(res => res.json())
-      .then((data: Array<{
-        id: string;
-        name: string;
-        description?: string;
-        phone?: string;
-        activity_id?: string;
-        open_date?: string;
-        open_time?: string;
-        close_time?: string;
-        position?: { latitude: number; longitude: number };
-      }>) => {
-        const mapped: Location[] = data
-          .filter(item => item.position)
-          .map(item => ({
-            id: item.id,
-            name: item.name,
-            description: item.description,
-            phone: item.phone,
-            activity_id: item.activity_id,
-            open_date: item.open_date,
-            open_time: item.open_time,
-            close_time: item.close_time,
-            latitude: item.position!.latitude,
-            longitude: item.position!.longitude,
-          }))
-        setLocations(mapped)
-      })
-      .catch(err => console.error('Failed to fetch locations:', err))
-  }, [])
+  const [locations, setLocations] = useState<Location[]>(MOCK_LOCATIONS)
 
   const handleAddLocationClick = (coords: SelectedLocation) => {
     setSelectedPickerCoords(coords)
@@ -70,26 +99,9 @@ export default function Home() {
   }
 
   const handleDeleteLocation = async (locationId: string) => {
-    if (!confirm('Are you sure you want to delete this location?')) {
-      return
-    }
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v1/location/delete/${locationId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to delete location')
-      }
-
-      setLocations(prev => prev.filter(loc => loc.id !== locationId))
-      alert('Location deleted successfully!')
-    } catch (err) {
-      console.error('Failed to delete location:', err)
-      alert('Failed to delete location')
-    }
+    if (!confirm('Are you sure you want to delete this location?')) return
+    setLocations(prev => prev.filter(loc => loc.id !== locationId))
+    setIsEditLocationModalOpen(false)
   }
 
   const handleSaveLocation = async (formData: {
@@ -103,50 +115,20 @@ export default function Home() {
     latitude: number
     longitude: number
   }) => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v1/location/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: formData.name,
-          description: formData.description || undefined,
-          phone: formData.phone || undefined,
-          activity_id: formData.activity_id,
-          latitude: formData.latitude,
-          longitude: formData.longitude,
-          open_date: formData.open_date || undefined,
-          open_time: formData.open_time || undefined,
-          close_time: formData.close_time || undefined,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to save location')
-      }
-
-      const newLocation: Location = {
-        id: Date.now().toString(),
-        name: formData.name,
-        description: formData.description,
-        phone: formData.phone,
-        activity_id: formData.activity_id,
-        open_date: formData.open_date,
-        open_time: formData.open_time,
-        close_time: formData.close_time,
-        latitude: formData.latitude,
-        longitude: formData.longitude,
-      }
-      
-      setLocations(prev => [...prev, newLocation])
-      setIsAddLocationModalOpen(false)
-      alert('Location saved successfully!')
-    } catch (err) {
-      console.error('Failed to save location:', err)
-      alert('Failed to save location')
+    const newLocation: Location = {
+      id: `loc-${Date.now()}`,
+      name: formData.name,
+      description: formData.description,
+      phone: formData.phone,
+      activity_id: formData.activity_id,
+      open_date: formData.open_date,
+      open_time: formData.open_time,
+      close_time: formData.close_time,
+      latitude: formData.latitude,
+      longitude: formData.longitude,
     }
+    setLocations(prev => [...prev, newLocation])
+    setIsAddLocationModalOpen(false)
   }
 
   const handleUpdateLocation = async (locationId: string, formData: {
@@ -160,48 +142,12 @@ export default function Home() {
     latitude: number
     longitude: number
   }) => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v1/location/update/${locationId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          description: formData.description || undefined,
-          phone: formData.phone || undefined,
-          open_date: formData.open_date || undefined,
-          open_time: formData.open_time || undefined,
-          close_time: formData.close_time || undefined,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to update location')
-      }
-
-      setLocations(prev => prev.map(loc => 
-        loc.id === locationId 
-          ? {
-              ...loc,
-              name: formData.name,
-              description: formData.description,
-              phone: formData.phone,
-              activity_id: formData.activity_id,
-              open_date: formData.open_date,
-              open_time: formData.open_time,
-              close_time: formData.close_time,
-              latitude: formData.latitude,
-              longitude: formData.longitude,
-            }
-          : loc
-      ))
-      setIsEditLocationModalOpen(false)
-      alert('Location updated successfully!')
-    } catch (err) {
-      console.error('Failed to update location:', err)
-      alert('Failed to update location')
-    }
+    setLocations(prev => prev.map(loc =>
+      loc.id === locationId
+        ? { ...loc, ...formData }
+        : loc
+    ))
+    setIsEditLocationModalOpen(false)
   }
 
   return (
