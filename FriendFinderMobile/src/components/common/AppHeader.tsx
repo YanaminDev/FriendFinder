@@ -2,7 +2,9 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import AppLogo from './AppLogo';
+import { colors } from '../../constants/theme';
 
 interface AppHeaderProps {
   title: string;
@@ -17,15 +19,13 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onBackPress,
   rightElement,
 }) => (
-  <View className="flex-row items-center px-4 py-3 bg-white border-b border-gray-100">
+  <View className="flex-row items-center px-4 py-3 bg-white border-b border-gray-100 ">
     {/* Left */}
-    <View className="w-10 items-start">
-      {showBack ? (
+    <View className="w-10 items-start justify-center">
+      {showBack && (
         <TouchableOpacity onPress={onBackPress} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Text className="text-3xl text-primary font-bold leading-8">‹</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </TouchableOpacity>
-      ) : (
-        <AppLogo size="sm" showText={false} />
       )}
     </View>
 
@@ -42,7 +42,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     </View>
 
     {/* Right */}
-    <View className="w-10 items-end">{rightElement ?? null}</View>
+    <View className="w-10 items-end justify-center">{rightElement ?? null}</View>
   </View>
 );
 

@@ -21,6 +21,12 @@ import {findMatchRouter} from "./modules/find_match/findMatchRouter";
 import {chatRouter} from "./modules/chat/chatRouter";
 import { chatMessageRouter } from './modules/chat_message/chatMessageRouter'
 import { activityRouter } from "./modules/activity/activityRouter"
+import { experienceRouter } from "./modules/experience/experienceRouter"
+import { cancellationRouter } from "./modules/cancellation/cancellationRouter"
+import { positionRouter } from "./modules/position/positionRouter"
+import { educationRouter } from "./modules/education/educationRouter"
+import { languageRouter } from "./modules/language/languageRouter"
+// import { aiRouter } from "./modules/ai/aiRouter"
 
 
 const app = express()
@@ -49,12 +55,18 @@ app.use("/v1/find-match" , findMatchRouter())
 app.use("/v1/chat" , chatRouter())
 app.use("/v1/chat-message" , chatMessageRouter())
 app.use("/v1/activity", activityRouter())
+app.use("/v1/experience", experienceRouter())
+app.use("/v1/cancellation", cancellationRouter())
+app.use("/v1/position", positionRouter())
+app.use("/v1/education", educationRouter())
+app.use("/v1/language", languageRouter())
+// app.use("/v1/ai", aiRouter())
 
 // Mapbox token endpoint
 app.use("/v1/map", mapRouter());
 
 
 
-app.listen(3000, () => {
+app.listen(3000, '0.0.0.0', () => {
   console.log('Server is running on port http://localhost:3000');
 });

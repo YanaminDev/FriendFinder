@@ -1,4 +1,4 @@
-const BASE_URL = "http://192.168.1.100:3000";
+const BASE_URL = "http://10.78.145.25:3000";
 
 const headers = { "Content-Type": "application/json" };
 

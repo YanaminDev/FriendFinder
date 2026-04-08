@@ -2,14 +2,16 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { cn } from '../../utils/cn';
 import { TabRoute } from '../../types';
+import { colors } from '../../constants/theme';
 
-const TABS: { route: TabRoute; label: string; icon: string }[] = [
-  { route: 'HOME',    label: 'HOME',    icon: '🏠' },
-  { route: 'HISTORY', label: 'HISTORY', icon: '🕐' },
-  { route: 'CHAT',    label: 'CHAT',    icon: '💬' },
-  { route: 'PROFILE', label: 'PROFILE', icon: '👤' },
+const TABS: { route: TabRoute; label: string; iconName: string }[] = [
+  { route: 'HOME',    label: 'HOME',    iconName: 'home' },
+  { route: 'HISTORY', label: 'HISTORY', iconName: 'time' },
+  { route: 'CHAT',    label: 'CHAT',    iconName: 'chatbubble' },
+  { route: 'PROFILE', label: 'PROFILE', iconName: 'person' },
 ];
 
 interface BottomTabBarProps {
@@ -18,17 +20,21 @@ interface BottomTabBarProps {
 }
 
 const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onTabPress }) => (
-  <View className="flex-row bg-white border-t border-gray-200 pb-2 pt-1">
-    {TABS.map(({ route, label, icon }) => {
+  <View className="flex-row bg-white pb-6 pt-2 -mt-10">
+    {TABS.map(({ route, label, iconName }) => {
       const active = activeTab === route;
       return (
         <TouchableOpacity
           key={route}
-          className="flex-1 items-center justify-center py-1 gap-0.5"
+          className="flex-1 items-center justify-center py-1 gap-1"
           onPress={() => onTabPress(route)}
-          activeOpacity={0.7}
+          activeOpacity={0.6}
         >
-          <Text className={cn('text-xl', active ? 'opacity-100' : 'opacity-40')}>{icon}</Text>
+          <Ionicons
+            name={active ? (iconName as any) : (`${iconName}-outline` as any)}
+            size={24}
+            color={active ? colors.primary : colors.gray400}
+          />
           <Text className={cn('text-2xs font-medium tracking-wide', active ? 'text-primary font-semibold' : 'text-gray-400')}>
             {label}
           </Text>
