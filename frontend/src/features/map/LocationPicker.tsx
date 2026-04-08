@@ -85,6 +85,11 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
     };
 
     map.current.on('move', handleMapMove);
+    map.current.on('moveend', () => {
+      handleMapMove();
+      setDisplayCoords(coordsRef.current);
+      lastUpdateRef.current = Date.now();
+    });
     map.current.on('load', () => {
       handleMapMove();
       setMapLoaded(true);
@@ -162,7 +167,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
         </div>
       `);
 
-      const marker = new mapboxgl.Marker({ element: el })
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
         .setLngLat([location.longitude, location.latitude])
         .setPopup(popup)
         .addTo(map.current!);
@@ -173,7 +178,13 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
   }, [mapLoaded, locations, onLocationClickStable]);
 
   const handleAddLocation = () => {
-    onAddLocationClick?.(coordsRef.current);
+    if (!map.current) return;
+    const center = map.current.getCenter();
+    const coords = {
+      latitude: parseFloat(center.lat.toFixed(6)),
+      longitude: parseFloat(center.lng.toFixed(6)),
+    };
+    onAddLocationClick?.(coords);
   };
 
   return (

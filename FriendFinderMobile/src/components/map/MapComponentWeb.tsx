@@ -109,8 +109,12 @@ const MapComponentWeb: React.FC<MapComponentWebProps> = ({
             25% { transform: scale(1.1); }
             50% { transform: scale(1.2); }
           }
-          .animated-heart-marker {
+          .animated-heart-inner {
             animation: heartBeat 1.5s ease-in-out infinite;
+            transform-origin: center center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
         \`;
         document.head.appendChild(style);
@@ -125,10 +129,10 @@ const MapComponentWeb: React.FC<MapComponentWebProps> = ({
           markerEl${index}.style.display = 'flex';
           markerEl${index}.style.alignItems = 'center';
           markerEl${index}.style.justifyContent = 'center';
-          markerEl${index}.innerHTML = '<svg class="animated-heart-marker" viewBox="0 0 24 24" width="40" height="40" fill="#F47B7B"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
-          markerEl${index}.style.filter = 'drop-shadow(0 2px 6px rgba(0,0,0,0.3))';
+          markerEl${index}.innerHTML = '<div class="animated-heart-inner" style="filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3))"><svg viewBox="0 0 24 24" width="40" height="40" fill="#F47B7B"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>';
+          markerEl${index}.style.filter = 'none';
 
-          const marker${index} = new mapboxgl.Marker({ element: markerEl${index} })
+          const marker${index} = new mapboxgl.Marker({ element: markerEl${index}, anchor: 'center' })
             .setLngLat([${pin.longitude}, ${pin.latitude}])
             .addTo(map);
 
