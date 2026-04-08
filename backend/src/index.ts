@@ -14,9 +14,12 @@ import { locationImageRouter } from "./modules/location_image/locationImageRoute
 import { locationReviewRouter } from "./modules/location_review/locationReviewRouter"
 import {selectCancelRouter} from "./modules/select_cancel/selectCancelRouter"
 import {userInformationRouter} from "./modules/user_information/userInformationRouter"
-
 import { mapRouter } from "./modules/map/mapRouter";
 import {userLifeStyleRouter} from "./modules/user_life_style/userLifeStyleRouter"
+import { matchRouter } from "./modules/match/matchRouter";
+import {findMatchRouter} from "./modules/find_match/findMatchRouter";
+import {chatRouter} from "./modules/chat/chatRouter";
+import { chatMessageRouter } from './modules/chat_message/chatMessageRouter'
 import { activityRouter } from "./modules/activity/activityRouter"
 
 
@@ -41,6 +44,10 @@ app.use("/v1/location-review" , locationReviewRouter())
 app.use("/v1/select-cancel" , selectCancelRouter())
 app.use("/v1/user-information" , userInformationRouter())
 app.use("/v1/user-life-style" , userLifeStyleRouter())
+app.use("/v1/match" , matchRouter())
+app.use("/v1/find-match" , findMatchRouter())
+app.use("/v1/chat" , chatRouter())
+app.use("/v1/chat-message" , chatMessageRouter())
 app.use("/v1/activity", activityRouter())
 
 // Mapbox token endpoint
