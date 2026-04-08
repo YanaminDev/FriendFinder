@@ -19,7 +19,7 @@ export default function AddData() {
   const [categories, setCategories] = useState<Category[]>([
     {
       id: '1',
-      icon: '❓',
+      icon: '',
       title: 'Looking For',
       options: [
         { id: '1-1', name: 'Find Friend' },
