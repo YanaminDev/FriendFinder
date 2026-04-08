@@ -36,7 +36,7 @@ async function main() {
 
     console.log('✅ Admin user created successfully!');
     console.log('\n📝 Login Credentials:');
-    console.log('Username: Admin');
+    console.log('Username: Adminz');
     console.log('Password: Admin123!');
     console.log('\nUser:', admin);
   } catch (error) {

@@ -12,17 +12,26 @@ export const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await authService.login(credentials);
+      
+      // Mock response for frontend development
+      const mockResponse = {
+        username: credentials.username,
+        user_id: 'mock-user-id-' + Date.now(),
+        accessToken: 'mock-access-token-' + Date.now(),
+        refreshToken: 'mock-refresh-token-' + Date.now(),
+        role: 'user'
+      };
       
       // Update Zustand store
       setAuth(
         true,
-        response.username || credentials.username,
-        response.user_id,
-        response.accessToken
+        mockResponse.username,
+        mockResponse.user_id,
+        mockResponse.accessToken
       );
       
-      return response;
+      console.log('✅ Mock login successful:', mockResponse);
+      return mockResponse;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
       setError(message);

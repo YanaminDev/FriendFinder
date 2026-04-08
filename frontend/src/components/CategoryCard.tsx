@@ -75,53 +75,56 @@ export default function CategoryCard({
   }
 
   return (
-    <div className="bg-white rounded-lg p-6 mb-6 shadow-sm">
+    <div className="overflow-hidden rounded-2xl bg-white shadow-[0_2px_20px_rgba(0,0,0,0.06)] mb-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10">
+      <div className="bg-gradient-to-r from-[#FD7979] to-[#ff9a9a] px-5 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
             {isCreating ? (
               <input
                 type="text"
                 maxLength={2}
                 value={formIcon}
                 onChange={(e) => setFormIcon(e.target.value)}
-                className="w-10 h-10 text-center text-2xl bg-gray-100 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-300"
+                className="w-9 h-9 text-center text-xl bg-white/20 rounded-lg border border-white/30 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/40 backdrop-blur-sm"
                 placeholder="🏷️"
               />
             ) : (
-              <span className="text-2xl">{icon}</span>
+              <span className="text-xl">{icon}</span>
+            )}
+            {isCreating ? (
+              <input
+                type="text"
+                value={formTitle}
+                onChange={(e) => setFormTitle(e.target.value)}
+                placeholder="Category Name"
+                autoFocus
+                className="text-base font-bold text-white bg-white/20 rounded-lg border border-white/30 px-3 py-1 placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/40 backdrop-blur-sm"
+              />
+            ) : (
+              <h3 className="text-base font-bold text-white">{title}</h3>
             )}
           </div>
+
           {isCreating ? (
-            <input
-              type="text"
-              value={formTitle}
-              onChange={(e) => setFormTitle(e.target.value)}
-              placeholder="Category Name"
-              autoFocus
-              className="text-lg font-semibold text-gray-800 bg-gray-100 rounded-lg border border-gray-200 px-3 py-1 focus:outline-none focus:ring-2 focus:ring-red-300"
-            />
+            <div className="flex gap-2">
+              <button onClick={onCancel} className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm hover:bg-white/30 transition">
+                Cancel
+              </button>
+              <button onClick={handleSaveCategory} className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#FD7979] hover:bg-white/90 transition">
+                Save
+              </button>
+            </div>
           ) : (
-            <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+            <button onClick={() => onDeleteCategory?.(id)} className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm hover:bg-white/30 transition">
+              Delete
+            </button>
           )}
         </div>
-
-        {isCreating ? (
-          <div className="flex gap-2">
-            <button onClick={onCancel} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-full text-sm font-semibold hover:bg-gray-300 transition">
-              Cancel
-            </button>
-            <button onClick={handleSaveCategory} className="px-4 py-2 bg-red-500 text-white rounded-full text-sm font-semibold hover:bg-red-600 transition">
-              Save
-            </button>
-          </div>
-        ) : (
-          <button onClick={() => onDeleteCategory?.(id)} className="px-4 py-2 bg-red-500 text-white rounded-full text-sm font-semibold hover:bg-red-600 transition">
-            Delete
-          </button>
-        )}
       </div>
+
+      {/* Body */}
+      <div className="p-5">
 
       {/* Options */}
       <div className="space-y-2 mb-4">
@@ -185,6 +188,7 @@ export default function CategoryCard({
       >
         + Add New Option
       </button>
+      </div>
     </div>
   )
 }
