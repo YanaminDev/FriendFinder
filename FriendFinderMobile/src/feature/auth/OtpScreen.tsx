@@ -31,9 +31,9 @@ const OtpScreen: React.FC<{ navigation: any; route: { params: { phone: string } 
           <Text className="text-3xl text-primary font-bold leading-8">‹</Text>
         </TouchableOpacity>
 
-        <View className="flex-1 px-6">
+        <View className="flex-1 px-7">
           <View className="items-center my-6">
-            <AppLogo size="md" />
+            <AppLogo size="md" showText={false} />
           </View>
 
           <Text className="text-xl font-bold text-gray-900 mb-2">ระบุรหัสยืนยัน</Text>
@@ -65,7 +65,7 @@ const OtpScreen: React.FC<{ navigation: any; route: { params: { phone: string } 
           </TouchableOpacity>
         </View>
 
-        <View className="px-6 pb-8">
+        <View className="px-7 pb-20">
           <Button
             label="ดำเนินการต่อ"
             onPress={() => navigation.navigate('UserInfo')}

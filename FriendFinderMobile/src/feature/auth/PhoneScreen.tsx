@@ -15,9 +15,9 @@ const PhoneScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <Text className="text-3xl text-primary font-bold leading-8">‹</Text>
         </TouchableOpacity>
 
-        <View className="flex-1 px-6">
+        <View className="flex-1 px-7">
           <View className="items-center my-6">
-            <AppLogo size="md" />
+            <AppLogo size="md" showText={false} />
           </View>
 
           <Text className="text-xl font-bold text-gray-900 mb-6">หมายเลขโทรศัพท์ของคุณ</Text>
@@ -45,7 +45,7 @@ const PhoneScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </View>
         </View>
 
-        <View className="px-6 pb-8">
+        <View className="px-7 pb-20">
           <Button
             label="ดำเนินการต่อ"
             onPress={() => navigation.navigate('OtpVerification', { phone: `+66${phone}` })}

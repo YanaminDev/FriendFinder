@@ -10,7 +10,7 @@ const SplashScreen: React.FC<{ navigation: any }> = ({ navigation }) => (
     <View className="flex-1 px-8 justify-between">
       {/* Center logo */}
       <View className="flex-1 items-center justify-center">
-        <AppLogo size="lg" />
+        <AppLogo size="lg" showText={false} />
       </View>
 
       {/* Bottom CTAs */}

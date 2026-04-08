@@ -53,13 +53,13 @@ const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({
 
       <ScrollView
         className="flex-1"
-        contentContainerClassName="px-6 pb-4 flex-grow"
+        contentContainerClassName="px-7 pb-4 flex-grow"
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         {/* Logo */}
         <View className="items-center my-5">
-          <AppLogo size="md" />
+          <AppLogo size="md" showText={false} />
         </View>
 
         {/* Title + Subtitle */}
@@ -72,7 +72,7 @@ const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({
       </ScrollView>
 
       {/* Bottom */}
-      <View className="px-6 pb-16 gap-3">
+      <View className="px-7 pb-20 gap-3">
         {footer}
         {onCancel && (
           <TouchableOpacity onPress={onCancel} className="items-center py-2">

@@ -5,6 +5,7 @@ import ChatDetailScreen from '../../src/feature/chat/ChatDetailScreen';
 export default function ChatDetailRoute() {
   const navigation = useNav();
   const params = useLocalSearchParams<{ conversationId: string }>();
+  console.log('ChatDetail route params:', params);
   const route = { params: { conversationId: params.conversationId || '' } };
   return <ChatDetailScreen navigation={navigation} route={route} />;
 }

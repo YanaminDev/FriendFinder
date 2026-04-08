@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../components/common/AppHeader';
 import NotificationButton from '../../components/common/NotificationButton';
 import NotificationCard from '../../components/common/NotificationCard';
+import LocationDetailCard from '../../components/map/LocationDetailCard';
 import PrimaryButton from '../../components/common/PrimaryButton';
 import MapComponentWeb from '../../components/map/MapComponentWeb';
 import { MOCK_VENUES } from '../../constants/mockData';
@@ -39,6 +40,7 @@ const MOCK_NOTIFICATIONS = [
 
 const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
 
   return (
   <View className="flex-1 bg-white">
@@ -55,10 +57,12 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               latitude: v.latitude || 13.7563,
             }))}
             height="100%"
-            onPinPress={(pin) => {
+            onPinPress={(pin: any) => {
+              console.log('Pin pressed:', pin);
               const venue = MOCK_VENUES.find(v => v.id === pin.id);
+              console.log('Found venue:', venue);
               if (venue) {
-                navigation.navigate('VenueDetail', { venueId: venue.id });
+                setSelectedLocation({ ...venue, markerPosition: pin.position });
               }
             }}
           />
@@ -88,6 +92,24 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <View className="absolute left-1/2" style={{ bottom: 30, marginLeft: -85 }}>
             <PrimaryButton onPress={() => navigation.navigate('FindMatch')} size="md" text="CHECK IN NOW" />
           </View>
+
+          {/* Location Detail Card */}
+          {selectedLocation && (
+            <LocationDetailCard
+              id={selectedLocation.id}
+              title={selectedLocation.name}
+              description={selectedLocation.description}
+              phone={selectedLocation.phone}
+              openTime={selectedLocation.openHours}
+              imageUrl={selectedLocation.image}
+              markerPosition={selectedLocation.markerPosition}
+              onClose={() => setSelectedLocation(null)}
+              onPress={() => {
+                setSelectedLocation(null);
+                navigation.navigate('VenueDetail', { venueId: selectedLocation.id });
+              }}
+            />
+          )}
         </View>
       </View>
     </SafeAreaView>

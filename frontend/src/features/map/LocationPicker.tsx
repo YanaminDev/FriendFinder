@@ -115,18 +115,43 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
 
     locations.forEach(location => {
       const el = document.createElement('div');
-      el.style.width = '40px';
-      el.style.height = '40px';
-      el.style.backgroundColor = '#FF4840';
-      el.style.borderRadius = '50%';
-      el.style.border = '3px solid white';
-      el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+      el.style.width = '50px';
+      el.style.height = '50px';
       el.style.cursor = 'pointer';
       el.style.display = 'flex';
       el.style.alignItems = 'center';
       el.style.justifyContent = 'center';
-      el.style.fontSize = '18px';
-      el.textContent = '📍';
+      el.style.position = 'relative';
+
+      // SVG Heart with animation
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('width', '40');
+      svg.setAttribute('height', '40');
+      svg.setAttribute('fill', '#F47B7B');
+      svg.innerHTML = `
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      `;
+
+      // Add animation
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes heartBeat {
+          0%, 100% { transform: scale(1); }
+          25% { transform: scale(1.1); }
+          50% { transform: scale(1.2); }
+        }
+        .animated-heart {
+          animation: heartBeat 1.5s ease-in-out infinite;
+        }
+      `;
+      document.head.appendChild(style);
+      svg.classList.add('animated-heart');
+
+      el.appendChild(svg);
+
+      // Add white border effect
+      el.style.filter = 'drop-shadow(0 2px 6px rgba(0,0,0,0.3))';
 
       const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
         <div style="font-weight:bold;margin-bottom:4px">${location.name}</div>

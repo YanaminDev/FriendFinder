@@ -101,13 +101,53 @@ const MapComponentWeb: React.FC<MapComponentWebProps> = ({
           zoom: 12
         });
 
+        // Add animation styles
+        const style = document.createElement('style');
+        style.textContent = \`
+          @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.1); }
+            50% { transform: scale(1.2); }
+          }
+          .animated-heart-marker {
+            animation: heartBeat 1.5s ease-in-out infinite;
+          }
+        \`;
+        document.head.appendChild(style);
+
         ${pins
           .map(
-            pin => `
-          new mapboxgl.Marker()
+            (pin, index) => `
+          const markerEl${index} = document.createElement('div');
+          markerEl${index}.style.width = '50px';
+          markerEl${index}.style.height = '50px';
+          markerEl${index}.style.cursor = 'pointer';
+          markerEl${index}.style.display = 'flex';
+          markerEl${index}.style.alignItems = 'center';
+          markerEl${index}.style.justifyContent = 'center';
+          markerEl${index}.innerHTML = '<svg class="animated-heart-marker" viewBox="0 0 24 24" width="40" height="40" fill="#F47B7B"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+          markerEl${index}.style.filter = 'drop-shadow(0 2px 6px rgba(0,0,0,0.3))';
+
+          const marker${index} = new mapboxgl.Marker({ element: markerEl${index} })
             .setLngLat([${pin.longitude}, ${pin.latitude}])
-            .setPopup(new mapboxgl.Popup().setHTML('<h3>${pin.title}</h3>'))
             .addTo(map);
+
+          markerEl${index}.addEventListener('click', () => {
+            const rect = markerEl${index}.getBoundingClientRect();
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'PIN_PRESS',
+              pin: {
+                id: '${pin.id}',
+                title: '${pin.title}',
+                longitude: ${pin.longitude},
+                latitude: ${pin.latitude}
+              },
+              position: {
+                x: rect.left,
+                y: rect.top
+              }
+            }));
+          });
         `
           )
           .join('\n')}
@@ -116,6 +156,17 @@ const MapComponentWeb: React.FC<MapComponentWebProps> = ({
     </html>
   `;
 
+  const handleWebViewMessage = (event: any) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === 'PIN_PRESS' && onPinPress) {
+        onPinPress(data.pin);
+      }
+    } catch (error) {
+      console.error('Error parsing WebView message:', error);
+    }
+  };
+
   return (
     <View style={{ height, borderRadius: 12, overflow: 'hidden' }}>
       <WebView
@@ -123,6 +174,7 @@ const MapComponentWeb: React.FC<MapComponentWebProps> = ({
         style={{ flex: 1 }}
         javaScriptEnabled
         domStorageEnabled
+        onMessage={handleWebViewMessage}
       />
     </View>
   );

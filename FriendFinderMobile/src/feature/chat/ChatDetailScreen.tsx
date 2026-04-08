@@ -9,7 +9,9 @@ import { ChatMessage } from '../../types';
 
 const ChatDetailScreen: React.FC<{ navigation: any; route: { params: { conversationId: string } } }> = ({ navigation, route }) => {
   const { conversationId } = route.params;
+  console.log('ChatDetailScreen rendering with conversationId:', conversationId);
   const conversation = MOCK_CONVERSATIONS.find(c => c.id === conversationId) ?? MOCK_CONVERSATIONS[0];
+  console.log('Found conversation:', conversation);
   const [messages, setMessages] = useState<ChatMessage[]>(MOCK_MESSAGES);
   const [text, setText] = useState('');
 

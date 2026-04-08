@@ -13,7 +13,7 @@ export default function TabsLayout() {
 
   const handleTabPress = (tab: TabRoute) => {
     switch (tab) {
-      case 'HOME':    router.push('/(tabs)'); break;
+      case 'HOME':    router.push('/(tabs)/home'); break;
       case 'HISTORY': router.push('/(tabs)/history'); break;
       case 'CHAT':    router.push('/(tabs)/chat'); break;
       case 'PROFILE': router.push('/(tabs)/profile'); break;
@@ -25,7 +25,7 @@ export default function TabsLayout() {
       tabBar={() => <BottomTabBar activeTab={activeTab} onTabPress={handleTabPress} />}
       screenOptions={{ headerShown: false }}
     >
-      <Tabs.Screen name="index" />
+      <Tabs.Screen name="home" />
       <Tabs.Screen name="history" />
       <Tabs.Screen name="chat" />
       <Tabs.Screen name="profile" />

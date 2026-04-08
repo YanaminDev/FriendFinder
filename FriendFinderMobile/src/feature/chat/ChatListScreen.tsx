@@ -28,7 +28,10 @@ const ChatListScreen: React.FC<{ navigation: any }> = ({ navigation }) => (
               avatar={c.user.avatar}
               username={c.user.username}
               isOnline={c.user.isOnline}
-              onPress={() => navigation.navigate('ChatDetail', { conversationId: c.id })}
+              onPress={() => {
+                console.log('OnlineUserAvatar pressed, navigating with conversationId:', c.id);
+                navigation.navigate('ChatDetail', { conversationId: c.id });
+              }}
             />
           ))}
         </ScrollView>
@@ -43,7 +46,10 @@ const ChatListScreen: React.FC<{ navigation: any }> = ({ navigation }) => (
       renderItem={({ item }) => (
         <ChatListItem
           conversation={item}
-          onPress={() => navigation.navigate('ChatDetail', { conversationId: item.id })}
+          onPress={() => {
+            console.log('Navigating to ChatDetail with conversationId:', item.id);
+            navigation.navigate('ChatDetail', { conversationId: item.id });
+          }}
         />
       )}
       showsVerticalScrollIndicator={false}

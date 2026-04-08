@@ -15,9 +15,9 @@ const UserInfoScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <Text className="text-3xl text-primary font-bold leading-8">‹</Text>
         </TouchableOpacity>
 
-        <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+        <ScrollView className="flex-1 px-7" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
           <View className="items-center my-6">
-            <AppLogo size="md" />
+            <AppLogo size="md" showText={false} />
           </View>
 
           <Text className="text-xl font-bold text-gray-900 mb-1">ข้อมูลของคุณ</Text>
@@ -46,7 +46,7 @@ const UserInfoScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <Text className="text-xs text-gray-400 mt-2">ชื่อที่แสดงในแอปจะเป็นชื่อนี้</Text>
         </ScrollView>
 
-        <View className="px-6 pb-8">
+        <View className="px-7 pb-12">
           <Button
             label="ดำเนินการต่อ"
             onPress={() => navigation.navigate('Gender')}

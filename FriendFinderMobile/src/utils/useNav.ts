@@ -2,40 +2,40 @@ import { useRouter } from 'expo-router';
 
 const ROUTE_MAP: Record<string, string> = {
   // Auth
-  PhoneNumber: '/phone',
-  Login: '/login',
-  OtpVerification: '/otp',
-  Password: '/password',
+  PhoneNumber: '/page/phone',
+  Login: '/page/login',
+  OtpVerification: '/page/otp',
+  Password: '/page/password',
   // Onboarding
-  UserInfo: '/user-info',
-  Gender: '/gender',
-  Birthday: '/birthday',
-  InterestedGender: '/interested-gender',
-  LookingFor: '/looking-for',
-  Language: '/language',
-  BloodType: '/blood-type',
-  Height: '/height',
-  Education: '/education',
-  Smoking: '/smoking',
-  Drinking: '/drinking',
-  Exercise: '/exercise',
-  Pets: '/pets',
+  UserInfo: '/page/user-info',
+  Gender: '/page/gender',
+  Birthday: '/page/birthday',
+  InterestedGender: '/page/interested-gender',
+  LookingFor: '/page/looking-for',
+  Language: '/page/language',
+  BloodType: '/page/blood-type',
+  Height: '/page/height',
+  Education: '/page/education',
+  Smoking: '/page/smoking',
+  Drinking: '/page/drinking',
+  Exercise: '/page/exercise',
+  Pets: '/page/pets',
   // Main app (tabs)
-  Home: '/(tabs)',
+  Home: '/(tabs)/home',
   History: '/(tabs)/history',
   ChatList: '/(tabs)/chat',
   Profile: '/(tabs)/profile',
   // Stack screens
-  SelectActivity: '/select-activity',
-  Match: '/match',
-  MatchUp: '/match-up',
-  MatchSuccess: '/match-success',
-  MatchCancelled: '/match-cancelled',
-  VenueDetail: '/venue-detail',
-  ChatDetail: '/chat-detail',
-  Notification: '/notification',
-  EditProfile: '/edit-profile',
-  ReviewExperience: '/review-experience',
+  SelectActivity: '/page/select-activity',
+  Match: '/page/match',
+  MatchUp: '/page/match-up',
+  MatchSuccess: '/page/match-success',
+  MatchCancelled: '/page/match-cancelled',
+  VenueDetail: '/page/venue-detail',
+  ChatDetail: '/page/chat-detail',
+  Notification: '/page/notification',
+  EditProfile: '/page/edit-profile',
+  ReviewExperience: '/page/review-experience',
 };
 
 export function useNav() {
@@ -45,7 +45,8 @@ export function useNav() {
       const path = ROUTE_MAP[screen];
       if (path) {
         if (params) {
-          router.push({ pathname: path as never, params });
+          const queryString = new URLSearchParams(params).toString();
+          router.push(`${path}?${queryString}` as never);
         } else {
           router.push(path as never);
         }
