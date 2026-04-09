@@ -1,79 +1,127 @@
 // ─── BirthdayScreen ───────────────────────────────────────────────────────────
 
-import React, { useState } from 'react';
-import { View, Text, TextInput } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, ScrollView } from 'react-native';
 import OnboardingLayout from '../../components/common/OnboardingLayout';
 import Button from '../../components/common/Button';
-import { cn } from '../../utils/cn';
+import { colors } from '../../constants/theme';
+import { useAppDispatch } from '../../redux/hooks';
+import { setBirthOfDate, setAge } from '../../redux/userSlice';
+
+const ITEM_HEIGHT = 50;
+const VISIBLE_ITEMS = 5;
+
+// PickerColumn Component
+interface PickerColumnProps {
+  items: number[];
+  selectedValue: number;
+  onChange: (value: number) => void;
+  label: string;
+}
+
+const PickerColumn: React.FC<PickerColumnProps> = ({ items, selectedValue, onChange, label }) => {
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const handleMomentumScrollEnd = (event: any) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    const index = Math.round(offsetY / ITEM_HEIGHT);
+    onChange(items[Math.max(0, Math.min(index, items.length - 1))]);
+  };
+
+  return (
+    <View className="items-center gap-2 flex-1">
+      <View
+        className="border-2 rounded-2xl overflow-hidden"
+        style={{
+          borderColor: colors.primary,
+          height: ITEM_HEIGHT * VISIBLE_ITEMS,
+          width: '100%',
+        }}
+      >
+        <ScrollView
+          ref={scrollViewRef}
+          scrollEventThrottle={16}
+          onMomentumScrollEnd={handleMomentumScrollEnd}
+          snapToInterval={ITEM_HEIGHT}
+          decelerationRate={0.8}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingVertical: ITEM_HEIGHT * 2 }}
+        >
+          {items.map((item) => (
+            <View key={item} style={{ height: ITEM_HEIGHT, justifyContent: 'center' }}>
+              <Text
+                className={`text-center font-semibold ${
+                  item === selectedValue ? 'text-primary text-xl' : 'text-gray-400 text-base'
+                }`}
+              >
+                {String(item).padStart(2, '0')}
+              </Text>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+      <Text className="text-xs text-gray-500 font-medium">{label}</Text>
+    </View>
+  );
+};
 
 const BirthdayScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const [day, setDay] = useState('');
-  const [month, setMonth] = useState('');
-  const [year, setYear] = useState('');
+  const dispatch = useAppDispatch();
 
-  const isValid =
-    day.length === 2 &&
-    month.length === 2 &&
-    year.length === 4 &&
-    +day >= 1 && +day <= 31 &&
-    +month >= 1 && +month <= 12;
+  const currentYear = new Date().getFullYear();
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const years = Array.from({ length: 100 }, (_, i) => currentYear - i).reverse();
 
-  const fieldClass = 'border border-gray-300 rounded-xl h-12 text-xl font-bold text-gray-900 text-center bg-white';
+  const [day, setDay] = useState(1);
+  const [month, setMonth] = useState(1);
+  const [year, setYear] = useState(2000);
+
+  const calculateAge = (birthDate: string) => {
+    const [y, m, d] = birthDate.split('-').map(Number);
+    const today = new Date();
+    let age = today.getFullYear() - y;
+    if (today.getMonth() + 1 < m || (today.getMonth() + 1 === m && today.getDate() < d)) {
+      age--;
+    }
+    return Math.max(13, age); // Minimum age 13
+  };
+
+  const birthDateString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  const age = calculateAge(birthDateString);
+  const isValid = age >= 13;
 
   return (
     <OnboardingLayout
       onBack={() => navigation.goBack()}
       title="วันเกิดของคุณ"
-      subtitle="ข้อมูลนี้จะไม่แสดงต่อสาธารณะ"
+      subtitle="ต้องมีอายุอย่างน้อย 13 ปี"
       footer={
         <Button
           label="ดำเนินการต่อ"
-          onPress={() => navigation.navigate('InterestedGender')}
+          onPress={() => {
+            if (isValid) {
+              dispatch(setBirthOfDate(birthDateString));
+              dispatch(setAge(age));
+              navigation.navigate('InterestedGender');
+            }
+          }}
           disabled={!isValid}
         />
       }
     >
-      <View className="flex-row gap-3 justify-center">
-        {/* Day */}
-        <View className="flex-1 items-center gap-2">
-          <TextInput
-            value={day}
-            onChangeText={v => setDay(v.replace(/\D/g, '').slice(0, 2))}
-            placeholder="DD"
-            placeholderTextColor="#9ca3af"
-            keyboardType="number-pad"
-            maxLength={2}
-            className={cn(fieldClass, 'w-full')}
-          />
-          <Text className="text-xs text-gray-400">วัน</Text>
+      <View className="gap-6">
+        {/* Picker Wheels */}
+        <View className="flex-row gap-2">
+          <PickerColumn items={days} selectedValue={day} onChange={setDay} label="วัน" />
+          <PickerColumn items={months} selectedValue={month} onChange={setMonth} label="เดือน" />
+          <PickerColumn items={years} selectedValue={year} onChange={setYear} label="ปี" />
         </View>
 
-        {/* Month */}
-        <View className="flex-1 items-center gap-2">
-          <TextInput
-            value={month}
-            onChangeText={v => setMonth(v.replace(/\D/g, '').slice(0, 2))}
-            placeholder="MM"
-            placeholderTextColor="#9ca3af"
-            keyboardType="number-pad"
-            maxLength={2}
-            className={cn(fieldClass, 'w-full')}
-          />
-          <Text className="text-xs text-gray-400">เดือน</Text>
-        </View>
-
-        {/* Year */}
-        <View className="flex-[2] items-center gap-2">
-          <TextInput
-            value={year}
-            onChangeText={v => setYear(v.replace(/\D/g, '').slice(0, 4))}
-            placeholder="YYYY"
-            placeholderTextColor="#9ca3af"
-            keyboardType="number-pad"
-            maxLength={4}
-            className={cn(fieldClass, 'w-full')}
-          />
-          <Text className="text-xs text-gray-400">ปี (ค.ศ.)</Text>
+        {/* Age Display */}
+        <View className="bg-primary-light rounded-2xl px-4 py-3 items-center">
+          <Text className="text-sm text-gray-600">อายุของคุณ</Text>
+          <Text className="text-2xl font-bold text-primary">{age} ปี</Text>
         </View>
       </View>
     </OnboardingLayout>
