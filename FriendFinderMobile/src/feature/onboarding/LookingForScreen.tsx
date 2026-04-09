@@ -5,15 +5,18 @@ import { View } from 'react-native';
 import OnboardingLayout from '../../components/common/OnboardingLayout';
 import SelectionOption from '../../components/common/SelectionOption';
 import Button from '../../components/common/Button';
+import { useAppDispatch } from '../../redux/hooks';
+import { setLookingForId } from '../../redux/userLifeStyleSlice';
 
 const OPTIONS = [
-  { value: 'friend', label: '🤝  หาเพื่อน' },
-  { value: 'date', label: '💕  หาคนคุย / เดต' },
-  { value: 'relationship', label: '💍  หาคู่รัก' },
-  { value: 'activity', label: '🎯  หาเพื่อนทำกิจกรรม' },
+  { id: 'friend-uuid', value: 'friend', label: 'หาเพื่อน', icon: 'people' as const },
+  { id: 'date-uuid', value: 'date', label: 'หาคนคุย / เดต', icon: 'heart' as const },
+  { id: 'relationship-uuid', value: 'relationship', label: 'หาคู่รัก', icon: 'ribbon' as const },
+  { id: 'activity-uuid', value: 'activity', label: 'หาเพื่อนทำกิจกรรม', icon: 'accessibility' as const },
 ];
 
 const LookingForScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const dispatch = useAppDispatch();
   const [selected, setSelected] = useState<string | null>(null);
 
   return (
@@ -24,7 +27,15 @@ const LookingForScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       footer={
         <Button
           label="ดำเนินการต่อ"
-          onPress={() => navigation.navigate('Language')}
+          onPress={() => {
+            if (selected) {
+              const selectedOption = OPTIONS.find(opt => opt.value === selected);
+              if (selectedOption) {
+                dispatch(setLookingForId(selectedOption.id));
+                navigation.navigate('Language');
+              }
+            }
+          }}
           disabled={!selected}
         />
       }
@@ -36,6 +47,7 @@ const LookingForScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             label={opt.label}
             selected={selected === opt.value}
             onPress={() => setSelected(opt.value)}
+            icon={opt.icon}
           />
         ))}
       </View>
