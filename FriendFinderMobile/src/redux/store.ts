@@ -1,9 +1,17 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './authSlice';
+import userReducer from './userSlice';
+import userImageReducer from './userImageSlice';
+import userInformationReducer from './userInformationSlice';
+import userLifeStyleReducer from './userLifeStyleSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    user: userReducer,
+    userImage: userImageReducer,
+    userInformation: userInformationReducer,
+    userLifeStyle: userLifeStyleReducer,
   },
 });
 

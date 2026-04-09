@@ -7,7 +7,7 @@ import AppLogo from '../../components/common/AppLogo';
 import Button from '../../components/common/Button';
 import { colors } from '../../constants/theme';
 import { useAppDispatch } from '../../redux/hooks';
-import { setCredentials } from '../../redux/authSlice';
+import { setCredentials } from '../../redux/userSlice';
 
 const PasswordScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
@@ -73,7 +73,7 @@ const PasswordScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
           {/* Username Input */}
           <View className="mb-4">
-            <Text className="text-sm font-semibold text-gray-700 mb-2">ชื่อผู้ใช้</Text>
+            <Text className="text-sm font-semibold text-gray-700 mb-2">บัญชีผู้ใช้</Text>
             <View className="border border-gray-300 rounded-xl px-4 h-12 justify-center">
               <TextInput
                 value={username}
