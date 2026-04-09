@@ -84,7 +84,7 @@ const BirthdayScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     if (today.getMonth() + 1 < m || (today.getMonth() + 1 === m && today.getDate() < d)) {
       age--;
     }
-    return Math.max(13, age); // Minimum age 13
+    return age;
   };
 
   const birthDateString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
