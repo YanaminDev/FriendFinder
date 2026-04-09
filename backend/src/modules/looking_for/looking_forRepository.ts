@@ -25,11 +25,12 @@ export const lookingForRepository = {
         }
     },
 
-    createLookingFor : async (data : {looking_for : string}) => {
+    createLookingFor : async (data : {looking_for : string, icon : string}) => {
         try{
             return await prisma.looking_for.create({
                 data : {
-                    name : data.looking_for
+                    name : data.looking_for,
+                    icon : data.icon
                 }
             })
         }
@@ -52,14 +53,15 @@ export const lookingForRepository = {
         }
     },
 
-    updateLookingFor : async (data : {id : string , name : string}) => {
+    updateLookingFor : async (data : {id : string , name : string, icon : string}) => {
         try{
             return await prisma.looking_for.update({
                 where : {
                     id : data.id
                 },
                 data : {
-                    name : data.name
+                    name : data.name,
+                    icon : data.icon
                 }
             })
         }

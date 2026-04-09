@@ -24,11 +24,12 @@ export const activityRepository = {
         }
     },
 
-    createActivity: async (data: { activity: string }) => {
+    createActivity: async (data: { activity: string, icon: string }) => {
         try {
             return await prisma.activity.create({
                 data: {
-                    name: data.activity
+                    name: data.activity,
+                    icon: data.icon
                 }
             })
         }
@@ -50,14 +51,15 @@ export const activityRepository = {
         }
     },
 
-    updateActivity: async (data: { id: string, name: string }) => {
+    updateActivity: async (data: { id: string, name: string, icon: string }) => {
         try {
             return await prisma.activity.update({
                 where: {
                     id: data.id
                 },
                 data: {
-                    name: data.name
+                    name: data.name,
+                    icon: data.icon
                 }
             })
         }

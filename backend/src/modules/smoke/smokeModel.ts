@@ -1,7 +1,8 @@
 import {z} from 'zod';
 
 export const CreateSmokeSchema = z.object({
-    smoke: z.string().max(50)
+    smoke: z.string().max(50),
+    icon: z.string().max(50)
 })
 
 export const DeleteSmokeSchema = z.object({
@@ -10,5 +11,6 @@ export const DeleteSmokeSchema = z.object({
 
 export const UpdateSmokeSchema = z.object({
     id: z.string(),
-    name: z.string().max(50)
+    name: z.string().max(50),
+    icon: z.string().max(50)
 })

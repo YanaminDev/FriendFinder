@@ -24,11 +24,12 @@ export const petRepository = {
         }
     },
 
-    createPet: async (data: { pet: string }) => {
+    createPet: async (data: { pet: string, icon: string }) => {
         try {
             return await prisma.pet.create({
                 data: {
-                    name: data.pet
+                    name: data.pet,
+                    icon: data.icon
                 }
             })
         }
@@ -50,14 +51,15 @@ export const petRepository = {
         }
     },
 
-    updatePet: async (data: { id: string, name: string }) => {
+    updatePet: async (data: { id: string, name: string, icon: string }) => {
         try {
             return await prisma.pet.update({
                 where: {
                     id: data.id
                 },
                 data: {
-                    name: data.name
+                    name: data.name,
+                    icon: data.icon
                 }
             })
         }

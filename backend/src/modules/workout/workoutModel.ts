@@ -1,7 +1,8 @@
 import {z} from 'zod';
 
 export const CreateWorkoutSchema = z.object({
-    workout: z.string().max(50)
+    workout: z.string().max(50),
+    icon: z.string().max(50)
 })
 
 export const DeleteWorkoutSchema = z.object({
@@ -10,5 +11,6 @@ export const DeleteWorkoutSchema = z.object({
 
 export const UpdateWorkoutSchema = z.object({
     id: z.string(),
-    name: z.string().max(50)
+    name: z.string().max(50),
+    icon: z.string().max(50)
 })

@@ -24,11 +24,12 @@ export const workoutRepository = {
         }
     },
 
-    createWorkout: async (data: { workout: string }) => {
+    createWorkout: async (data: { workout: string, icon: string }) => {
         try {
             return await prisma.workout.create({
                 data: {
-                    name: data.workout
+                    name: data.workout,
+                    icon: data.icon
                 }
             })
         }
@@ -50,14 +51,15 @@ export const workoutRepository = {
         }
     },
 
-    updateWorkout: async (data: { id: string, name: string }) => {
+    updateWorkout: async (data: { id: string, name: string, icon: string }) => {
         try {
             return await prisma.workout.update({
                 where: {
                     id: data.id
                 },
                 data: {
-                    name: data.name
+                    name: data.name,
+                    icon: data.icon
                 }
             })
         }

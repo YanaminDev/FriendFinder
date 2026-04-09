@@ -25,11 +25,12 @@ export const languageRepository = {
         }
     },
 
-    createLanguage : async (data : {language : string}) => {
+    createLanguage : async (data : {language : string, icon : string}) => {
         try{
             return await prisma.language.create({
                 data : {
-                    name : data.language
+                    name : data.language,
+                    icon : data.icon
                 }
             })
         }
@@ -52,14 +53,15 @@ export const languageRepository = {
         }
     },
 
-    updateLanguage : async (data : {id : string , name : string}) => {
+    updateLanguage : async (data : {id : string , name : string, icon : string}) => {
         try{
             return await prisma.language.update({
                 where : {
                     id : data.id
                 },
                 data : {
-                    name : data.name
+                    name : data.name,
+                    icon : data.icon
                 }
             })
         }

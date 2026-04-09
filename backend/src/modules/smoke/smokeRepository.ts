@@ -24,11 +24,12 @@ export const smokeRepository = {
         }
     },
 
-    createSmoke: async (data: { smoke: string }) => {
+    createSmoke: async (data: { smoke: string, icon: string }) => {
         try {
             return await prisma.smoke.create({
                 data: {
-                    name: data.smoke
+                    name: data.smoke,
+                    icon: data.icon
                 }
             })
         }
@@ -50,14 +51,15 @@ export const smokeRepository = {
         }
     },
 
-    updateSmoke: async (data: { id: string, name: string }) => {
+    updateSmoke: async (data: { id: string, name: string, icon: string }) => {
         try {
             return await prisma.smoke.update({
                 where: {
                     id: data.id
                 },
                 data: {
-                    name: data.name
+                    name: data.name,
+                    icon: data.icon
                 }
             })
         }

@@ -1,7 +1,8 @@
 import {z} from 'zod';
 
 export const CreateDrinkingSchema = z.object({
-    drinking: z.string().max(50)
+    drinking: z.string().max(50),
+    icon: z.string().max(50)
 })
 
 export const DeleteDrinkingSchema = z.object({
@@ -10,5 +11,6 @@ export const DeleteDrinkingSchema = z.object({
 
 export const UpdateDrinkingSchema = z.object({
     id: z.string(),
-    name: z.string().max(50)
+    name: z.string().max(50),
+    icon: z.string().max(50)
 })

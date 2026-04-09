@@ -25,11 +25,12 @@ export const drinkingRepository = {
         }
     },
 
-    createDrinking : async (data : {drinking : string}) => {
+    createDrinking : async (data : {drinking : string, icon : string}) => {
         try{
             return await prisma.drinking.create({
                 data : {
-                    name : data.drinking
+                    name : data.drinking,
+                    icon : data.icon
                 }
             })
         }
@@ -52,14 +53,15 @@ export const drinkingRepository = {
         }
     },
 
-    updateDrinking : async (data : {id : string , name : string}) => {
+    updateDrinking : async (data : {id : string , name : string, icon : string}) => {
         try{
             return await prisma.drinking.update({
                 where : {
                     id : data.id
                 },
                 data : {
-                    name : data.name
+                    name : data.name,
+                    icon : data.icon
                 }
             })
         }

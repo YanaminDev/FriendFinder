@@ -24,11 +24,12 @@ export const educationRepository = {
         }
     },
 
-    createEducation: async (data: { education: string }) => {
+    createEducation: async (data: { education: string, icon: string }) => {
         try {
             return await prisma.education.create({
                 data: {
-                    name: data.education
+                    name: data.education,
+                    icon: data.icon
                 }
             })
         }
@@ -50,14 +51,15 @@ export const educationRepository = {
         }
     },
 
-    updateEducation: async (data: { id: string, name: string }) => {
+    updateEducation: async (data: { id: string, name: string, icon: string }) => {
         try {
             return await prisma.education.update({
                 where: {
                     id: data.id
                 },
                 data: {
-                    name: data.name
+                    name: data.name,
+                    icon: data.icon
                 }
             })
         }
