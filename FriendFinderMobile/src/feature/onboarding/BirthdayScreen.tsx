@@ -1,3 +1,4 @@
+
 // ─── BirthdayScreen ───────────────────────────────────────────────────────────
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -84,7 +85,7 @@ const BirthdayScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const today = new Date();
   const defaultDay = today.getDate();
   const defaultMonth = today.getMonth() + 1;
-  const defaultYear = today.getFullYear() - 18; // Default to 18 years old
+  const defaultYear = today.getFullYear(); // Default to today's date
 
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
