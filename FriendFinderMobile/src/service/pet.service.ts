@@ -10,6 +10,7 @@ import mainApi from "../api/main.api";
 export interface Pet {
     id: string;
     name: string;
+    icon: string;
 }
 
 export const getPet = async (): Promise<Pet[]> => {

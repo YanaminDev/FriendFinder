@@ -32,7 +32,7 @@ export const userRouter = () => {
                     maxAge : 7 * 24 * 60 * 60 * 1000
                 })
 
-                return res.status(201).json({ message: "User registered successfully" });
+                return res.status(201).json({ message: "User registered successfully", user_id: responsedata.user_id });
 
         }
         return res.status(400).json({message:"Failed to register user"})

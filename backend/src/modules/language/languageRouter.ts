@@ -7,7 +7,7 @@ import {authorize} from '../../common/middleware/authorize'
 export const languageRouter = () => {
     const router = Router();
 
-    router.get("/language" , authenticateToken , async (req, res) => {
+    router.get("/language" ,  async (req, res) => {
         try{
             const data = await languageRepository.getLanguage();
             res.status(200).json(data)

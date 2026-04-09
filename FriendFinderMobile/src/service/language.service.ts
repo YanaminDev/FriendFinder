@@ -10,6 +10,7 @@ import mainApi from "../api/main.api";
 export interface Language {
     id: string;
     name: string;
+    icon: string;
 }
 
 export const getLanguage = async (): Promise<Language[]> => {

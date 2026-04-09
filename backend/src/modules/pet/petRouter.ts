@@ -7,7 +7,7 @@ import { authorize } from '../../common/middleware/authorize'
 export const petRouter = () => {
     const router = Router();
 
-    router.get("/get", authenticateToken, async (req, res) => {
+    router.get("/get",  async (req, res) => {
         try {
             const data = await petRepository.getPet();
             res.status(200).json(data)

@@ -10,6 +10,7 @@ import mainApi from "../api/main.api";
 export interface LookingFor {
     id: string;
     name: string;
+    icon: string;
 }
 
 export const getLookingFor = async (): Promise<LookingFor[]> => {

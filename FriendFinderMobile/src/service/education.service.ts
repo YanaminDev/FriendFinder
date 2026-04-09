@@ -10,6 +10,7 @@ import mainApi from "../api/main.api";
 export interface Education {
     id: string;
     name: string;
+    icon: string;
 }
 
 export const getEducation = async (): Promise<Education[]> => {

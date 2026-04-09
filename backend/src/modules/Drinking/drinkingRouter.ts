@@ -7,7 +7,7 @@ import {authorize} from '../../common/middleware/authorize'
 export const drinkingRouter = () => {
     const router = Router();
 
-    router.get("/get" , authenticateToken , async (req, res) => {
+    router.get("/get" , async (req, res) => {
         try{
             const data = await drinkingRepository.getDrinking();
             res.status(200).json(data)

@@ -18,7 +18,7 @@ export interface LoginRequest {
     password: string;
 }
 
-export const register = async (data: RegisterRequest): Promise<{ message: string }> => {
+export const register = async (data: RegisterRequest): Promise<{ message: string; user_id?: string }> => {
     try {
         return await mainApi.post<{ message: string }>(REGISTER, data);
     } catch (error) {

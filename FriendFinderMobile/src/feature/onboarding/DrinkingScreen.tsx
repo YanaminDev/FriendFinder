@@ -1,19 +1,25 @@
 // ─── DrinkingScreen ────────────────────────────────────────────────────────────
 
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import OnboardingLayout from '../../components/common/OnboardingLayout';
 import SelectionOption from '../../components/common/SelectionOption';
 import Button from '../../components/common/Button';
-
-const OPTIONS = [
-  { value: 'no', label: '🚫  ไม่ดื่ม' },
-  { value: 'occasionally', label: '🥂  ดื่มบางครั้ง' },
-  { value: 'yes', label: '🍺  ดื่มเป็นประจำ' },
-];
+import { useAppDispatch } from '../../redux/hooks';
+import { setDrinkingId } from '../../redux/userLifeStyleSlice';
+import { getDrinking, Drinking } from '../../service/drinking.service';
 
 const DrinkingScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const dispatch = useAppDispatch();
   const [selected, setSelected] = useState<string | null>(null);
+  const [options, setOptions] = useState<Drinking[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getDrinking()
+      .then(setOptions)
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <OnboardingLayout
@@ -23,20 +29,30 @@ const DrinkingScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       footer={
         <Button
           label="เสร็จสิ้น"
-          onPress={() => navigation.navigate('Exercise')}
+          onPress={() => {
+            if (selected) {
+              dispatch(setDrinkingId(selected));
+              navigation.navigate('Exercise');
+            }
+          }}
           disabled={!selected}
         />
       }
     >
       <View className="gap-3">
-        {OPTIONS.map(opt => (
-          <SelectionOption
-            key={opt.value}
-            label={opt.label}
-            selected={selected === opt.value}
-            onPress={() => setSelected(opt.value)}
-          />
-        ))}
+        {loading ? (
+          <ActivityIndicator />
+        ) : (
+          options.map(opt => (
+            <SelectionOption
+              key={opt.id}
+              label={opt.name}
+              selected={selected === opt.id}
+              onPress={() => setSelected(opt.id)}
+              icon={opt.icon as any}
+            />
+          ))
+        )}
       </View>
     </OnboardingLayout>
   );

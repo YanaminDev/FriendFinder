@@ -10,6 +10,7 @@ import mainApi from "../api/main.api";
 export interface Drinking {
     id: string;
     name: string;
+    icon: string;
 }
 
 export const getDrinking = async (): Promise<Drinking[]> => {

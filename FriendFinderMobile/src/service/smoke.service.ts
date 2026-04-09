@@ -10,6 +10,7 @@ import mainApi from "../api/main.api";
 export interface Smoke {
     id: string;
     name: string;
+    icon: string;
 }
 
 export const getSmoke = async (): Promise<Smoke[]> => {

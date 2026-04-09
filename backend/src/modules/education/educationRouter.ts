@@ -7,7 +7,7 @@ import { authorize } from '../../common/middleware/authorize'
 export const educationRouter = () => {
     const router = Router();
 
-    router.get("/education", authenticateToken, async (req, res) => {
+    router.get("/education",  async (req, res) => {
         try {
             const data = await educationRepository.getEducation();
             res.status(200).json(data)

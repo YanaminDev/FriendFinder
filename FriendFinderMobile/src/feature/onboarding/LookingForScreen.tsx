@@ -1,23 +1,25 @@
 // ─── LookingForScreen ─────────────────────────────────────────────────────────
 
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import OnboardingLayout from '../../components/common/OnboardingLayout';
 import SelectionOption from '../../components/common/SelectionOption';
 import Button from '../../components/common/Button';
 import { useAppDispatch } from '../../redux/hooks';
 import { setLookingForId } from '../../redux/userLifeStyleSlice';
-
-const OPTIONS = [
-  { id: 'friend-uuid', value: 'friend', label: 'หาเพื่อน', icon: 'people' as const },
-  { id: 'date-uuid', value: 'date', label: 'หาคนคุย / เดต', icon: 'heart' as const },
-  { id: 'relationship-uuid', value: 'relationship', label: 'หาคู่รัก', icon: 'ribbon' as const },
-  { id: 'activity-uuid', value: 'activity', label: 'หาเพื่อนทำกิจกรรม', icon: 'accessibility' as const },
-];
+import { getLookingFor, LookingFor } from '../../service/looking_for.service';
 
 const LookingForScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const [selected, setSelected] = useState<string | null>(null);
+  const [options, setOptions] = useState<LookingFor[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getLookingFor()
+      .then(setOptions)
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <OnboardingLayout
@@ -29,11 +31,8 @@ const LookingForScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           label="ดำเนินการต่อ"
           onPress={() => {
             if (selected) {
-              const selectedOption = OPTIONS.find(opt => opt.value === selected);
-              if (selectedOption) {
-                dispatch(setLookingForId(selectedOption.id));
-                navigation.navigate('Language');
-              }
+              dispatch(setLookingForId(selected));
+              navigation.navigate('Language');
             }
           }}
           disabled={!selected}
@@ -41,15 +40,19 @@ const LookingForScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       }
     >
       <View className="gap-3">
-        {OPTIONS.map(opt => (
-          <SelectionOption
-            key={opt.value}
-            label={opt.label}
-            selected={selected === opt.value}
-            onPress={() => setSelected(opt.value)}
-            icon={opt.icon}
-          />
-        ))}
+        {loading ? (
+          <ActivityIndicator />
+        ) : (
+          options.map(opt => (
+            <SelectionOption
+              key={opt.id}
+              label={opt.name}
+              selected={selected === opt.id}
+              onPress={() => setSelected(opt.id)}
+              icon={opt.icon as any}
+            />
+          ))
+        )}
       </View>
     </OnboardingLayout>
   );

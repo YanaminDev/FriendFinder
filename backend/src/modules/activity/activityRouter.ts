@@ -7,7 +7,7 @@ import { authorize } from '../../common/middleware/authorize'
 export const activityRouter = () => {
     const router = Router();
 
-    router.get("/activity", authenticateToken, async (req, res) => {
+    router.get("/activity",  async (req, res) => {
         try {
             const data = await activityRepository.getActivity();
             res.status(200).json(data)

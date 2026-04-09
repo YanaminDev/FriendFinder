@@ -7,7 +7,7 @@ import {authorize} from '../../common/middleware/authorize'
 export const lookingForRouter = () => {
     const router = Router();
 
-    router.get("/get" , authenticateToken , async (req, res) => {
+    router.get("/get" ,  async (req, res) => {
         try{
             const data = await lookingForRepository.getLookingFor();
             res.status(200).json(data)

@@ -7,6 +7,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 type Sex = 'male' | 'female' | 'lgbtq';
 
 interface UserState {
+  user_id: string;
   username: string;
   password: string;
   user_show_name: string;
@@ -17,6 +18,7 @@ interface UserState {
 }
 
 const initialState: UserState = {
+  user_id: '',
   username: '',
   password: '',
   user_show_name: '',
@@ -30,6 +32,9 @@ export const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
+    setUserId: (state, action: PayloadAction<string>) => {
+      state.user_id = action.payload;
+    },
     setUsername: (state, action: PayloadAction<string>) => {
       state.username = action.payload;
     },
@@ -60,6 +65,7 @@ export const userSlice = createSlice({
 });
 
 export const {
+  setUserId,
   setUsername,
   setPassword,
   setCredentials,

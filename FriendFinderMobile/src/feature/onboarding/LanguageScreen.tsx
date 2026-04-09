@@ -1,47 +1,57 @@
 // ─── LanguageScreen ───────────────────────────────────────────────────────────
 
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import OnboardingLayout from '../../components/common/OnboardingLayout';
 import SelectionOption from '../../components/common/SelectionOption';
 import Button from '../../components/common/Button';
-
-const OPTIONS = [
-  { value: 'th', label: '🇹🇭  ภาษาไทย' },
-  { value: 'en', label: '🇬🇧  English' },
-  { value: 'zh', label: '🇨🇳  中文' },
-  { value: 'ja', label: '🇯🇵  日本語' },
-  { value: 'ko', label: '🇰🇷  한국어' },
-];
+import { useAppDispatch } from '../../redux/hooks';
+import { setLanguageId } from '../../redux/userInformationSlice';
+import { getLanguage, Language } from '../../service/language.service';
 
 const LanguageScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const [selected, setSelected] = useState<string[]>([]);
+  const dispatch = useAppDispatch();
+  const [selected, setSelected] = useState<string | null>(null);
+  const [options, setOptions] = useState<Language[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const toggle = (val: string) =>
-    setSelected(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
+  useEffect(() => {
+    getLanguage()
+      .then(setOptions)
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <OnboardingLayout
       onBack={() => navigation.goBack()}
       title="ภาษาที่ใช้"
-      subtitle="เลือกได้มากกว่า 1 ภาษา"
+      subtitle="เลือกภาษาหลักที่ใช้"
       footer={
         <Button
           label="ดำเนินการต่อ"
-          onPress={() => navigation.navigate('BloodType')}
-          disabled={selected.length === 0}
+          onPress={() => {
+            if (selected) {
+              dispatch(setLanguageId(selected));
+              navigation.navigate('BloodType');
+            }
+          }}
+          disabled={!selected}
         />
       }
     >
       <View className="gap-3">
-        {OPTIONS.map(opt => (
-          <SelectionOption
-            key={opt.value}
-            label={opt.label}
-            selected={selected.includes(opt.value)}
-            onPress={() => toggle(opt.value)}
-          />
-        ))}
+        {loading ? (
+          <ActivityIndicator />
+        ) : (
+          options.map(opt => (
+            <SelectionOption
+              key={opt.id}
+              label={`${opt.icon}  ${opt.name}`}
+              selected={selected === opt.id}
+              onPress={() => setSelected(opt.id)}
+            />
+          ))
+        )}
       </View>
     </OnboardingLayout>
   );

@@ -10,6 +10,7 @@ import mainApi from "../api/main.api";
 export interface Workout {
     id: string;
     name: string;
+    icon: string;
 }
 
 export const getWorkout = async (): Promise<Workout[]> => {
