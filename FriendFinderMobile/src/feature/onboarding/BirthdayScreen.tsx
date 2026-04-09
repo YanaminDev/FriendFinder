@@ -41,6 +41,12 @@ const PickerColumn: React.FC<PickerColumnProps> = ({ items, selectedValue, onCha
     onChange(items[Math.max(0, Math.min(index, items.length - 1))]);
   };
 
+  const handleScroll = (event: any) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    const index = Math.round(offsetY / ITEM_HEIGHT);
+    onChange(items[Math.max(0, Math.min(index, items.length - 1))]);
+  };
+
   return (
     <View className="items-center gap-2 flex-1">
       <View
@@ -53,12 +59,15 @@ const PickerColumn: React.FC<PickerColumnProps> = ({ items, selectedValue, onCha
       >
         <ScrollView
           ref={scrollViewRef}
+          scrollEnabled={true}
           scrollEventThrottle={16}
+          onScroll={handleScroll}
           onMomentumScrollEnd={handleMomentumScrollEnd}
           snapToInterval={ITEM_HEIGHT}
           decelerationRate={0.8}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingVertical: ITEM_HEIGHT * 2 }}
+          nestedScrollEnabled={true}
         >
           {items.map((item) => (
             <View key={item} style={{ height: ITEM_HEIGHT, justifyContent: 'center' }}>
