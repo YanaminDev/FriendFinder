@@ -3,9 +3,7 @@ import { useRouter } from 'expo-router';
 const ROUTE_MAP: Record<string, string> = {
   // Auth
   Splash: '/page/splash',
-  PhoneNumber: '/page/phone',
   Login: '/page/login',
-  OtpVerification: '/page/otp',
   Password: '/page/password',
   // Onboarding
   UserInfo: '/page/user-info',

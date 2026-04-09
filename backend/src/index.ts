@@ -26,6 +26,7 @@ import { cancellationRouter } from "./modules/cancellation/cancellationRouter"
 import { positionRouter } from "./modules/position/positionRouter"
 import { educationRouter } from "./modules/education/educationRouter"
 import { languageRouter } from "./modules/language/languageRouter"
+
 // import { aiRouter } from "./modules/ai/aiRouter"
 
 

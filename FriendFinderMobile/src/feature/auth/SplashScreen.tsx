@@ -17,7 +17,7 @@ const SplashScreen: React.FC<{ navigation: any }> = ({ navigation }) => (
       <View className="gap-3.5 pb-24 w-full ">
         <Button
           label="ลงทะเบียนผู้ใช้ใหม่ คลิก!"
-          onPress={() => navigation.navigate('PhoneNumber')}
+          onPress={() => navigation.navigate('Password')}
         />
         <TouchableOpacity className="items-center py-2" onPress={() => navigation.navigate('Login')}>
           <Text className="text-base text-gray-800 font-medium">มีบัญชีแล้ว</Text>

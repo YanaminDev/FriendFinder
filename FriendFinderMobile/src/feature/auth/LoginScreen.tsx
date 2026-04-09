@@ -2,48 +2,62 @@
 // ─── LoginScreen ──────────────────────────────────────────────────────────────
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AppLogo from '../../components/common/AppLogo';
 import Button from '../../components/common/Button';
+import AlertModal from '../../components/common/AlertModal';
 import { colors } from '../../constants/theme';
 import { login } from '../../service/user.service';
+import { useAppDispatch } from '../../redux/hooks';
+import { setCredentials, setIsAuthenticated } from '../../redux/authSlice';
+
+interface AlertState {
+  visible: boolean;
+  type: 'success' | 'error' | 'warning' | 'info';
+  title: string;
+  message: string;
+}
 
 const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const dispatch = useAppDispatch();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState<AlertState>({ visible: false, type: 'info', title: '', message: '' });
 
-  const isPasswordValid = (pwd: string) => {
-    return (
-      pwd.length >= 8 &&
-      /[A-Z]/.test(pwd) &&
-      /[a-z]/.test(pwd) &&
-      /\d/.test(pwd) &&
-      /[@$!%*?&]/.test(pwd)
-    );
+  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string, callback?: () => void) => {
+    setAlert({ visible: true, type, title, message });
+    if (callback) {
+      setTimeout(callback, 300);
+    }
   };
 
   const handleLogin = async () => {
-    if (!username.trim() || !isPasswordValid(password)) {
-      Alert.alert('ข้อมูลไม่สมบูรณ์', 'รหัสผ่านต้อง: 8+ ตัว, มี UPPERCASE, lowercase, ตัวเลข, และอักษรพิเศษ (@$!%*?&)');
+    if (!username.trim() || !password.trim()) {
+      showAlert('warning', 'ข้อมูลไม่สมบูรณ์', 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน');
       return;
     }
 
     setLoading(true);
     try {
       const response = await login({ username, password });
-      Alert.alert('สำเร็จ', response.message || 'เข้าสู่ระบบสำเร็จ');
-      navigation.navigate('Home');
+      dispatch(setCredentials({ username, password }));
+      dispatch(setIsAuthenticated(true));
+      showAlert('success', 'สำเร็จ', response.message || 'เข้าสู่ระบบสำเร็จ', () => {
+        navigation.navigate('Home');
+      });
     } catch (error: any) {
-      Alert.alert('ข้อผิดพลาด', error?.message || 'เข้าสู่ระบบไม่สำเร็จ');
+      const errorMsg = error?.message || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+      showAlert('error', 'ข้อผิดพลาด', errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
+    <>
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {/* Back */}
@@ -100,7 +114,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <Button
             label={loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
             onPress={handleLogin}
-            disabled={!username.trim() || !isPasswordValid(password) || loading}
+            disabled={!username.trim() || !password.trim() || loading}
           />
 
           {/* Divider */}
@@ -122,6 +136,16 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+
+    <AlertModal
+      visible={alert.visible}
+      type={alert.type as any}
+      title={alert.title}
+      message={alert.message}
+      buttonLabel="ตกลง"
+      onPress={() => setAlert({ visible: false, type: 'info', title: '', message: '' })}
+    />
+    </>
   );
 };
 
