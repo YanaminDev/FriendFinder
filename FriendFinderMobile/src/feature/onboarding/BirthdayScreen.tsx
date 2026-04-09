@@ -1,6 +1,6 @@
 // ─── BirthdayScreen ───────────────────────────────────────────────────────────
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import OnboardingLayout from '../../components/common/OnboardingLayout';
 import Button from '../../components/common/Button';
@@ -21,6 +21,18 @@ interface PickerColumnProps {
 
 const PickerColumn: React.FC<PickerColumnProps> = ({ items, selectedValue, onChange, label }) => {
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Scroll ไปยัง default value เมื่อ component mount
+  useEffect(() => {
+    const index = items.indexOf(selectedValue);
+    if (index !== -1 && scrollViewRef.current) {
+      const offset = index * ITEM_HEIGHT;
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ y: offset, animated: false });
+      }, 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleMomentumScrollEnd = (event: any) => {
     const offsetY = event.nativeEvent.contentOffset.y;
