@@ -1,12 +1,12 @@
 // ─── SelectActivityScreen ──────────────────────────────────────────────────────
 
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView } from 'react-native';
+import { View, Text, SafeAreaView , ScrollView } from 'react-native';
 import AppHeader from '../../components/common/AppHeader';
 import SelectionOption from '../../components/common/SelectionOption';
 import Button from '../../components/common/Button';
 import { MOCK_ACTIVITIES } from '../../constants/mockData';
-import { ScrollView } from 'react-native';
+
 
 const SelectActivityScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [selected, setSelected] = useState<string | null>(null);

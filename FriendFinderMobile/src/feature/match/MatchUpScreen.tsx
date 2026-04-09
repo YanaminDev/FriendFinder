@@ -1,12 +1,12 @@
 // ─── MatchUpScreen ─────────────────────────────────────────────────────────────
 
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView } from 'react-native';
+import { View, Text, SafeAreaView , ScrollView } from 'react-native';
 import AppHeader from '../../components/common/AppHeader';
 import VenueCard from '../../components/match/VenueCard';
 import Button from '../../components/common/Button';
 import { MOCK_VENUES, MOCK_MATCH_PROFILES } from '../../constants/mockData';
-import { ScrollView } from 'react-native';
+
 
 const MatchUpScreen: React.FC<{ navigation: any; route: { params: { userId: string } } }> = ({ navigation, route }) => {
   const { userId } = route.params;

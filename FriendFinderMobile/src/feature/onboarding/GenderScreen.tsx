@@ -1,18 +1,21 @@
 // ─── GenderScreen ─────────────────────────────────────────────────────────────
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import OnboardingLayout from '../../components/common/OnboardingLayout';
 import SelectionOption from '../../components/common/SelectionOption';
 import Button from '../../components/common/Button';
+import { useAppDispatch } from '../../redux/hooks';
+import { setSex } from '../../redux/userSlice';
 
 const OPTIONS = [
-  { value: 'male', label: '👨  ชาย' },
-  { value: 'female', label: '👩  หญิง' },
-  { value: 'other', label: '🧑  อื่นๆ' },
+  { value: 'male', label: 'ชาย', icon: 'male' as const },
+  { value: 'female', label: 'หญิง', icon: 'female' as const },
+  { value: 'lgbtq', label: 'อื่นๆ / LGBTQ+', icon: 'heart' as const },
 ];
 
 const GenderScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const dispatch = useAppDispatch();
   const [selected, setSelected] = useState<string | null>(null);
 
   return (
@@ -23,7 +26,12 @@ const GenderScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       footer={
         <Button
           label="ดำเนินการต่อ"
-          onPress={() => navigation.navigate('Birthday')}
+          onPress={() => {
+            if (selected) {
+              dispatch(setSex(selected as 'male' | 'female' | 'lgbtq'));
+              navigation.navigate('Birthday');
+            }
+          }}
           disabled={!selected}
         />
       }
@@ -35,6 +43,7 @@ const GenderScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             label={opt.label}
             selected={selected === opt.value}
             onPress={() => setSelected(opt.value)}
+            icon={opt.icon}
           />
         ))}
       </View>
