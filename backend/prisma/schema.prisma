@@ -61,6 +61,7 @@ model User_Information {
 
 model Language {
   id    String                @id @default(uuid())
+  icon            String            @db.VarChar(50)
   name  String             @unique @db.VarChar(50)
   users User_Information[]
 
@@ -69,6 +70,7 @@ model Language {
 
 model Education {
   id    String                @id @default(uuid())
+  icon            String            @db.VarChar(50)
   name  String             @unique @db.VarChar(50)
   users User_Information[]
 
@@ -94,6 +96,7 @@ model User_Life_Style {
 
 model Looking_for {
   id              String               @id @default(uuid())
+  icon            String            @db.VarChar(50)
   name            String            @unique @db.VarChar(50)
   user_life_style User_Life_Style[]
 
@@ -102,6 +105,7 @@ model Looking_for {
 
 model Drinking {
   id              String               @id @default(uuid())
+  icon            String            @db.VarChar(50)
   name            String            @unique @db.VarChar(50)
   user_life_style User_Life_Style[]
 
@@ -110,6 +114,7 @@ model Drinking {
 
 model Pet {
   id              String               @id @default(uuid())
+  icon            String            @db.VarChar(50)
   name            String            @unique @db.VarChar(50)
   user_life_style User_Life_Style[]
 
@@ -118,6 +123,7 @@ model Pet {
 
 model Smoke {
   id              String               @id @default(uuid())
+  icon            String            @db.VarChar(50)
   name            String            @unique @db.VarChar(50)
   user_life_style User_Life_Style[]
 
@@ -126,6 +132,7 @@ model Smoke {
 
 model Workout {
   id              String               @id @default(uuid())
+  icon            String            @db.VarChar(50)
   name            String            @unique @db.VarChar(50)
   user_life_style User_Life_Style[]
 
@@ -178,6 +185,7 @@ model Location_review {
 
 model Activity {
   id          String       @id @default(uuid())
+  icon            String            @db.VarChar(50)
   name        String       @unique @db.VarChar(50)
   find_match1 Find_Match[] @relation("activity1")
   find_match2 Find_Match[] @relation("activity2")
