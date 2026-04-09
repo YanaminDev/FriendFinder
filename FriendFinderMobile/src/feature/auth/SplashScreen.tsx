@@ -7,14 +7,14 @@ import Button from '../../components/common/Button';
 
 const SplashScreen: React.FC<{ navigation: any }> = ({ navigation }) => (
   <SafeAreaView className="flex-1 bg-white">
-    <View className="flex-1 px-8 justify-between">
+    <View className="flex-1 px-8 justify-between items-center max-w-lg mx-auto w-full">
       {/* Center logo */}
       <View className="flex-1 items-center justify-center">
         <AppLogo size="lg" showText={false} />
       </View>
 
       {/* Bottom CTAs */}
-      <View className="gap-3.5 pb-8">
+      <View className="gap-3.5 pb-24 w-full ">
         <Button
           label="ลงทะเบียนผู้ใช้ใหม่ คลิก!"
           onPress={() => navigation.navigate('PhoneNumber')}

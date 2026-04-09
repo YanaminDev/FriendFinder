@@ -32,7 +32,7 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           {/* Name */}
           <View className="gap-2">
             <Text className="text-sm font-semibold text-gray-700">ชื่อที่แสดง</Text>
-            <View className="border border-gray-300 rounded-xl px-4 h-[52px] justify-center">
+            <View className="border border-gray-300 rounded-xl px-4 h-12 justify-center">
               <TextInput
                 value={name}
                 onChangeText={setName}
@@ -45,7 +45,7 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           {/* Bio */}
           <View className="gap-2">
             <Text className="text-sm font-semibold text-gray-700">เกี่ยวกับตัวคุณ</Text>
-            <View className="border border-gray-300 rounded-xl px-4 py-3 h-[100px]">
+            <View className="border border-gray-300 rounded-xl px-4 py-3 h-24">
               <TextInput
                 value={bio}
                 onChangeText={setBio}

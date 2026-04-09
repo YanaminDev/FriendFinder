@@ -51,7 +51,7 @@ const ChatDetailScreen: React.FC<{ navigation: any; route: { params: { conversat
 
         {/* Input */}
         <View className="flex-row items-center px-4 py-3 gap-2 border-t border-gray-100">
-          <View className="flex-1 bg-gray-100 rounded-full px-4 h-[44px] justify-center">
+          <View className="flex-1 bg-gray-100 rounded-full px-4 h-11 justify-center">
             <TextInput
               value={text}
               onChangeText={setText}
@@ -64,7 +64,7 @@ const ChatDetailScreen: React.FC<{ navigation: any; route: { params: { conversat
           </View>
           <TouchableOpacity
             onPress={send}
-            className="w-[44px] h-[44px] bg-primary rounded-full items-center justify-center"
+            className="w-11 h-11 bg-primary rounded-full items-center justify-center"
             activeOpacity={0.8}
           >
             <Text className="text-white text-lg">➤</Text>

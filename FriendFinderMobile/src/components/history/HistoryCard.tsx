@@ -31,7 +31,7 @@ const HistoryCard: React.FC<{ item: HistoryItem }> = ({ item }) => (
           <Text className="text-xs text-gray-500">{item.venue.category}</Text>
         </View>
       </View>
-      <Image source={{ uri: item.venue.image }} className="w-[90px] h-[70px] rounded-lg bg-gray-200" resizeMode="cover" />
+      <Image source={{ uri: item.venue.image }} className="w-24 h-20 rounded-lg bg-gray-200" resizeMode="cover" />
     </View>
 
     <View className="h-px bg-gray-100" />

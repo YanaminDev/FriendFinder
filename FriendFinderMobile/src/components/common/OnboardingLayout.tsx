@@ -32,7 +32,7 @@ const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       {/* Top row */}
-      <View className="flex-row justify-between items-center px-5 pt-3 min-h-[44px]">
+      <View className="flex-row justify-between items-center px-5 pt-3 min-h-11">
         {onBack ? (
           <TouchableOpacity onPress={onBack}>
             <Text className="text-3xl text-primary font-bold leading-8">‹</Text>

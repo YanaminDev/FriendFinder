@@ -24,7 +24,7 @@ const HeightScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       }
     >
       <View className="flex-row items-center gap-3">
-        <View className="flex-1 border border-gray-300 rounded-xl h-[64px] justify-center px-5">
+        <View className="flex-1 border border-gray-300 rounded-xl h-16 justify-center px-5">
           <TextInput
             value={height}
             onChangeText={v => setHeight(v.replace(/\D/g, '').slice(0, 3))}

@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 
 const ROUTE_MAP: Record<string, string> = {
   // Auth
+  Splash: '/page/splash',
   PhoneNumber: '/page/phone',
   Login: '/page/login',
   OtpVerification: '/page/otp',
@@ -31,6 +32,7 @@ const ROUTE_MAP: Record<string, string> = {
   MatchUp: '/page/match-up',
   MatchSuccess: '/page/match-success',
   MatchCancelled: '/page/match-cancelled',
+  VenuesList: '/page/venues-list',
   VenueDetail: '/page/venue-detail',
   ChatDetail: '/page/chat-detail',
   Notification: '/page/notification',

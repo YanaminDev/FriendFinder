@@ -22,7 +22,7 @@ const PasswordScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
           <Text className="text-xl font-bold text-gray-900 mb-5">ระบุรหัสผ่าน</Text>
 
-          <View className="border border-gray-300 rounded-xl px-4 h-[52px] justify-center">
+          <View className="border border-gray-300 rounded-xl px-4 h-12 justify-center">
             <TextInput
               value={password}
               onChangeText={setPassword}

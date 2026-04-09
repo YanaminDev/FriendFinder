@@ -16,10 +16,10 @@ const ChatListItem: React.FC<ChatListItemProps> = ({ conversation, onPress }) =>
     activeOpacity={0.7}
   >
     {/* Avatar */}
-    <View className="relative w-[54px] h-[54px]">
+    <View className="relative w-14 h-14">
       <Image
         source={{ uri: conversation.user.avatar }}
-        className="w-[54px] h-[54px] rounded-full bg-gray-200"
+        className="w-14 h-14 rounded-full bg-gray-200"
       />
       {conversation.user.isOnline && (
         <View className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-online border-2 border-white" />

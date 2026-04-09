@@ -64,7 +64,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
   );
 
   return (
-    <View className="absolute top-20 right-4 bg-white rounded-lg shadow-lg w-80 max-h-96 overflow-hidden">
+    <View className="absolute top-20 right-4 left-4 md:left-auto md:w-80 bg-white rounded-lg shadow-lg max-h-96 overflow-hidden">
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100">
         <Text className="text-lg font-bold text-gray-900">Notifications</Text>

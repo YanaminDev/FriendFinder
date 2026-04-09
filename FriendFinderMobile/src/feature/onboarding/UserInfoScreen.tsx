@@ -33,7 +33,7 @@ const UserInfoScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
           {/* Name input */}
           <Text className="text-sm font-semibold text-gray-700 mb-2">ชื่อของคุณ</Text>
-          <View className="border border-gray-300 rounded-xl px-4 h-[52px] justify-center">
+          <View className="border border-gray-300 rounded-xl px-4 h-12 justify-center">
             <TextInput
               value={name}
               onChangeText={setName}

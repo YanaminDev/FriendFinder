@@ -25,13 +25,13 @@ const PhoneScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           {/* Input row */}
           <View className="flex-row gap-3 items-center">
             {/* Country code */}
-            <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full px-3.5 h-[52px] gap-1.5">
+            <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-full px-3.5 h-12 gap-1.5">
               <Text className="text-base text-gray-900 font-medium">+66</Text>
               <Text className="text-xs text-gray-500">▼</Text>
             </TouchableOpacity>
 
             {/* Phone number */}
-            <View className="flex-1 border border-gray-300 rounded-full px-4 h-[52px] justify-center">
+            <View className="flex-1 border border-gray-300 rounded-full px-4 h-12 justify-center">
               <TextInput
                 value={phone}
                 onChangeText={setPhone}

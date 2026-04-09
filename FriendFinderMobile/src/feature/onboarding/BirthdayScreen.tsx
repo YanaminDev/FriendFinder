@@ -18,7 +18,7 @@ const BirthdayScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     +day >= 1 && +day <= 31 &&
     +month >= 1 && +month <= 12;
 
-  const fieldClass = 'border border-gray-300 rounded-xl h-[52px] text-xl font-bold text-gray-900 text-center bg-white';
+  const fieldClass = 'border border-gray-300 rounded-xl h-12 text-xl font-bold text-gray-900 text-center bg-white';
 
   return (
     <OnboardingLayout

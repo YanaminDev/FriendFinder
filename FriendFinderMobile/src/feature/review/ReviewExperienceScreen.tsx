@@ -37,7 +37,7 @@ const ReviewExperienceScreen: React.FC<{ navigation: any }> = ({ navigation }) =
                 <Text className="text-xl">👎</Text>
               </TouchableOpacity>
             </View>
-            <View className="border border-gray-300 rounded-xl px-4 py-3 h-[90px]">
+            <View className="border border-gray-300 rounded-xl px-4 py-3 h-24">
               <TextInput
                 value={locationComment}
                 onChangeText={setLocationComment}
@@ -67,7 +67,7 @@ const ReviewExperienceScreen: React.FC<{ navigation: any }> = ({ navigation }) =
                 <Text className="text-xl">👎</Text>
               </TouchableOpacity>
             </View>
-            <View className="border border-gray-300 rounded-xl px-4 py-3 h-[90px]">
+            <View className="border border-gray-300 rounded-xl px-4 py-3 h-24">
               <TextInput
                 value={personComment}
                 onChangeText={setPersonComment}

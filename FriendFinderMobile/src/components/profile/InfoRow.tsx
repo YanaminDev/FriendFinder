@@ -17,7 +17,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value, onPress }) => (
     activeOpacity={onPress ? 0.7 : 1}
     disabled={!onPress}
   >
-    <View className="w-[30px] h-[30px] rounded-full bg-primary-light items-center justify-center">
+    <View className="w-8 h-8 rounded-full bg-primary-light items-center justify-center">
       <Text className="text-sm">{icon}</Text>
     </View>
     <Text className="text-base font-medium text-gray-900">{label}</Text>
