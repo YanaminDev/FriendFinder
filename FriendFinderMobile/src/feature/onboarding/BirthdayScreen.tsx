@@ -69,13 +69,18 @@ const BirthdayScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
 
   const currentYear = new Date().getFullYear();
+  const today = new Date();
+  const defaultDay = today.getDate();
+  const defaultMonth = today.getMonth() + 1;
+  const defaultYear = today.getFullYear() - 18; // Default to 18 years old
+
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
   const years = Array.from({ length: 100 }, (_, i) => currentYear - i).reverse();
 
-  const [day, setDay] = useState(1);
-  const [month, setMonth] = useState(1);
-  const [year, setYear] = useState(2000);
+  const [day, setDay] = useState(defaultDay);
+  const [month, setMonth] = useState(defaultMonth);
+  const [year, setYear] = useState(defaultYear);
 
   const calculateAge = (birthDate: string) => {
     const [y, m, d] = birthDate.split('-').map(Number);
