@@ -46,7 +46,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       dispatch(setCredentials({ username, password }));
       dispatch(setIsAuthenticated(true));
       showAlert('success', 'สำเร็จ', response.message || 'เข้าสู่ระบบสำเร็จ', () => {
-        navigation.navigate('Home');
+        navigation.replace('Home');
       });
     } catch (error: any) {
       const errorMsg = error?.message || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';

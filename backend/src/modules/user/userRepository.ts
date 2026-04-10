@@ -4,13 +4,14 @@ import { hashPassword, verifyPassword } from "../../common/utils/hashPassword";
 
 
 export const userRepository = {
-    register: async (data: Prisma.UserCreateInput) => {
-        try{
-            const existingUser = await prisma.user.findUnique({
-            where: {
-                username: data.username
-            }
+    findByUsername: async (username: string) => {
+        return await prisma.user.findUnique({
+            where: { username }
         })
+    },
+
+    register: async (data: Prisma.UserCreateInput) => {
+        const existingUser = await userRepository.findByUsername(data.username)
         if (existingUser) {
             throw new Error("Username already exists")
         }
@@ -27,14 +28,7 @@ export const userRepository = {
                 birth_of_date: new Date(data.birth_of_date),
                 interested_gender: data.interested_gender
             }
-            
         })
-        }
-        catch(err){
-            console.error(err)
-            throw new Error("Registration failed")
-        }
-        
     },
 
     login : async (data: {username: string, password: string}) => {

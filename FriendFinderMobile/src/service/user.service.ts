@@ -1,4 +1,4 @@
-import { REGISTER, LOGIN, LOGOUT, DELETE_USER, DELETE_USER_BY_ID } from "../api/endpoint";
+import { CHECK_USERNAME, REGISTER, LOGIN, LOGOUT, DELETE_USER, DELETE_USER_BY_ID } from "../api/endpoint";
 import mainApi from "../api/main.api";
 
 export type Sex = "male" | "female" | "lgbtq";
@@ -17,6 +17,15 @@ export interface LoginRequest {
     username: string;
     password: string;
 }
+
+export const checkUsername = async (username: string): Promise<{ exists: boolean }> => {
+    try {
+        return await mainApi.post<{ exists: boolean }>(CHECK_USERNAME, { username });
+    } catch (error) {
+        console.error("Error checking username:", error);
+        throw error;
+    }
+};
 
 export const register = async (data: RegisterRequest): Promise<{ message: string; user_id?: string }> => {
     try {

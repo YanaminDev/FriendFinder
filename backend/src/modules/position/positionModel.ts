@@ -7,6 +7,7 @@ export const CreatePositionSchema = z.object({
   open_date: z.string().optional(),
   open_time: z.string().optional(),
   close_time: z.string().optional(),
+  image: z.string().optional(),
   latitude: z.number(),
   longitude: z.number(),
 });
@@ -23,6 +24,7 @@ export const UpdatePositionSchema = z.object({
   open_date: z.string().optional(),
   open_time: z.string().optional(),
   close_time: z.string().optional(),
+  image: z.string().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
 });

@@ -1,9 +1,12 @@
 // ─── MapComponentWeb ──────────────────────────────────────────────────────────────
 
 import React, { useEffect, useState } from 'react';
-import { View, DimensionValue, Image, Text, ActivityIndicator } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { View, DimensionValue, Image, Text, ActivityIndicator, Platform } from 'react-native';
 import { configService } from '../../service/map.service';
+
+const WebViewComponent = Platform.OS !== 'web'
+  ? require('react-native-webview').WebView
+  : null;
 
 interface MapPin {
   id: string;
@@ -12,8 +15,14 @@ interface MapPin {
   latitude: number;
 }
 
+interface UserLocation {
+  latitude: number;
+  longitude: number;
+}
+
 interface MapComponentWebProps {
   pins?: MapPin[];
+  userLocation?: UserLocation;
   centerCoordinate?: [number, number];
   onPinPress?: (pin: MapPin) => void;
   height?: DimensionValue;
@@ -21,10 +30,15 @@ interface MapComponentWebProps {
 
 const MapComponentWeb: React.FC<MapComponentWebProps> = ({
   pins = [],
+  userLocation,
   centerCoordinate = [100.8861, 13.7563], // Bangkok default
   onPinPress,
   height = 300,
 }) => {
+  // Center map on user location if available
+  const mapCenter: [number, number] = userLocation
+    ? [userLocation.longitude, userLocation.latitude]
+    : centerCoordinate;
   const [mapboxToken, setMapboxToken] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -43,7 +57,27 @@ const MapComponentWeb: React.FC<MapComponentWebProps> = ({
     };
 
     fetchToken();
-  }, []);
+
+    // Setup iframe message listener for web
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const handleMessage = (event: any) => {
+        try {
+          const data = event.data;
+          if (typeof data === 'string') {
+            const parsedData = JSON.parse(data);
+            if (parsedData.type === 'PIN_PRESS' && onPinPress) {
+              onPinPress(parsedData.pin);
+            }
+          }
+        } catch (error) {
+          console.error('Error parsing iframe message:', error);
+        }
+      };
+
+      window.addEventListener('message', handleMessage);
+      return () => window.removeEventListener('message', handleMessage);
+    }
+  }, [onPinPress]);
 
   // If loading, show loading spinner
   if (isLoading) {
@@ -97,7 +131,7 @@ const MapComponentWeb: React.FC<MapComponentWebProps> = ({
         const map = new mapboxgl.Map({
           container: 'map',
           style: 'mapbox://styles/mapbox/streets-v12',
-          center: [${centerCoordinate[0]}, ${centerCoordinate[1]}],
+          center: [${mapCenter[0]}, ${mapCenter[1]}],
           zoom: 12
         });
 
@@ -116,8 +150,43 @@ const MapComponentWeb: React.FC<MapComponentWebProps> = ({
             align-items: center;
             justify-content: center;
           }
+          @keyframes pulse {
+            0% {
+              box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7);
+            }
+            70% {
+              box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+            }
+            100% {
+              box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+            }
+          }
+          .user-location-pulse {
+            animation: pulse 2s infinite;
+          }
         \`;
         document.head.appendChild(style);
+
+        // Add user location marker
+        ${
+          userLocation
+            ? `
+          const userMarkerEl = document.createElement('div');
+          userMarkerEl.style.width = '40px';
+          userMarkerEl.style.height = '40px';
+          userMarkerEl.style.cursor = 'default';
+          userMarkerEl.style.display = 'flex';
+          userMarkerEl.style.alignItems = 'center';
+          userMarkerEl.style.justifyContent = 'center';
+
+          userMarkerEl.innerHTML = '<div class="user-location-pulse" style="width: 24px; height: 24px; background: linear-gradient(135deg, #2563EB 0%, #1e40af 100%); border: 3px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5);"><div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div></div>';
+
+          new mapboxgl.Marker({ element: userMarkerEl, anchor: 'center' })
+            .setLngLat([${userLocation.longitude}, ${userLocation.latitude}])
+            .addTo(map);
+            `
+            : ''
+        }
 
         ${pins
           .map(
@@ -138,7 +207,7 @@ const MapComponentWeb: React.FC<MapComponentWebProps> = ({
 
           markerEl${index}.addEventListener('click', () => {
             const rect = markerEl${index}.getBoundingClientRect();
-            window.ReactNativeWebView.postMessage(JSON.stringify({
+            const message = {
               type: 'PIN_PRESS',
               pin: {
                 id: '${pin.id}',
@@ -150,7 +219,16 @@ const MapComponentWeb: React.FC<MapComponentWebProps> = ({
                 x: rect.left,
                 y: rect.top
               }
-            }));
+            };
+
+            // For React Native WebView
+            if (typeof window.ReactNativeWebView !== 'undefined') {
+              window.ReactNativeWebView.postMessage(JSON.stringify(message));
+            }
+            // For Web (iframe)
+            else if (typeof window.parent !== 'undefined') {
+              window.parent.postMessage(JSON.stringify(message), '*');
+            }
           });
         `
           )
@@ -171,9 +249,23 @@ const MapComponentWeb: React.FC<MapComponentWebProps> = ({
     }
   };
 
+
+  if (Platform.OS === 'web') {
+    return (
+      <View style={{ height, borderRadius: 12, overflow: 'hidden' }}>
+        {React.createElement('iframe', {
+          srcDoc: htmlContent,
+          style: { width: '100%', height: '100%', border: 'none' },
+          title: 'map',
+          sandbox: 'allow-same-origin allow-scripts',
+        })}
+      </View>
+    );
+  }
+
   return (
     <View style={{ height, borderRadius: 12, overflow: 'hidden' }}>
-      <WebView
+      <WebViewComponent
         source={{ html: htmlContent }}
         style={{ flex: 1 }}
         javaScriptEnabled

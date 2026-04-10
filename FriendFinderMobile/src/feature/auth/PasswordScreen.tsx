@@ -8,12 +8,41 @@ import Button from '../../components/common/Button';
 import { colors } from '../../constants/theme';
 import { useAppDispatch } from '../../redux/hooks';
 import { setCredentials } from '../../redux/userSlice';
+import { checkUsername } from '../../service/user.service';
 
-const PasswordScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+const 
+
+PasswordScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [usernameError, setUsernameError] = useState('');
+  const [checkingUsername, setCheckingUsername] = useState(false);
+
+  const handleUsernameChange = (text: string) => {
+    setUsername(text);
+    setUsernameError('');
+  };
+
+  const validateUsername = async () => {
+    if (!username.trim()) return false;
+    setCheckingUsername(true);
+    try {
+      const result = await checkUsername(username);
+      if (result.exists) {
+        setUsernameError('บัญชีนี้มีในระบบแล้ว');
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error('Error checking username:', err);
+      return false;
+    } finally {
+      setCheckingUsername(false);
+    }
+  };
+
 
   const isPasswordValid = (pwd: string) => {
     return (
@@ -60,52 +89,56 @@ const PasswordScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <TouchableOpacity className="px-5 pt-3" onPress={() => navigation.goBack()}>
+        <TouchableOpacity className="px-5 pt-3" onPress={() => navigation.navigate('Splash')}>
           <Text className="text-3xl text-primary font-bold leading-8">‹</Text>
         </TouchableOpacity>
-
         <View className="flex-1 px-7">
           <View className="items-center my-6">
             <AppLogo size="md" showText={false} />
           </View>
-
           <Text className="text-xl font-bold text-gray-900 mb-4">สร้างบัญชี</Text>
-
           {/* Username Input */}
           <View className="mb-4">
             <Text className="text-sm font-semibold text-gray-700 mb-2">บัญชีผู้ใช้</Text>
-            <View className="border border-gray-300 rounded-xl px-4 h-12 justify-center">
+            <View className={`border rounded-xl px-4 h-12 justify-center flex-row items-center ${usernameError ? 'border-red-500' : 'border-gray-300'}`}>
               <TextInput
                 value={username}
-                onChangeText={setUsername}
+                onChangeText={handleUsernameChange}
                 placeholder="ใส่ชื่อผู้ใช้"
                 placeholderTextColor="#9ca3af"
-                className="text-base text-gray-900 p-0"
+                className="flex-1 text-base text-gray-900 p-0"
                 returnKeyType="next"
+                editable={!checkingUsername}
               />
+              {checkingUsername && (
+                <Ionicons name="ellipsis-horizontal" size={20} color={colors.gray400} />
+              )}
             </View>
+            {usernameError && (
+              <View className="flex-row items-center gap-1 mt-2">
+                <Ionicons name="alert-circle" size={14} color="red" />
+                <Text className="text-sm text-red-500">{usernameError}</Text>
+              </View>
+            )}
           </View>
-
           {/* Password Input */}
           <View className="mb-4">
             <Text className="text-sm font-semibold text-gray-700 mb-2">รหัสผ่าน</Text>
-            
             <View className="border border-gray-300 rounded-xl px-4 h-12 justify-center flex-row items-center mb-3">
-            <TextInput
-              value={password}
-              onChangeText={setPassword}
-              placeholder="ใส่รหัสผ่าน"
-              placeholderTextColor="#9ca3af"
-              secureTextEntry={!showPassword}
-              className="flex-1 text-base text-gray-900 p-0"
-              returnKeyType="done"
-            />
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="ใส่รหัสผ่าน"
+                placeholderTextColor="#9ca3af"
+                secureTextEntry={!showPassword}
+                className="flex-1 text-base text-gray-900 p-0"
+                returnKeyType="done"
+              />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={20} color={colors.gray400} />
               </TouchableOpacity>
             </View>
           </View>
-
           {password && (
             <View className="bg-gray-100 rounded-lg p-3 mb-4">
               <RequirementItem met={getPasswordRequirements(password).minLength} text="ต้องมีอย่างน้อย 8 ตัวอักษร" />
@@ -115,7 +148,6 @@ const PasswordScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               <RequirementItem met={getPasswordRequirements(password).hasSpecial} text="มีอักษรพิเศษ (@$!%*?&)" />
             </View>
           )}
-
           {password && (
             <View className="mb-4">
               <View className="h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
@@ -137,11 +169,14 @@ const PasswordScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <View className="px-7 pb-20">
           <Button
             label="ดำเนินการต่อ"
-            onPress={() => {
-              dispatch(setCredentials({ username, password }));
-              navigation.navigate('UserInfo', { username });
+            onPress={async () => {
+              const isValid = await validateUsername();
+              if (isValid) {
+                dispatch(setCredentials({ username, password }));
+                navigation.navigate('UserInfo', { username });
+              }
             }}
-            disabled={!username.trim() || !isPasswordValid(password)}
+            disabled={!username.trim() || !isPasswordValid(password) || !!usernameError || checkingUsername}
           />
         </View>
       </KeyboardAvoidingView>

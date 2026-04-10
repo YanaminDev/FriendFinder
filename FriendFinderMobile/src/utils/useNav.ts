@@ -52,6 +52,12 @@ export function useNav() {
         }
       }
     },
+    replace: (screen: string) => {
+      const path = ROUTE_MAP[screen];
+      if (path) {
+        router.replace(path as never);
+      }
+    },
     goBack: () => router.back(),
   };
 }

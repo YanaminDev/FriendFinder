@@ -1,7 +1,7 @@
 // ─── LocationDetailCard ────────────────────────────────────────────────────────
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView, PanResponder, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView, PanResponder, Animated, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../constants/theme';
 
@@ -11,6 +11,7 @@ interface LocationDetailCardProps {
   description?: string;
   phone?: string;
   openTime?: string;
+  openDate?: string;
   imageUrl?: string;
   markerPosition?: { x: number; y: number };
   onClose: () => void;
@@ -23,6 +24,7 @@ const LocationDetailCard: React.FC<LocationDetailCardProps> = ({
   description,
   phone,
   openTime,
+  openDate,
   imageUrl,
   markerPosition,
   onClose,
@@ -49,22 +51,25 @@ const LocationDetailCard: React.FC<LocationDetailCardProps> = ({
     },
   });
 
+  // Use different component based on platform
+  const CardContainer = Platform.OS === 'web' ? View : Animated.View;
+  const cardProps = Platform.OS === 'web'
+    ? { className: "absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl", style: { zIndex: 100, maxHeight: '75%', paddingTop: 16 }, pointerEvents: "auto" as const }
+    : {
+        className: "absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl",
+        style: { zIndex: 100, maxHeight: '75%', paddingTop: 16, transform: [{ translateY }] },
+        pointerEvents: "auto" as const,
+        ...panResponder.panHandlers
+      };
+
   return (
     <View
       className="absolute inset-0 bg-black/40"
       style={{ zIndex: 99 }}
       pointerEvents="box-none"
     >
-      <Animated.View
-        className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl"
-        style={{
-          zIndex: 100,
-          maxHeight: '75%',
-          paddingTop: 16,
-          transform: [{ translateY }],
-        }}
-        pointerEvents="auto"
-        {...panResponder.panHandlers}
+      <CardContainer
+        {...cardProps}
       >
       {/* Drag Handle */}
       <View className="items-center py-2">
@@ -110,6 +115,14 @@ const LocationDetailCard: React.FC<LocationDetailCardProps> = ({
             </View>
           )}
 
+          {/* Open Date */}
+          {openDate && (
+            <View className="flex-row items-center gap-2 mb-2">
+              <Ionicons name="calendar" size={14} color={colors.primary} />
+              <Text className="text-xs text-gray-700 font-medium" numberOfLines={1}>{openDate}</Text>
+            </View>
+          )}
+
           {/* Hours */}
           {openTime && (
             <View className="flex-row items-center gap-2 mb-2">
@@ -118,16 +131,9 @@ const LocationDetailCard: React.FC<LocationDetailCardProps> = ({
             </View>
           )}
 
-          {/* Action Button */}
-          <TouchableOpacity
-            className="bg-primary rounded-lg py-2 items-center mt-2"
-            onPress={onPress}
-          >
-            <Text className="text-white font-bold text-xs">View Details</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
-      </Animated.View>
+      </CardContainer>
     </View>
   );
 };

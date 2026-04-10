@@ -1,48 +1,58 @@
 import { useState, useEffect } from 'react';
 import * as Location from 'expo-location';
 
-interface UserLocation {
+export interface UserLocation {
   latitude: number;
   longitude: number;
-  accuracy?: number;
 }
 
 export const useUserLocation = () => {
-  const [location, setLocation] = useState<UserLocation | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const requestLocation = async () => {
+    const startLocationTracking = async () => {
       try {
-        // Request permission
+        // Request location permission
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-          setError('Permission to access location was denied');
+          setError('Location permission denied');
           setLoading(false);
           return;
         }
 
-        // Get current location
-        const currentLocation = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        });
+        // Watch user location in real-time with high accuracy
+        const subscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.High,
+            timeInterval: 1000, // Update every 1 second
+            distanceInterval: 10, // Update if moved 10 meters
+          },
+          (location) => {
+            setUserLocation({
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+            });
+            setError(null);
+          }
+        );
 
-        setLocation({
-          latitude: currentLocation.coords.latitude,
-          longitude: currentLocation.coords.longitude,
-          accuracy: currentLocation.coords.accuracy,
-        });
+        setLoading(false);
+
+        // Cleanup subscription when component unmounts
+        return () => {
+          subscription.remove();
+        };
       } catch (err) {
-        console.error('Failed to get location:', err);
-        setError('Failed to get location');
-      } finally {
+        console.error('Error tracking user location:', err);
+        setError('Failed to track location');
         setLoading(false);
       }
     };
 
-    requestLocation();
+    startLocationTracking();
   }, []);
 
-  return { location, error, loading };
+  return { userLocation, loading, error };
 };
