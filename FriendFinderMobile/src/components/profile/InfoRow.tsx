@@ -2,15 +2,17 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { colors } from '../../constants/theme';
 
 interface InfoRowProps {
-  icon: string;
+  iconName: string;
   label: string;
   value: string;
   onPress?: () => void;
 }
 
-const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value, onPress }) => (
+const InfoRow: React.FC<InfoRowProps> = ({ iconName, label, value, onPress }) => (
   <TouchableOpacity
     className="flex-row items-center py-3 gap-2.5 border-b border-gray-50"
     onPress={onPress}
@@ -18,7 +20,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value, onPress }) => (
     disabled={!onPress}
   >
     <View className="w-8 h-8 rounded-full bg-primary-light items-center justify-center">
-      <Text className="text-sm">{icon}</Text>
+      <Ionicons name={iconName} size={16} color={colors.primary} />
     </View>
     <Text className="text-base font-medium text-gray-900">{label}</Text>
     <View className="flex-1" />

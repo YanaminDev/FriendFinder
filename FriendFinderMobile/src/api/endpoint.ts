@@ -5,6 +5,7 @@ export const LOGIN = "/v1/api/auth/login";
 export const LOGOUT = "/v1/api/auth/logout";
 export const DELETE_USER = "/v1/api/auth/delete";
 export const DELETE_USER_BY_ID = "/v1/api/auth/delete/:id";
+export const GET_USER_PROFILE = "/v1/api/auth/profile";
 
 // ==================== User Image ====================
 export const UPLOAD_USER_IMAGE = "/v1/user-image/upload";

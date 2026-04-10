@@ -81,7 +81,22 @@ export const userRepository = {
         catch(err){
             throw new Error("Failed to delete user")
         }
-    }
+    },
 
+    getProfile: async (user_id: string) => {
+        return await prisma.user.findUnique({
+            where: { user_id },
+            select: {
+                user_id: true,
+                username: true,
+                user_show_name: true,
+                sex: true,
+                age: true,
+                birth_of_date: true,
+                interested_gender: true,
+                role: true,
+            }
+        })
+    }
 
 }

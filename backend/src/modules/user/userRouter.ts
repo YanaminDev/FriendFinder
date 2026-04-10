@@ -125,6 +125,19 @@ export const userRouter = () => {
 
 
 
+    router.get("/profile", authenticateToken, authorize("user", "admin"), async (req, res) => {
+        try {
+            const user_id = (req as any).user.user_id;
+            const user = await userRepository.getProfile(user_id);
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            return res.status(200).json(user);
+        } catch (err) {
+            return res.status(500).json({ message: "Failed to get profile" });
+        }
+    })
+
     router.post("/logout" , authenticateToken ,authorize("user","admin"), async (req , res) => {
         res.clearCookie("accessToken");
         res.clearCookie("refreshToken");

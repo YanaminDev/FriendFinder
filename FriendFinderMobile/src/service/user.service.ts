@@ -1,7 +1,18 @@
-import { CHECK_USERNAME, REGISTER, LOGIN, LOGOUT, DELETE_USER, DELETE_USER_BY_ID } from "../api/endpoint";
+import { CHECK_USERNAME, REGISTER, LOGIN, LOGOUT, DELETE_USER, DELETE_USER_BY_ID, GET_USER_PROFILE } from "../api/endpoint";
 import mainApi from "../api/main.api";
 
 export type Sex = "male" | "female" | "lgbtq";
+
+export interface UserProfile {
+    user_id: string;
+    username: string;
+    user_show_name: string;
+    sex: Sex;
+    age: number;
+    birth_of_date: string;
+    interested_gender: Sex;
+    role: string;
+}
 
 export interface RegisterRequest {
     user_show_name: string;
@@ -17,6 +28,15 @@ export interface LoginRequest {
     username: string;
     password: string;
 }
+
+export const getUserProfile = async (): Promise<UserProfile> => {
+    try {
+        return await mainApi.get<UserProfile>(GET_USER_PROFILE);
+    } catch (error) {
+        console.error("Error getting user profile:", error);
+        throw error;
+    }
+};
 
 export const checkUsername = async (username: string): Promise<{ exists: boolean }> => {
     try {

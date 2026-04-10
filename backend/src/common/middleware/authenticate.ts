@@ -35,7 +35,7 @@ export async function authenticateToken(req : Request , res : Response , next : 
                 maxAge : 15 * 60 * 1000
             });
 
-            ;(req as any).user = verifyToken(newAccessToken)
+            ;(req as any).user = await verifyToken(newAccessToken)
             return next()
         }
         return res.status(401).json({ message: "Not authenticated" })
