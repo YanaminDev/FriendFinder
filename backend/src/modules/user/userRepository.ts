@@ -119,6 +119,17 @@ export const userRepository = {
         } catch (err) {
             throw new Error("Failed to update interested gender")
         }
+    },
+
+    setUserOnline: async (user_id: string, isOnline: boolean) => {
+        try {
+            return await prisma.user.update({
+                where: { user_id },
+                data: { isOnline }
+            })
+        } catch (err) {
+            throw new Error("Failed to update user online status")
+        }
     }
 
 }

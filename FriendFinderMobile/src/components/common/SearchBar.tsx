@@ -1,8 +1,10 @@
 // ─── SearchBar ────────────────────────────────────────────────────────────────
 
 import React from 'react';
-import { View, TextInput, Text } from 'react-native';
+import { View, TextInput } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { cn } from '../../utils/cn';
+import { colors } from '../../constants/theme';
 
 interface SearchBarProps {
   value: string;
@@ -18,7 +20,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   className,
 }) => (
   <View className={cn('flex-row items-center bg-gray-100 rounded-full px-4 py-3 gap-2.5', className)}>
-    <Text className="text-gray-400 text-base">🔍</Text>
+    <Ionicons name="search" size={20} color={colors.gray400} />
     <TextInput
       value={value}
       onChangeText={onChangeText}

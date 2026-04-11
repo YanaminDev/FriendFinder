@@ -2,6 +2,8 @@ import {
     SEND_MESSAGE,
     GET_MESSAGES_BY_CHAT,
     DELETE_MESSAGE,
+    MARK_MESSAGES_AS_READ,
+    UPLOAD_CHAT_IMAGE,
 } from "../api/endpoint";
 import mainApi from "../api/main.api";
 
@@ -19,6 +21,8 @@ export interface ChatMessage {
     sender_id: string;
     createdAt: string;
     chatType: string;
+    isRead: boolean;
+    status: string;
     sender?: any;
 }
 
@@ -47,6 +51,28 @@ export const deleteMessage = async (message_id: string): Promise<{ message: stri
         return await mainApi.delete<{ message: string }>(endpoint);
     } catch (error) {
         console.error("Error deleting message:", error);
+        throw error;
+    }
+};
+
+export const uploadChatImage = async (imageUri: string, mimeType: string): Promise<{ imageUrl: string }> => {
+    try {
+        const formData = new FormData();
+        const filename = imageUri.split('/').pop() ?? 'chat-image.jpg';
+        formData.append('image', { uri: imageUri, name: filename, type: mimeType } as any);
+        return await mainApi.upload<{ imageUrl: string }>(UPLOAD_CHAT_IMAGE, formData);
+    } catch (error) {
+        console.error("Error uploading chat image:", error);
+        throw error;
+    }
+};
+
+export const markMessagesAsRead = async (chat_id: string): Promise<{ message: string; updatedCount: number }> => {
+    try {
+        const endpoint = MARK_MESSAGES_AS_READ.replace(":chat_id", chat_id);
+        return await mainApi.post<{ message: string; updatedCount: number }>(endpoint, {});
+    } catch (error) {
+        console.error("Error marking messages as read:", error);
         throw error;
     }
 };

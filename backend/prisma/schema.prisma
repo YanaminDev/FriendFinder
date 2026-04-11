@@ -17,6 +17,7 @@ model User {
   interested_gender      Sex
   birth_of_date          DateTime
   role                   Role              @default(user)
+  isOnline               Boolean           @default(false)
   CancellationAsReviewee Cancellation[]    @relation("RevieweeCancellation")
   CancellationAsReviewer Cancellation[]    @relation("ReviewerCancellation")
   chat1                  Chat[]            @relation("User1Chat")
@@ -238,12 +239,14 @@ model Chat {
   user1_id     String
   user2_id     String
   createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   user1        User          @relation("User1Chat", fields: [user1_id], references: [user_id])
   user2        User          @relation("User2Chat", fields: [user2_id], references: [user_id])
   chatMessage  Chat_Message[]
 
   @@unique([user1_id, user2_id])
   @@index([user1_id, user2_id])
+  @@index([updatedAt])
 }
 
 model Chat_Message {
@@ -252,11 +255,15 @@ model Chat_Message {
   message   String
   sender_id String
   createdAt DateTime @default(now())
-  chatType  String
+  chatType  String   @default("text")
+  status    String   @default("sent")
+  isRead    Boolean  @default(false)
   chat      Chat     @relation(fields: [chat_id], references: [id])
   sender    User     @relation(fields: [sender_id], references: [user_id])
 
   @@index([chat_id, sender_id, message])
+  @@index([chat_id, createdAt])
+  @@index([isRead])
 }
 
 model Position {

@@ -4,7 +4,9 @@ export interface UserBase {
   id: string;
   username: string;
   name: string;
-  avatar: string;
+  avatar?: string;
+  initials?: string;
+  avatarBgColor?: string;
   age: number;
   gender: Gender;
   isOnline?: boolean;
@@ -59,6 +61,8 @@ export interface ChatMessage {
   text: string;
   timestamp: string;
   isMine: boolean;
+  isRead?: boolean;
+  chatType?: string;
   imageUri?: string;
 }
 

@@ -45,9 +45,7 @@ const MapComponentWeb: React.FC<MapComponentWebProps> = ({
   useEffect(() => {
     const fetchToken = async () => {
       try {
-        console.log('MapComponentWeb: Fetching Mapbox token...');
         const token = await configService.getMapboxToken();
-        console.log('MapComponentWeb: Token received:', token ? 'yes' : 'no');
         setMapboxToken(token);
       } catch (error) {
         console.error('Failed to fetch Mapbox token:', error);

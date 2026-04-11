@@ -66,6 +66,9 @@ export const userRouter = () => {
             const validateData = UserLoginSchema.parse(req.body);
             const responsedata = await userRepository.login(validateData);
             if (responsedata) {
+                // Set user as online
+                await userRepository.setUserOnline(responsedata.user_id, true);
+
                 const accessToken = generateAccessToken({user_id: responsedata.user_id, username: responsedata.username, role: responsedata.role});
                 const refreshToken = generateRefreshToken({user_id: responsedata.user_id});
 
@@ -83,7 +86,7 @@ export const userRouter = () => {
                     maxAge : 7 * 24 * 60 * 60 * 1000
                 })
 
-                return res.status(200).json({message:"User logged in successfully"})
+                return res.status(200).json({message:"User logged in successfully", user_id: responsedata.user_id})
             }
             return res.status(400).json({message:"Failed to login user"})
 
@@ -139,9 +142,19 @@ export const userRouter = () => {
     })
 
     router.post("/logout" , authenticateToken ,authorize("user","admin"), async (req , res) => {
-        res.clearCookie("accessToken");
-        res.clearCookie("refreshToken");
-        res.status(200).json({message:"User logged out successfully"})
+        try {
+            const user_id = (req as any).user.sub;
+            // Set user as offline
+            await userRepository.setUserOnline(user_id, false);
+
+            res.clearCookie("accessToken");
+            res.clearCookie("refreshToken");
+            res.status(200).json({message:"User logged out successfully"})
+        } catch (err) {
+            res.clearCookie("accessToken");
+            res.clearCookie("refreshToken");
+            res.status(200).json({message:"User logged out successfully"})
+        }
     })
 
     router.put("/update/name", authenticateToken, async (req, res) => {

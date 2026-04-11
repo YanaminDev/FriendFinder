@@ -1,7 +1,10 @@
 import './loadEnv';
 import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
 import cookieParser from "cookie-parser"
 import { corsMiddleware } from "./common/middleware/cors";
+import { setupSocket } from './socket/socketHandler';
 import { userRouter } from "./modules/user/userRouter";
 import { lookingForRouter } from "./modules/looking_for/looking_forRouter"
 import { drinkingRouter } from "./modules/drinking/drinkingRouter"
@@ -31,6 +34,18 @@ import { languageRouter } from "./modules/language/languageRouter"
 
 
 const app = express()
+const server = http.createServer(app)
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+  pingInterval: 10000,
+  pingTimeout: 20000,
+})
+
+setupSocket(io)
 
 app.use(express.json())
 app.use(cookieParser())
@@ -68,6 +83,6 @@ app.use("/v1/map", mapRouter());
 
 
 
-app.listen(3000, '0.0.0.0', () => {
+server.listen(3000, '0.0.0.0', () => {
   console.log('Server is running on port http://localhost:3000');
 });

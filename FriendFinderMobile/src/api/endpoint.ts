@@ -129,6 +129,8 @@ export const DELETE_CHAT = "/v1/chat/delete/:chat_id";
 export const SEND_MESSAGE = "/v1/chat-message/send";
 export const GET_MESSAGES_BY_CHAT = "/v1/chat-message/chat/:chat_id";
 export const DELETE_MESSAGE = "/v1/chat-message/delete/:message_id";
+export const MARK_MESSAGES_AS_READ = "/v1/chat-message/mark-as-read/:chat_id";
+export const UPLOAD_CHAT_IMAGE = "/v1/chat-message/upload-image";
 
 // ==================== Activity ====================
 export const GET_ACTIVITY = "/v1/activity/activity";

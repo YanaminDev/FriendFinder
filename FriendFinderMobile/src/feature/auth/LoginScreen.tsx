@@ -11,6 +11,7 @@ import { colors } from '../../constants/theme';
 import { login } from '../../service/user.service';
 import { useAppDispatch } from '../../redux/hooks';
 import { setCredentials, setIsAuthenticated } from '../../redux/authSlice';
+import { setUserId } from '../../redux/userSlice';
 
 interface AlertState {
   visible: boolean;
@@ -44,6 +45,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     try {
       const response = await login({ username, password });
       dispatch(setCredentials({ username, password }));
+      dispatch(setUserId(response.user_id));  // ← เพิ่ม user_id
       dispatch(setIsAuthenticated(true));
       showAlert('success', 'สำเร็จ', response.message || 'เข้าสู่ระบบสำเร็จ', () => {
         navigation.replace('Home');

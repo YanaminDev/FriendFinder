@@ -18,7 +18,9 @@ export const chatMessageRepository = {
                     chat_id: data.chat_id,
                     message: data.message,
                     sender_id: data.sender_id,
-                    chatType: data.chatType
+                    chatType: data.chatType || "text",
+                    status: "sent",
+                    isRead: false,
                 },
                 include: {
                     chat: true,
@@ -56,6 +58,24 @@ export const chatMessageRepository = {
             return await prisma.chat_Message.delete({
                 where: {
                     id: data.message_id
+                }
+            });
+        }
+        catch (err) {
+            throw err;
+        }
+    },
+
+    markMessagesAsRead: async (chat_id: string) => {
+        try {
+            return await prisma.chat_Message.updateMany({
+                where: {
+                    chat_id: chat_id,
+                    isRead: false
+                },
+                data: {
+                    isRead: true,
+                    status: "read"
                 }
             });
         }

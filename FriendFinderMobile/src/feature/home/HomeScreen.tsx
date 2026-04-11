@@ -12,6 +12,7 @@ import MapComponentWeb from '../../components/map/MapComponentWeb';
 import { MOCK_VENUES } from '../../constants/mockData';
 import { getAllPositions, Position } from '../../service/position.service';
 import { useUserLocation } from '../../hooks/useUserLocation';
+import { useSocket } from '../../hooks/useSocket';
 
 const MOCK_NOTIFICATIONS = [
   {
@@ -46,6 +47,9 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const { userLocation, loading: locationLoading } = useUserLocation();
+
+  // Initialize Socket.IO connection when home screen loads
+  useSocket(null);
 
   useEffect(() => {
     const fetchPositions = async () => {
@@ -84,9 +88,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               userLocation={userLocation || undefined}
               height="100%"
               onPinPress={(pin: any) => {
-                console.log('Pin pressed:', pin);
                 const position = positions.find(p => p.id === pin.id);
-                console.log('Found position:', position);
                 if (position) {
                   setSelectedLocation({
                     ...position,

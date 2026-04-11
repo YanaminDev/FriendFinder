@@ -45,7 +45,6 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           setUserInfo(info);
           setUserLifeStyle(lifeStyle);
           setUserImages(images || []);
-          console.log('Fetched images:', images);
         } catch (error) {
           console.error('Error fetching profile data:', error);
         } finally {

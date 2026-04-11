@@ -4,6 +4,7 @@ import userReducer from './userSlice';
 import userImageReducer from './userImageSlice';
 import userInformationReducer from './userInformationSlice';
 import userLifeStyleReducer from './userLifeStyleSlice';
+import chatReducer from './chatSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     userImage: userImageReducer,
     userInformation: userInformationReducer,
     userLifeStyle: userLifeStyleReducer,
+    chat: chatReducer,
   },
 });
 

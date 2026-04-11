@@ -1,66 +1,209 @@
 // ─── ChatListScreen ────────────────────────────────────────────────────────────
 
-import React from 'react';
-import { View, Text, FlatList, ScrollView, SafeAreaView } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, FlatList, SafeAreaView, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { SafeAreaView as SafeAreaViewContext } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import AppHeader from '../../components/common/AppHeader';
 import ChatListItem from '../../components/chat/ChatListItem';
-import OnlineUserAvatar from '../../components/chat/OnlineUserAvatar';
 import SearchBar from '../../components/common/SearchBar';
-import { MOCK_CONVERSATIONS } from '../../constants/mockData';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
+import { fetchConversations } from '../../redux/chatSlice';
+import { colors } from '../../constants/theme';
+import type { ChatConversation } from '../../types';
+import type { Chat } from '../../service/chat.service';
 
-const online = MOCK_CONVERSATIONS.filter(c => c.user.isOnline);
+// Helper function สำหรับหาสีจาก user_id
+const getColorFromUserId = (userId: string): string => {
+  const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'];
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+};
 
-const ChatListScreen: React.FC<{ navigation: any }> = ({ navigation }) => (
-  <SafeAreaView className="flex-1 bg-white">
-    <AppHeader title="Chat" />
+// Helper function สำหรับหา initials
+const getInitials = (name: string): string => {
+  return name
+    .split(' ')
+    .map(word => word[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
 
-    <View className="px-4 pt-3 pb-2">
-      <SearchBar placeholder="ค้นหาการสนทนา..." onChangeText={() => {}} />
-    </View>
+// แปลง Chat จาก API → ChatConversation ที่ component ใช้
+const mapChatToConversation = (chat: Chat, currentUserId: string): ChatConversation => {
+  const isUser1 = chat.user1_id === currentUserId;
+  const otherUser = isUser1 ? chat.user2 : chat.user1;
+  const lastMsg = chat.chatMessage?.[chat.chatMessage.length - 1];
 
-    {/* Online users */}
-    {online.length > 0 && (
-      <View className="pb-2">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>
-          {online.map(c => (
-            <OnlineUserAvatar
-              key={c.id}
-              avatar={c.user.avatar}
-              username={c.user.username}
-              isOnline={c.user.isOnline}
-              onPress={() => {
-                console.log('OnlineUserAvatar pressed, navigating with conversationId:', c.id);
-                navigation.navigate('ChatDetail', { conversationId: c.id });
-              }}
-            />
-          ))}
-        </ScrollView>
+  // ดึงรูปโปรไฟล์จาก user images หรือใช้ default avatar
+  const userImage = (otherUser as any)?.images?.[0]?.imageUrl;
+  const avatar = userImage;
+  const initials = getInitials(otherUser?.user_show_name ?? otherUser?.username ?? 'Unknown');
+  const avatarBgColor = getColorFromUserId(otherUser?.user_id ?? '');
+
+  return {
+    id: chat.id,
+    user: {
+      id: otherUser?.user_id ?? '',
+      username: otherUser?.username ?? 'Unknown',
+      name: otherUser?.user_show_name ?? otherUser?.username ?? 'Unknown',
+      avatar: avatar,
+      initials: initials,
+      avatarBgColor: avatarBgColor,
+      age: 0,
+      gender: 'Male',
+      isOnline: (otherUser as any)?.isOnline ?? false,
+    },
+    lastMessage: lastMsg?.message ?? '',
+    lastMessageTime: lastMsg
+      ? new Date(lastMsg.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+      : '',
+    unreadCount: 0,
+  };
+};
+
+const ChatListScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const dispatch = useAppDispatch();
+  const currentUserId = useAppSelector(state => state.user.user_id);
+  const { conversations, loadingConversations } = useAppSelector(state => state.chat);
+  const [searchText, setSearchText] = useState('');
+
+  useEffect(() => {
+    if (currentUserId) {
+      dispatch(fetchConversations(currentUserId));
+    }
+  }, [currentUserId]);
+
+  // Refetch ทุกครั้งที่กดเข้าหน้านี้
+  useFocusEffect(
+    useCallback(() => {
+      if (currentUserId) {
+        dispatch(fetchConversations(currentUserId));
+      }
+    }, [currentUserId])
+  );
+
+
+  const mappedConversations = conversations.map(chat =>
+    mapChatToConversation(chat, currentUserId)
+  );
+
+  // Filter conversations by search text
+  const filteredConversations = mappedConversations.filter(conv => {
+    const searchLower = searchText.toLowerCase().trim();
+    if (!searchLower) return true;
+
+    return (
+      conv.user.name.toLowerCase().includes(searchLower) ||
+      conv.user.username.toLowerCase().includes(searchLower)
+    );
+  });
+
+  // Filter only online friends
+  const onlineFriends = mappedConversations.filter(conv => conv.user.isOnline);
+
+  return (
+    <SafeAreaViewContext className="flex-1 bg-gray-50" edges={['top', 'bottom', 'left', 'right']}>
+      <AppHeader title="Chat" />
+
+      <View className="px-4 pt-6 pb-3 bg-white">
+        <SearchBar
+          value={searchText}
+          onChangeText={setSearchText}
+          placeholder="ค้นหาการสนทนา..."
+        />
       </View>
-    )}
 
-    <View className="h-px bg-gray-100" />
+      <View className="h-px bg-gray-100" />
 
-    <FlatList
-      data={MOCK_CONVERSATIONS}
-      keyExtractor={item => item.id}
-      renderItem={({ item }) => (
-        <ChatListItem
-          conversation={item}
-          onPress={() => {
-            console.log('Navigating to ChatDetail with conversationId:', item.id);
-            navigation.navigate('ChatDetail', { conversationId: item.id });
-          }}
+      {/* Online Friends Section */}
+      {onlineFriends.length > 0 && (
+        <View className="bg-white py-4 border-b border-gray-100">
+          <Text className="px-4 mb-3 text-sm font-semibold text-gray-900">เพื่อนออนไลน์</Text>
+          <FlatList
+            horizontal
+            data={onlineFriends}
+            keyExtractor={item => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                className="items-center px-2"
+                onPress={() =>
+                  navigation.navigate('ChatDetail', {
+                    conversationId: item.id,
+                    otherUsername: item.user.name,
+                    otherAvatar: item.user.avatar,
+                  })
+                }
+              >
+                <View className="relative w-16 h-16 mb-2">
+                  {item.user.avatar ? (
+                    <Image
+                      source={{ uri: item.user.avatar }}
+                      className="w-16 h-16 rounded-full bg-gray-200"
+                    />
+                  ) : (
+                    <View
+                      className="w-16 h-16 rounded-full items-center justify-center"
+                      style={{ backgroundColor: (item.user as any).avatarBgColor }}
+                    >
+                      <Text className="text-white text-lg font-bold">
+                        {(item.user as any).initials}
+                      </Text>
+                    </View>
+                  )}
+                  {item.user.isOnline && (
+                    <View className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-online border-2 border-white" />
+                  )}
+                </View>
+                <Text className="text-xs text-gray-900 text-center w-16" numberOfLines={2}>
+                  {item.user.name}
+                </Text>
+              </TouchableOpacity>
+            )}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 8 }}
+          />
+        </View>
+      )}
+
+      {loadingConversations ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#ec4899" />
+        </View>
+      ) : (
+        <FlatList
+          data={filteredConversations}
+          keyExtractor={item => item.id}
+          renderItem={({ item }) => (
+            <ChatListItem
+              conversation={item}
+              onPress={() =>
+                navigation.navigate('ChatDetail', {
+                  conversationId: item.id,
+                  otherUsername: item.user.name,
+                  otherAvatar: item.user.avatar || null,
+                  otherInitials: (item.user as any).initials,
+                  otherAvatarBgColor: (item.user as any).avatarBgColor,
+                })
+              }
+            />
+          )}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View className="items-center justify-center py-20">
+              <Ionicons name="chatbubbles" size={48} color={colors.gray300} style={{ marginBottom: 12 }} />
+              <Text className="text-base text-gray-500">ยังไม่มีการสนทนา</Text>
+            </View>
+          }
         />
       )}
-      showsVerticalScrollIndicator={false}
-      ListEmptyComponent={
-        <View className="items-center justify-center py-20">
-          <Text className="text-4xl mb-3">💬</Text>
-          <Text className="text-base text-gray-500">ยังไม่มีการสนทนา</Text>
-        </View>
-      }
-    />
-  </SafeAreaView>
-);
+    </SafeAreaViewContext>
+  );
+};
 
 export default ChatListScreen;

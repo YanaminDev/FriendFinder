@@ -1,56 +1,212 @@
 // ─── ChatDetailScreen ──────────────────────────────────────────────────────────
 
-import React, { useState } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import AppHeader from '../../components/common/AppHeader';
 import MessageBubble from '../../components/chat/MessageBubble';
-import { MOCK_CONVERSATIONS, MOCK_MESSAGES } from '../../constants/mockData';
-import { ChatMessage } from '../../types';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
+import { fetchMessages, clearMessages } from '../../redux/chatSlice';
+import { useSocket } from '../../hooks/useSocket';
+import { uploadChatImage } from '../../service/chat_message.service';
+import { colors } from '../../constants/theme';
 
-const ChatDetailScreen: React.FC<{ navigation: any; route: { params: { conversationId: string } } }> = ({ navigation, route }) => {
-  const { conversationId } = route.params;
-  console.log('ChatDetailScreen rendering with conversationId:', conversationId);
-  const conversation = MOCK_CONVERSATIONS.find(c => c.id === conversationId) ?? MOCK_CONVERSATIONS[0];
-  console.log('Found conversation:', conversation);
-  const [messages, setMessages] = useState<ChatMessage[]>(MOCK_MESSAGES);
+const getInitials = (name: string) =>
+  name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+
+const getColorFromName = (name: string): string => {
+  const colorList = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return colorList[Math.abs(hash) % colorList.length];
+};
+
+const ChatDetailScreen: React.FC<{
+  navigation: any;
+  route: { params: { conversationId: string; otherUsername?: string; otherAvatar?: string; otherInitials?: string; otherAvatarBgColor?: string } };
+}> = ({ navigation, route }) => {
+  const { conversationId, otherUsername = 'Chat', otherAvatar, otherInitials: passedInitials, otherAvatarBgColor: passedBgColor } = route.params;
+  const otherInitials = passedInitials || getInitials(otherUsername);
+  const otherAvatarBgColor = passedBgColor || getColorFromName(otherUsername);
+
+  const dispatch = useAppDispatch();
+  const currentUserId = useAppSelector(state => state.user.user_id);
+  const { currentMessages, loadingMessages } = useAppSelector(state => state.chat);
+
   const [text, setText] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const flatListRef = useRef<FlatList>(null);
+  const isFirstLoad = useRef(true);
 
-  const send = () => {
+  const { sendMessage } = useSocket(conversationId);
+
+  useEffect(() => {
+    dispatch(fetchMessages(conversationId));
+    return () => {
+      dispatch(clearMessages());
+    };
+  }, [conversationId]);
+
+  useEffect(() => {
+    if (!loadingMessages && currentMessages.length > 0) {
+      isFirstLoad.current = true;
+    }
+  }, [loadingMessages]);
+
+  const handleSend = () => {
     if (!text.trim()) return;
-    setMessages(prev => [...prev, {
-      id: `msg_${Date.now()}`,
-      senderId: 'user_001',
-      text: text.trim(),
-      timestamp: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
-      isMine: true,
-    }]);
+    sendMessage({
+      chat_id: conversationId,
+      message: text.trim(),
+      sender_id: currentUserId,
+      chatType: 'text',
+    });
     setText('');
   };
 
+
+  const pickFromGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('ไม่ได้รับอนุญาต', 'กรุณาอนุญาตการเข้าถึงคลังรูปภาพ');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      await sendImage(result.assets[0].uri, result.assets[0].mimeType ?? 'image/jpeg');
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('ไม่ได้รับอนุญาต', 'กรุณาอนุญาตการเข้าถึงกล้อง');
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      await sendImage(result.assets[0].uri, result.assets[0].mimeType ?? 'image/jpeg');
+    }
+  };
+
+  const sendImage = async (uri: string, mimeType: string) => {
+    setUploadingImage(true);
+    try {
+      const { imageUrl } = await uploadChatImage(uri, mimeType);
+      sendMessage({
+        chat_id: conversationId,
+        message: imageUrl,
+        sender_id: currentUserId,
+        chatType: 'image',
+      });
+    } catch {
+      Alert.alert('เกิดข้อผิดพลาด', 'ไม่สามารถส่งรูปภาพได้ กรุณาลองใหม่');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-gray-50" edges={['top', 'bottom', 'left', 'right']}>
       <AppHeader
-        title={conversation.user.username}
+        title={otherUsername}
         showBack
         onBackPress={() => navigation.goBack()}
       />
-      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <FlatList
-          data={messages}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => (
-            <MessageBubble
-              message={item}
-              otherAvatar={conversation.user.avatar}
-              showAvatar
-            />
-          )}
-          contentContainerStyle={{ paddingVertical: 12 }}
-          showsVerticalScrollIndicator={false}
-        />
+
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior="padding"
+        enabled
+      >
+        {loadingMessages ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#ec4899" />
+          </View>
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={currentMessages}
+            keyExtractor={item => item.id}
+            onContentSizeChange={() => {
+              const animated = !isFirstLoad.current;
+              isFirstLoad.current = false;
+              flatListRef.current?.scrollToEnd({ animated });
+            }}
+            onLayout={() => flatListRef.current?.scrollToEnd({ animated: false })}
+            renderItem={({ item }) => (
+              <MessageBubble
+                message={{
+                  id: item.id,
+                  senderId: item.sender_id,
+                  text: item.message,
+                  timestamp: new Date(item.createdAt).toLocaleTimeString('th-TH', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }),
+                  isMine: item.sender_id === currentUserId,
+                  isRead: item.isRead ?? false,
+                  chatType: item.chatType,
+                }}
+                otherAvatar={otherAvatar}
+                otherInitials={otherInitials}
+                otherAvatarBgColor={otherAvatarBgColor}
+                showAvatar
+              />
+            )}
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', paddingVertical: 12 }}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View className="items-center justify-center py-20">
+                <Ionicons name="chatbubbles-outline" size={48} color={colors.gray300} style={{ marginBottom: 12 }} />
+                <Text className="text-base text-gray-500">เริ่มการสนทนาได้เลย</Text>
+              </View>
+            }
+          />
+        )}
 
         {/* Input */}
-        <View className="flex-row items-center px-4 py-3 gap-2 border-t border-gray-100">
+        <View className="flex-row items-center px-3 py-3 gap-2 border-t border-gray-100 bg-white">
+          {/* Camera */}
+          <TouchableOpacity
+            onPress={takePhoto}
+            className="w-10 h-10 items-center justify-center rounded-full bg-gray-100"
+            activeOpacity={0.7}
+            disabled={uploadingImage}
+          >
+            <Ionicons name="camera-outline" size={22} color="#6b7280" />
+          </TouchableOpacity>
+
+          {/* Gallery */}
+          <TouchableOpacity
+            onPress={pickFromGallery}
+            className="w-10 h-10 items-center justify-center rounded-full bg-gray-100"
+            activeOpacity={0.7}
+            disabled={uploadingImage}
+          >
+            {uploadingImage ? (
+              <ActivityIndicator size="small" color="#ec4899" />
+            ) : (
+              <Ionicons name="image-outline" size={22} color="#6b7280" />
+            )}
+          </TouchableOpacity>
+
           <View className="flex-1 bg-gray-100 rounded-full px-4 h-11 justify-center">
             <TextInput
               value={text}
@@ -59,11 +215,11 @@ const ChatDetailScreen: React.FC<{ navigation: any; route: { params: { conversat
               placeholderTextColor="#9ca3af"
               className="text-base text-gray-900 p-0"
               returnKeyType="send"
-              onSubmitEditing={send}
+              onSubmitEditing={handleSend}
             />
           </View>
           <TouchableOpacity
-            onPress={send}
+            onPress={handleSend}
             className="w-11 h-11 bg-primary rounded-full items-center justify-center"
             activeOpacity={0.8}
           >

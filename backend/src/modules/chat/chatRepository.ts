@@ -60,12 +60,37 @@ export const chatRepository = {
                     ]
                 },
                 include: {
-                    user1: true,
-                    user2: true,
-                    chatMessage: true
+                    user1: {
+                        select: {
+                            user_id: true,
+                            user_show_name: true,
+                            username: true,
+                            isOnline: true,
+                            images: {
+                                take: 1,
+                                orderBy: { createdAt: 'desc' }
+                            }
+                        }
+                    },
+                    user2: {
+                        select: {
+                            user_id: true,
+                            user_show_name: true,
+                            username: true,
+                            isOnline: true,
+                            images: {
+                                take: 1,
+                                orderBy: { createdAt: 'desc' }
+                            }
+                        }
+                    },
+                    chatMessage: {
+                        orderBy: { createdAt: 'desc' },
+                        take: 1
+                    }
                 },
                 orderBy: {
-                    createdAt: 'desc'
+                    updatedAt: 'desc'
                 }
             });
         }

@@ -36,8 +36,6 @@ const PetsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     if (!selected) return;
     setSubmitting(true);
     dispatch(setPetId(selected));
-    console.log('Redux user:', { username, password, user_show_name, sex, age, birth_of_date, interested_gender });
-    console.log('Redux lifestyle:', { looking_for_id, drinking_id, smoke_id, workout_id, pet_id: selected });
     try {
       const { user_id } = await registerUser();
       dispatch(setUserId(user_id));
