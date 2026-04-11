@@ -31,9 +31,9 @@ export const userLifeStyleRouter = () => {
   });
 
   // Get user life style
-  router.get('/get/:userId', async (req, res) => {
+  router.get('/get/:userId', authenticateToken, async (req, res) => {
     try {
-      const {user_id } = GetUserLifeStyleSchema.parse(req.params) 
+      const {user_id } = GetUserLifeStyleSchema.parse({ user_id: req.params.userId })
       const result = await userLifeStyleRepository.findByUserId(user_id);
       res.json(result);
     } catch (error) {

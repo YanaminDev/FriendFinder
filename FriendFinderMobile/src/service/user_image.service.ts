@@ -27,7 +27,16 @@ export const uploadUserImage = async (userId: string, imageFile: {
 }): Promise<UserImage> => {
     try {
         const formData = new FormData();
-        formData.append("image", { uri: imageFile.uri, name: imageFile.name, type: imageFile.type } as any);
+        if (typeof document !== "undefined") {
+            // Web: fetch blob URL and convert to File
+            const response = await fetch(imageFile.uri);
+            const blob = await response.blob();
+            const file = new File([blob], imageFile.name, { type: imageFile.type });
+            formData.append("image", file);
+        } else {
+            // Native: use RN FormData format
+            formData.append("image", { uri: imageFile.uri, name: imageFile.name, type: imageFile.type } as any);
+        }
         formData.append("user_id", userId);
         return await mainApi.upload<UserImage>(UPLOAD_USER_IMAGE, formData);
     } catch (error) {
@@ -94,8 +103,15 @@ export const updateUserImage = async (imageId: string, imageFile: {
     try {
         const endpoint = UPDATE_USER_IMAGE.replace(":imageId", imageId);
         const formData = new FormData();
-        formData.append("image", { uri: imageFile.uri, name: imageFile.name, type: imageFile.type } as any);
-        return await mainApi.upload<UserImage>(endpoint, formData);
+        if (typeof document !== "undefined") {
+            const response = await fetch(imageFile.uri);
+            const blob = await response.blob();
+            const file = new File([blob], imageFile.name, { type: imageFile.type });
+            formData.append("image", file);
+        } else {
+            formData.append("image", { uri: imageFile.uri, name: imageFile.name, type: imageFile.type } as any);
+        }
+        return await mainApi.upload<UserImage>(endpoint, formData, "PUT");
     } catch (error) {
         console.error("Error updating user image:", error);
         throw error;

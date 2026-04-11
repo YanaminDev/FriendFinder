@@ -127,7 +127,7 @@ export const userRouter = () => {
 
     router.get("/profile", authenticateToken, authorize("user", "admin"), async (req, res) => {
         try {
-            const user_id = (req as any).user.user_id;
+            const user_id = (req as any).user.sub;
             const user = await userRepository.getProfile(user_id);
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
@@ -142,6 +142,23 @@ export const userRouter = () => {
         res.clearCookie("accessToken");
         res.clearCookie("refreshToken");
         res.status(200).json({message:"User logged out successfully"})
+    })
+
+    router.put("/update/name", authenticateToken, async (req, res) => {
+        try {
+            const user_id = (req as any).user.sub;
+            if (!user_id) {
+                return res.status(400).json({ message: "User ID not found in token" });
+            }
+            const { user_show_name } = req.body;
+            if (!user_show_name || typeof user_show_name !== "string" || user_show_name.trim().length === 0) {
+                return res.status(400).json({ message: "user_show_name is required and cannot be empty" });
+            }
+            const updatedUser = await userRepository.updateUserShowName(user_id, user_show_name);
+            return res.status(200).json(updatedUser);
+        } catch (err) {
+            return res.status(500).json({ message: "Failed to update user show name" });
+        }
     })
 
     return router

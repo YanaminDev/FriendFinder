@@ -6,6 +6,8 @@ export const LOGOUT = "/v1/api/auth/logout";
 export const DELETE_USER = "/v1/api/auth/delete";
 export const DELETE_USER_BY_ID = "/v1/api/auth/delete/:id";
 export const GET_USER_PROFILE = "/v1/api/auth/profile";
+export const UPDATE_USER_SHOW_NAME = "/v1/api/auth/update/name";
+export const UPDATE_USER_INTERESTED_GENDER = "/v1/user-information/update/interested-gender";
 
 // ==================== User Image ====================
 export const UPLOAD_USER_IMAGE = "/v1/user-image/upload";

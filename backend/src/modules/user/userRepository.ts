@@ -97,6 +97,28 @@ export const userRepository = {
                 role: true,
             }
         })
+    },
+
+    updateUserShowName: async (user_id: string, user_show_name: string) => {
+        try {
+            return await prisma.user.update({
+                where: { user_id },
+                data: { user_show_name }
+            })
+        } catch (err) {
+            throw new Error("Failed to update user show name")
+        }
+    },
+
+    updateUserInterestedGender: async (user_id: string, interested_gender: string) => {
+        try {
+            return await prisma.user.update({
+                where: { user_id },
+                data: { interested_gender: interested_gender as any }
+            })
+        } catch (err) {
+            throw new Error("Failed to update interested gender")
+        }
     }
 
 }

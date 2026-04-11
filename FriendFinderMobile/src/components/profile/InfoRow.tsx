@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../../constants/theme';
 
 interface InfoRowProps {
@@ -20,7 +20,7 @@ const InfoRow: React.FC<InfoRowProps> = ({ iconName, label, value, onPress }) =>
     disabled={!onPress}
   >
     <View className="w-8 h-8 rounded-full bg-primary-light items-center justify-center">
-      <Ionicons name={iconName} size={16} color={colors.primary} />
+      <MaterialCommunityIcons name={iconName} size={16} color={colors.primary} />
     </View>
     <Text className="text-base font-medium text-gray-900">{label}</Text>
     <View className="flex-1" />

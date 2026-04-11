@@ -1,4 +1,4 @@
-import { CHECK_USERNAME, REGISTER, LOGIN, LOGOUT, DELETE_USER, DELETE_USER_BY_ID, GET_USER_PROFILE } from "../api/endpoint";
+import { CHECK_USERNAME, REGISTER, LOGIN, LOGOUT, DELETE_USER, DELETE_USER_BY_ID, GET_USER_PROFILE, UPDATE_USER_SHOW_NAME, UPDATE_USER_INTERESTED_GENDER } from "../api/endpoint";
 import mainApi from "../api/main.api";
 
 export type Sex = "male" | "female" | "lgbtq";
@@ -89,6 +89,24 @@ export const deleteUserByAdmin = async (id: string): Promise<{ message: string }
         return await mainApi.delete<{ message: string }>(endpoint);
     } catch (error) {
         console.error("Error deleting user by admin:", error);
+        throw error;
+    }
+};
+
+export const updateUserShowName = async (user_show_name: string): Promise<UserProfile> => {
+    try {
+        return await mainApi.put<UserProfile>(UPDATE_USER_SHOW_NAME, { user_show_name });
+    } catch (error) {
+        console.error("Error updating user show name:", error);
+        throw error;
+    }
+};
+
+export const updateUserInterestedGender = async (interested_gender: Sex): Promise<UserProfile> => {
+    try {
+        return await mainApi.put<UserProfile>(UPDATE_USER_INTERESTED_GENDER, { interested_gender });
+    } catch (error) {
+        console.error("Error updating interested gender:", error);
         throw error;
     }
 };

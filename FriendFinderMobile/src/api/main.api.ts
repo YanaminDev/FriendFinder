@@ -21,9 +21,9 @@ async function request<T>(method: string, endpoint: string, body?: unknown): Pro
     }
 }
 
-async function upload<T>(endpoint: string, formData: FormData): Promise<T> {
+async function upload<T>(endpoint: string, formData: FormData, method: "POST" | "PUT" = "POST"): Promise<T> {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
-        method: "POST",
+        method,
         credentials: "include",
         body: formData,
     });
@@ -39,7 +39,7 @@ const mainApi = {
     post: <T>(endpoint: string, body?: unknown) => request<T>("POST", endpoint, body),
     put: <T>(endpoint: string, body?: unknown) => request<T>("PUT", endpoint, body),
     delete: <T>(endpoint: string, body?: unknown) => request<T>("DELETE", endpoint, body),
-    upload: <T>(endpoint: string, formData: FormData) => upload<T>(endpoint, formData),
+    upload: <T>(endpoint: string, formData: FormData, method?: "POST" | "PUT") => upload<T>(endpoint, formData, method),
 };
 
 export default mainApi;

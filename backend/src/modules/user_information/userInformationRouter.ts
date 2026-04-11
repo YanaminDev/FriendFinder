@@ -5,6 +5,7 @@ import "dotenv/config"
 import { authenticateToken } from "../../common/middleware/authenticate"
 import {authorize} from '../../common/middleware/authorize'
 import { ca } from "zod/v4/locales";
+import { userRepository } from "../user/userRepository";
 
 
 export const userInformationRouter = () => {
@@ -33,7 +34,7 @@ export const userInformationRouter = () => {
                 return res.status(400).json({ message: "User ID not found in token" });
             }
 
-            const validateData = GetUserInformationSchema.parse(req.params);
+            const validateData = GetUserInformationSchema.parse({ user_id: req.params.userId });
             const responsedata = await userInformationRepository.getUserInformation(validateData.user_id);
             return res.status(200).json(responsedata);
         }
@@ -134,6 +135,23 @@ export const userInformationRouter = () => {
         }
         catch(err){
             return res.status(400).json({message:"Failed to update user information" + err})
+        }
+    })
+
+    router.put("/update/interested-gender", authenticateToken, async (req, res) => {
+        try {
+            const userId = (req as any).user.sub;
+            if (!userId) {
+                return res.status(400).json({ message: "User ID not found in token" });
+            }
+            const { interested_gender } = req.body;
+            if (!['male', 'female', 'lgbtq'].includes(interested_gender)) {
+                return res.status(400).json({ message: "Invalid interested_gender" });
+            }
+            const result = await userRepository.updateUserInterestedGender(userId, interested_gender);
+            return res.status(200).json(result);
+        } catch (err) {
+            return res.status(500).json({ message: "Failed to update interested gender" });
         }
     })
 
