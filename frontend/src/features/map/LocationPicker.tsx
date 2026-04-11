@@ -11,12 +11,12 @@ export interface SelectedLocation {
 export interface Location {
   id: string;
   name: string;
-  description?: string;
+  information?: string;
   phone?: string;
-  activity_id?: string;
   open_date?: string;
   open_time?: string;
   close_time?: string;
+  image?: string;
   latitude: number;
   longitude: number;
 }
@@ -40,6 +40,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [tokenLoaded, setTokenLoaded] = useState(false);
   const coordsRef = useRef<SelectedLocation>({
     latitude: initialCenter[1],
     longitude: initialCenter[0],
@@ -51,14 +52,27 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
   const lastUpdateRef = useRef(0);
   const THROTTLE_MS = 500;
 
-  // Initialize map — runs once only
+  // Fetch Mapbox token from backend
   useEffect(() => {
-    const token = import.meta.env.VITE_MAPBOX_TOKEN;
-    if (token) {
-      mapboxgl.accessToken = token;
-    }
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+    fetch(`${API_BASE_URL}/v1/map/token`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.token) {
+          mapboxgl.accessToken = data.token;
+        }
+      })
+      .catch(err => {
+        console.error('Failed to load Mapbox token:', err);
+      })
+      .finally(() => {
+        setTokenLoaded(true);
+      });
+  }, []);
 
-    if (!mapContainer.current || map.current) return;
+  // Initialize map — runs once token is loaded
+  useEffect(() => {
+    if (!tokenLoaded || !mapContainer.current || map.current) return;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -103,7 +117,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
         map.current = null;
       }
     };
-  }, []);
+  }, [tokenLoaded]);
 
   // Sync markers — runs after map loads and whenever locations change
   const onLocationClickStable = useCallback(
@@ -120,15 +134,15 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
 
     locations.forEach(location => {
       const el = document.createElement('div');
-      el.style.width = '50px';
-      el.style.height = '50px';
+      el.style.width = '40px';
+      el.style.height = '40px';
       el.style.cursor = 'pointer';
       el.style.display = 'flex';
       el.style.alignItems = 'center';
       el.style.justifyContent = 'center';
-      el.style.position = 'relative';
+      el.style.filter = 'drop-shadow(0 2px 6px rgba(0,0,0,0.3))';
 
-      // SVG Heart with animation
+      // SVG Heart (no animation on the marker element itself)
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.setAttribute('viewBox', '0 0 24 24');
       svg.setAttribute('width', '40');
@@ -138,29 +152,11 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
       `;
 
-      // Add animation
-      const style = document.createElement('style');
-      style.textContent = `
-        @keyframes heartBeat {
-          0%, 100% { transform: scale(1); }
-          25% { transform: scale(1.1); }
-          50% { transform: scale(1.2); }
-        }
-        .animated-heart {
-          animation: heartBeat 1.5s ease-in-out infinite;
-        }
-      `;
-      document.head.appendChild(style);
-      svg.classList.add('animated-heart');
-
       el.appendChild(svg);
-
-      // Add white border effect
-      el.style.filter = 'drop-shadow(0 2px 6px rgba(0,0,0,0.3))';
 
       const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
         <div style="font-weight:bold;margin-bottom:4px">${location.name}</div>
-        ${location.description ? `<div style="font-size:12px;color:#666;margin-bottom:4px">${location.description}</div>` : ''}
+        ${location.information ? `<div style="font-size:12px;color:#666;margin-bottom:4px">${location.information}</div>` : ''}
         ${location.phone ? `<div style="font-size:12px">📞 ${location.phone}</div>` : ''}
         <div style="font-size:11px;color:#999;margin-top:4px">
           Lat: ${location.latitude.toFixed(4)}<br/>Lng: ${location.longitude.toFixed(4)}

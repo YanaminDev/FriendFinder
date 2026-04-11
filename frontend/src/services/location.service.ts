@@ -2,9 +2,11 @@ import axiosInstance from '../apis/main.api';
 import {
   LOCATION_GET_ALL,
   LOCATION_GET_BY_ID,
+  LOCATION_GET_BY_POSITION,
   LOCATION_CREATE,
   LOCATION_UPDATE,
   LOCATION_DELETE,
+  LOCATION_IMAGE_UPLOAD,
 } from '../apis/endpoint.api';
 import type {
   CreateLocationRequest,
@@ -31,6 +33,18 @@ export const locationService = {
       return response.data;
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to fetch location';
+      throw new Error(message);
+    }
+  },
+
+  async getByPositionId(positionId: string): Promise<LocationResponse[]> {
+    try {
+      const response = await axiosInstance.get<LocationResponse[]>(
+        LOCATION_GET_BY_POSITION(positionId)
+      );
+      return response.data || [];
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to fetch locations';
       throw new Error(message);
     }
   },
@@ -118,5 +132,22 @@ export const locationService = {
       const distB = this.calculateDistance(userLat, userLon, b.latitude, b.longitude);
       return distA - distB;
     });
+  },
+
+  async uploadImage(locationId: string, file: File): Promise<any> {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('locationId', locationId);
+      const response = await axiosInstance.post(
+        LOCATION_IMAGE_UPLOAD,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to upload image';
+      throw new Error(message);
+    }
   },
 };

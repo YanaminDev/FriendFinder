@@ -1,70 +1,172 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import Card from '../../components/Card';
 import Input from '../../components/Input';
+import PhoneInput from '../../components/PhoneInput';
+import TimeInput from '../../components/TimeInput';
+import OpenDateSelect from '../../components/OpenDateSelect';
 import Button from '../../components/Button';
-import { useActivities } from '../../hooks/useActivities';
 
-interface LocationFormData {
+interface PositionFormData {
   name: string;
-  description: string;
+  information: string;
   phone: string;
-  activity_id: string;
   open_date: string;
   open_time: string;
   close_time: string;
   latitude: number;
   longitude: number;
+  images: File[];
 }
 
 interface EditLocationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (locationId: string, location: LocationFormData) => void;
-  onDelete?: (locationId: string) => void;
+  onSave: (positionId: string, data: PositionFormData) => void;
+  onDelete?: (positionId: string) => void;
   location?: {
     id: string;
     name: string;
-    description?: string;
+    information?: string;
     phone?: string;
-    activity_id?: string;
     open_date?: string;
     open_time?: string;
     close_time?: string;
+    image?: string;
     latitude: number;
     longitude: number;
   } | null;
 }
 
+const MAX_IMAGES = 4;
+
 const EditLocationModal: React.FC<EditLocationModalProps> = ({ isOpen, onClose, onSave, onDelete, location }) => {
-  const { activities } = useActivities();
-  const [formData, setFormData] = useState<LocationFormData>({
+  const [formData, setFormData] = useState<Omit<PositionFormData, 'images'>>({
     name: '',
-    description: '',
+    information: '',
     phone: '',
-    activity_id: '',
     open_date: '',
     open_time: '',
     close_time: '',
     latitude: 0,
     longitude: 0,
   });
+  const [images, setImages] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [tokenLoaded, setTokenLoaded] = useState(false);
 
   // Sync form data whenever location changes
   useEffect(() => {
     if (location) {
       setFormData({
         name: location.name,
-        description: location.description || '',
+        information: location.information || '',
         phone: location.phone || '',
-        activity_id: location.activity_id || '',
         open_date: location.open_date || '',
         open_time: location.open_time || '',
         close_time: location.close_time || '',
         latitude: location.latitude,
         longitude: location.longitude,
       });
+      // Parse existing images from JSON array string
+      if (location.image) {
+        try {
+          const parsed = JSON.parse(location.image);
+          setExistingImages(Array.isArray(parsed) ? parsed : [location.image]);
+        } catch {
+          setExistingImages(location.image ? [location.image] : []);
+        }
+      } else {
+        setExistingImages([]);
+      }
+      setImages([]);
     }
   }, [location]);
+
+  // Generate preview URLs for new files
+  useEffect(() => {
+    const urls = images.map(f => URL.createObjectURL(f));
+    setPreviews(urls);
+    return () => urls.forEach(u => URL.revokeObjectURL(u));
+  }, [images]);
+
+  const handleImageAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const totalSlots = MAX_IMAGES - existingImages.length;
+    setImages(prev => [...prev, ...files].slice(0, totalSlots));
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleImageRemove = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleExistingImageRemove = (index: number) => {
+    setExistingImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Fetch Mapbox token
+  useEffect(() => {
+    if (!isOpen) return;
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+    fetch(`${API_BASE_URL}/v1/map/token`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.token) {
+          mapboxgl.accessToken = data.token;
+        }
+      })
+      .catch(err => console.error('Failed to load Mapbox token:', err))
+      .finally(() => setTokenLoaded(true));
+  }, [isOpen]);
+
+  // Initialize mini map with draggable marker
+  useEffect(() => {
+    if (!isOpen || !tokenLoaded || !mapContainerRef.current || !location) return;
+
+    // Clean up previous map
+    if (mapRef.current) {
+      mapRef.current.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    }
+
+    const m = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [formData.longitude, formData.latitude],
+      zoom: 15,
+    });
+
+    const marker = new mapboxgl.Marker({ draggable: true, color: '#FD7979' })
+      .setLngLat([formData.longitude, formData.latitude])
+      .addTo(m);
+
+    marker.on('dragend', () => {
+      const lngLat = marker.getLngLat();
+      setFormData(prev => ({
+        ...prev,
+        latitude: lngLat.lat,
+        longitude: lngLat.lng,
+      }));
+    });
+
+    mapRef.current = m;
+    markerRef.current = marker;
+
+    return () => {
+      m.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    };
+  }, [isOpen, tokenLoaded, location]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -76,15 +178,11 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({ isOpen, onClose, 
 
   const handleSave = () => {
     if (!formData.name.trim()) {
-      alert('Please enter location name');
-      return;
-    }
-    if (!formData.activity_id) {
-      alert('Please select an activity');
+      alert('Please enter a name');
       return;
     }
     if (location) {
-      onSave(location.id, formData);
+      onSave(location.id, { ...formData, images });
     }
   };
 
@@ -93,7 +191,7 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({ isOpen, onClose, 
   };
 
   const handleDelete = () => {
-    if (location && onDelete && confirm('Are you sure you want to delete this location?')) {
+    if (location && onDelete && confirm('Are you sure you want to delete this position?')) {
       onDelete(location.id);
       onClose();
     }
@@ -103,10 +201,10 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({ isOpen, onClose, 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <Card className="w-full max-w-2xl max-h-[80vh] flex flex-col p-6">
+      <Card className="w-full max-w-2xl max-h-[85vh] flex flex-col p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-4 pb-4 border-b">
-          <h2 className="text-xl font-bold">Edit Location</h2>
+          <h2 className="text-xl font-bold">Edit Position</h2>
           <button
             onClick={handleClose}
             className="text-gray-500 hover:text-gray-800 transition text-2xl"
@@ -118,10 +216,10 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({ isOpen, onClose, 
         {/* Form Content - Scrollable */}
         <div className="flex-1 overflow-y-auto">
           <div className="space-y-4">
-            {/* Location Name */}
+            {/* Name */}
             <div>
               <label className="block text-sm font-semibold mb-2">
-                Location Name *
+                Name *
               </label>
               <Input
                 type="text"
@@ -132,39 +230,69 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({ isOpen, onClose, 
               />
             </div>
 
-            {/* Description */}
+            {/* Information */}
             <div>
               <label className="block text-sm font-semibold mb-2">
-                Description
+                Information
               </label>
               <textarea
-                name="description"
-                value={formData.description}
+                name="information"
+                value={formData.information}
                 onChange={handleInputChange}
-                placeholder="Add description about this location"
+                placeholder="Add information about this position"
                 rows={3}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
               />
             </div>
 
-            {/* Activity Selection */}
+            {/* Images (up to 4) */}
             <div>
               <label className="block text-sm font-semibold mb-2">
-                Activity Type *
+                Images (max {MAX_IMAGES})
               </label>
-              <select
-                name="activity_id"
-                value={formData.activity_id}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white"
-              >
-                <option value="">Select an activity...</option>
-                {activities.map(activity => (
-                  <option key={activity.id} value={activity.id}>
-                    {activity.name}
-                  </option>
+              <div className="grid grid-cols-4 gap-2">
+                {existingImages.map((url, i) => (
+                  <div key={`existing-${i}`} className="relative aspect-square rounded-lg overflow-hidden border border-gray-300">
+                    <img src={url} alt={`existing ${i + 1}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => handleExistingImageRemove(i)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 ))}
-              </select>
+                {previews.map((url, i) => (
+                  <div key={`new-${i}`} className="relative aspect-square rounded-lg overflow-hidden border border-blue-300">
+                    <img src={url} alt={`new ${i + 1}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => handleImageRemove(i)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                {(existingImages.length + images.length) < MAX_IMAGES && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center hover:border-red-400 hover:bg-red-50 transition"
+                  >
+                    <span className="text-2xl text-gray-400">+</span>
+                  </button>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleImageAdd}
+              />
             </div>
 
             {/* Phone */}
@@ -172,35 +300,31 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({ isOpen, onClose, 
               <label className="block text-sm font-semibold mb-2">
                 Phone
               </label>
-              <Input
-                type="tel"
+              <PhoneInput
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
-                placeholder="0xxxxxxxxx"
               />
             </div>
 
-            {/* Date & Time */}
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-sm font-semibold mb-2">
-                  Open Date
-                </label>
-                <Input
-                  type="text"
-                  name="open_date"
-                  value={formData.open_date}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Mon-Fri"
-                />
-              </div>
+            {/* Open Date */}
+            <div>
+              <label className="block text-sm font-semibold mb-2">
+                Open Date
+              </label>
+              <OpenDateSelect
+                value={formData.open_date}
+                onChange={(val) => setFormData(prev => ({ ...prev, open_date: val }))}
+              />
+            </div>
+
+            {/* Time */}
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-semibold mb-2">
                   Open Time
                 </label>
-                <Input
-                  type="text"
+                <TimeInput
                   name="open_time"
                   value={formData.open_time}
                   onChange={handleInputChange}
@@ -211,8 +335,7 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({ isOpen, onClose, 
                 <label className="block text-sm font-semibold mb-2">
                   Close Time
                 </label>
-                <Input
-                  type="text"
+                <TimeInput
                   name="close_time"
                   value={formData.close_time}
                   onChange={handleInputChange}
@@ -221,12 +344,17 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({ isOpen, onClose, 
               </div>
             </div>
 
-            {/* Coordinates Display (Read-only) */}
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <p className="text-sm font-semibold mb-2">Location Coordinates (Read-only)</p>
-              <div className="font-mono text-sm">
-                <div>Latitude: <span className="font-bold">{formData.latitude.toFixed(6)}</span></div>
-                <div>Longitude: <span className="font-bold">{formData.longitude.toFixed(6)}</span></div>
+            {/* Draggable Map */}
+            <div>
+              <label className="block text-sm font-semibold mb-2">
+                Location (drag marker to move)
+              </label>
+              <div
+                ref={mapContainerRef}
+                className="w-full h-48 rounded-lg overflow-hidden border border-gray-300"
+              />
+              <div className="mt-2 font-mono text-xs text-gray-500">
+                Lat: {formData.latitude.toFixed(6)}, Lng: {formData.longitude.toFixed(6)}
               </div>
             </div>
           </div>
@@ -255,7 +383,7 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({ isOpen, onClose, 
               size="sm"
               onClick={handleSave}
             >
-              Update Location
+              Update Position
             </Button>
           </div>
         </div>

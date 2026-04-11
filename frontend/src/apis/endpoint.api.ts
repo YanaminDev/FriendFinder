@@ -17,12 +17,24 @@ export const LOCATION_GET_BY_ID = (id: string) => `/v1/location/get/${id}`;
 export const LOCATION_CREATE = '/v1/location/create';
 export const LOCATION_UPDATE = (id: string) => `/v1/location/update/${id}`;
 export const LOCATION_DELETE = '/v1/location/delete';
-export const LOCATION_GET_BY_POSITION = (positionId: string) => `/v1/location/get/${positionId}`;
+export const LOCATION_GET_BY_POSITION = (positionId: string) => `/v1/location/get-by-position/${positionId}`;
 
 // ============ USER ENDPOINTS ============
 export const USER_GET_PROFILE = '/v1/user/profile';
 export const USER_UPDATE_PROFILE = '/v1/user/update';
 export const USER_DELETE = '/v1/user/delete';
+
+// ============ POSITION ENDPOINTS ============
+export const POSITION_GET_ALL = '/v1/position/get';
+export const POSITION_GET_BY_ID = (id: string) => `/v1/position/get/${id}`;
+export const POSITION_CREATE = '/v1/position/create';
+export const POSITION_UPDATE = (id: string) => `/v1/position/update/${id}`;
+export const POSITION_DELETE = (id: string) => `/v1/position/delete/${id}`;
+export const POSITION_SEARCH_NEARBY = '/v1/position/search-nearby';
+export const POSITION_UPLOAD_IMAGES = (id: string) => `/v1/position/upload-images/${id}`;
+
+// ============ LOCATION IMAGE ENDPOINTS ============
+export const LOCATION_IMAGE_UPLOAD = '/v1/location-image/upload';
 
 // ============ MAP ENDPOINTS ============
 export const MAP_GET_TOKEN = '/v1/map/token';

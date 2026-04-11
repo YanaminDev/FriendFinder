@@ -3,135 +3,193 @@ import TopBar from "../../components/TopBar"
 import LocationPicker, { type SelectedLocation } from "../map/LocationPicker"
 import AddLocationModal from "../map/AddLocationModal"
 import EditLocationModal from "../map/EditLocationModal"
-import { useState } from "react"
+import PositionDetailPopup from "../map/PositionDetailPopup"
+import PlaceListModal from "../map/PlaceListModal"
+import PlaceFormModal from "../map/PlaceFormModal"
+import { useState, useEffect } from "react"
+import { positionService, locationService } from "../../services"
+import type { LocationResponse } from "../../types/responses"
 
-interface Location {
+interface Position {
   id: string
   name: string
-  description?: string
+  information?: string
   phone?: string
-  activity_id?: string
   open_date?: string
   open_time?: string
   close_time?: string
+  image?: string
   latitude: number
   longitude: number
 }
 
-const MOCK_LOCATIONS: Location[] = [
-  {
-    id: "loc-1",
-    name: "Blue Sky Café",
-    description: "Cozy café with great coffee and pastries",
-    phone: "0812345678",
-    activity_id: "1",
-    open_date: "Mon-Fri",
-    open_time: "08:00",
-    close_time: "20:00",
-    latitude: 13.7945,
-    longitude: 100.3254,
-  },
-  {
-    id: "loc-2",
-    name: "Major Cineplex Ratchayothin",
-    description: "Modern cinema with IMAX screens",
-    phone: "0898765432",
-    activity_id: "3",
-    open_date: "Everyday",
-    open_time: "10:00",
-    close_time: "23:00",
-    latitude: 13.8387,
-    longitude: 100.5696,
-  },
-  {
-    id: "loc-3",
-    name: "Lumpini Park",
-    description: "Large public park in central Bangkok, great for jogging",
-    phone: "",
-    activity_id: "5",
-    open_date: "Everyday",
-    open_time: "04:30",
-    close_time: "21:00",
-    latitude: 13.7318,
-    longitude: 100.5415,
-  },
-  {
-    id: "loc-4",
-    name: "CentralWorld",
-    description: "One of the largest shopping malls in Bangkok",
-    phone: "0221001000",
-    activity_id: "4",
-    open_date: "Everyday",
-    open_time: "10:00",
-    close_time: "22:00",
-    latitude: 13.7466,
-    longitude: 100.5392,
-  },
-  {
-    id: "loc-5",
-    name: "Zen Studio Thonglor",
-    description: "Yoga and wellness studio",
-    phone: "0654321098",
-    activity_id: "7",
-    open_date: "Mon-Sat",
-    open_time: "06:00",
-    close_time: "21:00",
-    latitude: 13.7326,
-    longitude: 100.5845,
-  },
-]
-
 export default function Home() {
-  const [isAddLocationModalOpen, setIsAddLocationModalOpen] = useState(false)
-  const [isEditLocationModalOpen, setIsEditLocationModalOpen] = useState(false)
+  const [positions, setPositions] = useState<Position[]>([])
+  const [selectedPosition, setSelectedPosition] = useState<Position | null>(null)
+
+  // Modal open states
+  const [isAddPositionOpen, setIsAddPositionOpen] = useState(false)
+  const [isEditPositionOpen, setIsEditPositionOpen] = useState(false)
+  const [isDetailPopupOpen, setIsDetailPopupOpen] = useState(false)
+  const [isPlaceListOpen, setIsPlaceListOpen] = useState(false)
+  const [isPlaceFormOpen, setIsPlaceFormOpen] = useState(false)
+
   const [selectedPickerCoords, setSelectedPickerCoords] = useState<SelectedLocation | null>(null)
-  const [selectedEditLocation, setSelectedEditLocation] = useState<Location | null>(null)
-  const [locations, setLocations] = useState<Location[]>(MOCK_LOCATIONS)
+  const [editingPlace, setEditingPlace] = useState<LocationResponse | null>(null)
+  const [placeListKey, setPlaceListKey] = useState(0)
+
+  useEffect(() => {
+    positionService.getAll()
+      .then(data => setPositions(data))
+      .catch(err => console.error('Failed to fetch positions:', err))
+  }, [])
+
+  // ========== Position (marker) handlers ==========
 
   const handleAddLocationClick = (coords: SelectedLocation) => {
     setSelectedPickerCoords(coords)
-    setIsAddLocationModalOpen(true)
+    setIsAddPositionOpen(true)
   }
 
-  const handleEditLocationClick = (location: Location) => {
-    setSelectedEditLocation(location)
-    setIsEditLocationModalOpen(true)
+  const handleMarkerClick = (position: Position) => {
+    setSelectedPosition(position)
+    setIsDetailPopupOpen(true)
   }
 
-  const handleDeleteLocation = async (locationId: string) => {
-    if (!confirm('Are you sure you want to delete this location?')) return
-    setLocations(prev => prev.filter(loc => loc.id !== locationId))
-    setIsEditLocationModalOpen(false)
-  }
-
-  const handleSaveLocation = async (formData: {
+  const handleSavePosition = async (formData: {
     name: string
-    description: string
+    information: string
     phone: string
-    activity_id: string
     open_date: string
     open_time: string
     close_time: string
     latitude: number
     longitude: number
+    images: File[]
   }) => {
-    const newLocation: Location = {
-      id: `loc-${Date.now()}`,
-      name: formData.name,
-      description: formData.description,
-      phone: formData.phone,
-      activity_id: formData.activity_id,
-      open_date: formData.open_date,
-      open_time: formData.open_time,
-      close_time: formData.close_time,
-      latitude: formData.latitude,
-      longitude: formData.longitude,
+    try {
+      const newPosition = await positionService.create({
+        name: formData.name,
+        information: formData.information || undefined,
+        phone: formData.phone || undefined,
+        open_date: formData.open_date || undefined,
+        open_time: formData.open_time || undefined,
+        close_time: formData.close_time || undefined,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+      })
+
+      // Upload images if any
+      if (formData.images.length > 0) {
+        try {
+          const updated = await positionService.uploadImages(newPosition.id, formData.images)
+          setPositions(prev => [...prev, updated])
+        } catch {
+          // Position created but image upload failed
+          setPositions(prev => [...prev, newPosition])
+        }
+      } else {
+        setPositions(prev => [...prev, newPosition])
+      }
+
+      setIsAddPositionOpen(false)
+    } catch (err) {
+      console.error('Failed to create position:', err)
+      alert('Failed to create position')
     }
-    setLocations(prev => [...prev, newLocation])
-    setIsAddLocationModalOpen(false)
   }
 
-  const handleUpdateLocation = async (locationId: string, formData: {
+  const handleUpdatePosition = async (positionId: string, formData: {
+    name: string
+    information: string
+    phone: string
+    open_date: string
+    open_time: string
+    close_time: string
+    latitude: number
+    longitude: number
+    images: File[]
+  }) => {
+    try {
+      const updated = await positionService.update(positionId, {
+        name: formData.name,
+        information: formData.information || undefined,
+        phone: formData.phone || undefined,
+        open_date: formData.open_date || undefined,
+        open_time: formData.open_time || undefined,
+        close_time: formData.close_time || undefined,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+      })
+
+      // Upload new images if any
+      if (formData.images.length > 0) {
+        try {
+          const withImages = await positionService.uploadImages(positionId, formData.images)
+          setPositions(prev => prev.map(p => p.id === positionId ? withImages : p))
+        } catch {
+          setPositions(prev => prev.map(p => p.id === positionId ? updated : p))
+        }
+      } else {
+        setPositions(prev => prev.map(p => p.id === positionId ? updated : p))
+      }
+
+      setIsEditPositionOpen(false)
+    } catch (err) {
+      console.error('Failed to update position:', err)
+      alert('Failed to update position')
+    }
+  }
+
+  const handleDeletePosition = async (positionId: string) => {
+    if (!confirm('Are you sure you want to delete this position?')) return
+    try {
+      await positionService.delete(positionId)
+      setPositions(prev => prev.filter(p => p.id !== positionId))
+      setIsDetailPopupOpen(false)
+      setIsEditPositionOpen(false)
+    } catch (err) {
+      console.error('Failed to delete position:', err)
+    }
+  }
+
+  // ========== Detail popup actions ==========
+
+  const handleEditPlace = (position: Position) => {
+    setSelectedPosition(position)
+    setIsDetailPopupOpen(false)
+    setIsPlaceListOpen(true)
+  }
+
+  const handleEditLocation = (position: Position) => {
+    setSelectedPosition(position)
+    setIsDetailPopupOpen(false)
+    setIsEditPositionOpen(true)
+  }
+
+  // ========== Place (Location) handlers ==========
+
+  const handleOpenPlaceForm = () => {
+    setEditingPlace(null)
+    setIsPlaceFormOpen(true)
+  }
+
+  const handleEditPlaceItem = (location: LocationResponse) => {
+    setEditingPlace(location)
+    setIsPlaceFormOpen(true)
+  }
+
+  const handleDeletePlaceItem = async (locationId: string) => {
+    if (!confirm('Are you sure you want to delete this place?')) return
+    try {
+      await locationService.delete(locationId)
+      setPlaceListKey(prev => prev + 1)
+    } catch (err) {
+      console.error('Failed to delete place:', err)
+    }
+  }
+
+  const handleSavePlace = async (formData: {
     name: string
     description: string
     phone: string
@@ -139,47 +197,115 @@ export default function Home() {
     open_date: string
     open_time: string
     close_time: string
-    latitude: number
-    longitude: number
+    image: File | null
   }) => {
-    setLocations(prev => prev.map(loc =>
-      loc.id === locationId
-        ? { ...loc, ...formData }
-        : loc
-    ))
-    setIsEditLocationModalOpen(false)
+    if (!selectedPosition) return
+    try {
+      if (editingPlace) {
+        await locationService.update(editingPlace.id, {
+          description: formData.description || undefined,
+          phone: formData.phone || undefined,
+          open_date: formData.open_date || undefined,
+          open_time: formData.open_time || undefined,
+          close_time: formData.close_time || undefined,
+        })
+        // Upload image if provided
+        if (formData.image) {
+          try {
+            await locationService.uploadImage(editingPlace.id, formData.image)
+          } catch {
+            console.error('Image upload failed for location')
+          }
+        }
+      } else {
+        const newLocation = await locationService.create({
+          name: formData.name,
+          description: formData.description || undefined,
+          phone: formData.phone || undefined,
+          activity_id: formData.activity_id,
+          latitude: selectedPosition.latitude,
+          longitude: selectedPosition.longitude,
+          position_id: selectedPosition.id,
+          open_date: formData.open_date || undefined,
+          open_time: formData.open_time || undefined,
+          close_time: formData.close_time || undefined,
+        })
+        // Upload image if provided
+        if (formData.image && newLocation?.id) {
+          try {
+            await locationService.uploadImage(newLocation.id, formData.image)
+          } catch {
+            console.error('Image upload failed for location')
+          }
+        }
+      }
+      setIsPlaceFormOpen(false)
+      setPlaceListKey(prev => prev + 1)
+    } catch (err) {
+      console.error('Failed to save place:', err)
+      alert('Failed to save place')
+    }
   }
 
   return (
     <div className="relative w-full h-screen flex flex-col">
       <TopBar />
-      
-      {/* Main Location Picker */}
+
       <div className="flex-1 pt-16 relative">
-        <LocationPicker 
+        <LocationPicker
           onAddLocationClick={handleAddLocationClick}
-          locations={locations}
-          onLocationClick={handleEditLocationClick}
+          locations={positions}
+          onLocationClick={handleMarkerClick}
         />
       </div>
 
-      {/* Add Location Modal */}
+      {/* Add Position Modal */}
       <AddLocationModal
-        isOpen={isAddLocationModalOpen}
-        onClose={() => setIsAddLocationModalOpen(false)}
-        onSave={handleSaveLocation}
+        isOpen={isAddPositionOpen}
+        onClose={() => setIsAddPositionOpen(false)}
+        onSave={handleSavePosition}
         initialCoords={selectedPickerCoords}
       />
 
-      {/* Edit Location Modal */}
+      {/* Edit Position Modal */}
       <EditLocationModal
-        isOpen={isEditLocationModalOpen}
-        onClose={() => setIsEditLocationModalOpen(false)}
-        onSave={handleUpdateLocation}
-        onDelete={handleDeleteLocation}
-        location={selectedEditLocation}
+        isOpen={isEditPositionOpen}
+        onClose={() => setIsEditPositionOpen(false)}
+        onSave={handleUpdatePosition}
+        onDelete={handleDeletePosition}
+        location={selectedPosition}
       />
-        
+
+      {/* Position Detail Popup */}
+      <PositionDetailPopup
+        isOpen={isDetailPopupOpen}
+        onClose={() => setIsDetailPopupOpen(false)}
+        position={selectedPosition}
+        onEditPlace={handleEditPlace}
+        onEditLocation={handleEditLocation}
+        onDelete={handleDeletePosition}
+      />
+
+      {/* Place List Modal */}
+      <PlaceListModal
+        key={placeListKey}
+        isOpen={isPlaceListOpen}
+        onClose={() => setIsPlaceListOpen(false)}
+        positionId={selectedPosition?.id || null}
+        positionName={selectedPosition?.name || ''}
+        onAddPlace={handleOpenPlaceForm}
+        onEditPlace={handleEditPlaceItem}
+        onDeletePlace={handleDeletePlaceItem}
+      />
+
+      {/* Place Create/Edit Form */}
+      <PlaceFormModal
+        isOpen={isPlaceFormOpen}
+        onClose={() => setIsPlaceFormOpen(false)}
+        onSave={handleSavePlace}
+        editingPlace={editingPlace}
+      />
+
       <BottomNav />
     </div>
   )

@@ -31,6 +31,21 @@ export interface LocationResponse {
   updated_at?: string;
 }
 
+// Position Response DTOs
+export interface PositionResponse {
+  id: string;
+  name: string;
+  information?: string;
+  phone?: string;
+  open_date?: string;
+  open_time?: string;
+  close_time?: string;
+  image?: string;
+  latitude: number;
+  longitude: number;
+  location?: LocationResponse[];
+}
+
 // User Response DTOs
 export interface UserResponse {
   user_id: string;
