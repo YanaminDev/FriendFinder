@@ -28,7 +28,8 @@ const MapView: React.FC<MapProps> = ({ className = '', onLocationClick }) => {
 
   useEffect(() => {
     // Fetch Mapbox token from backend
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/v1/map/token`, { credentials: 'include' })
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+    fetch(`${API_BASE_URL}/v1/map/token`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         if (data.token) {

@@ -9,7 +9,7 @@ export const CreateLocationSchema = z.object({
     latitude : z.number().min(-90).max(90),
     longitude : z.number().min(-180).max(180),
     position_id : z.string().trim().optional(),
-    open_date : z.string().trim().max(10).optional(),
+    open_date : z.string().trim().max(100).optional(),
     open_time : z.string().trim().max(5).optional(),
     close_time : z.string().trim().max(5).optional()
 })
@@ -25,7 +25,7 @@ export const DeleteLocationSchema = z.object({
 export const UpdateLocationSchema = z.object({
     description : z.string().trim().max(500).optional(),
     phone : z.string().trim().max(10).optional(),
-    open_date : z.string().trim().max(10).optional(),
+    open_date : z.string().trim().max(100).optional(),
     open_time : z.string().trim().max(5).optional(),
     close_time : z.string().trim().max(5).optional()
 })

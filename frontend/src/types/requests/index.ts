@@ -57,6 +57,37 @@ export interface DeleteActivityRequest {
   id: string;
 }
 
+// Position Request DTOs
+export interface CreatePositionRequest {
+  name: string;
+  information?: string;
+  phone?: string;
+  open_date?: string;
+  open_time?: string;
+  close_time?: string;
+  image?: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface UpdatePositionRequest {
+  name?: string;
+  information?: string;
+  phone?: string;
+  open_date?: string;
+  open_time?: string;
+  close_time?: string;
+  image?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface SearchNearbyRequest {
+  user_latitude: number;
+  user_longitude: number;
+  radius?: number;
+}
+
 // User Request DTOs
 export interface UpdateUserProfileRequest {
   user_show_name?: string;

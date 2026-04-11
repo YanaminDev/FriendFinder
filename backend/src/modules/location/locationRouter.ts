@@ -29,7 +29,18 @@ export const locationRouter = () => {
         }
     })
 
-    router.get("/get/:position_id" , authenticateToken , async (req, res) => {
+    router.get("/get/:position_id" , authenticateToken , async (req, res) => { 
+        try{
+            const position_id = String(req.params.position_id);
+            const data = await locationRepository.getLocationByPositionId(position_id);
+            res.status(200).json(data)
+        }
+        catch(err){
+            return res.status(500).json({message:"Failed to fetch location data" })
+        }
+    })
+
+    router.get("/get-by-position/:position_id" , authenticateToken , async (req, res) => {
         try{
             const position_id = String(req.params.position_id);
             const data = await locationRepository.getLocationByPositionId(position_id);
@@ -44,7 +55,7 @@ export const locationRouter = () => {
         try{
             const validateData = CreateLocationSchema.parse(req.body)
             const data = await locationRepository.createLocation(validateData)
-            res.status(201).json(`create location success ${data}`)
+            res.status(201).json(data)
         }
         catch(err){
             return res.status(500).json({message:"Failed to create location data" })
@@ -57,7 +68,7 @@ export const locationRouter = () => {
             const id = String(req.params.id);
             const validateData = UpdateLocationSchema.parse(req.body)
             const data = await locationRepository.updateLocation(id , validateData)
-            res.status(200).json(`update location success ${data}`)
+            res.status(200).json(data)
         }
         catch(err){
             return res.status(500).json({message:"Failed to update location data" })
@@ -68,7 +79,7 @@ export const locationRouter = () => {
         try{
             const id = String(req.params.id);
             const data = await locationRepository.deleteLocation(id)
-            res.status(200).json(`delete location success ${data}`)
+            res.status(200).json(data)
         }
         catch(err){
             return res.status(500).json({message:"Failed to delete location data" })

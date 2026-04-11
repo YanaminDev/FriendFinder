@@ -5,6 +5,7 @@ export interface AuthResponse {
   refreshToken?: string;
   user_id?: string;
   username?: string;
+  role?: string;
 }
 
 // Activity Response DTOs
@@ -28,6 +29,21 @@ export interface LocationResponse {
   close_time?: string;
   created_at?: string;
   updated_at?: string;
+}
+
+// Position Response DTOs
+export interface PositionResponse {
+  id: string;
+  name: string;
+  information?: string;
+  phone?: string;
+  open_date?: string;
+  open_time?: string;
+  close_time?: string;
+  image?: string;
+  latitude: number;
+  longitude: number;
+  location?: LocationResponse[];
 }
 
 // User Response DTOs

@@ -27,13 +27,7 @@ export const useActivities = () => {
   useEffect(() => {
     const fetchActivities = async () => {
       try {
-        const baseUrl = import.meta.env.VITE_API_BASE_URL;
-        if (!baseUrl) {
-          console.warn('VITE_API_BASE_URL not configured, using mock data');
-          setActivities(mockActivities);
-          setLoading(false);
-          return;
-        }
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
         const response = await fetch(`${baseUrl}/v1/activity/activity`, {
           credentials: 'include',
