@@ -25,6 +25,7 @@ export const positionRepository = {
                     open_date: data.open_date,
                     open_time: data.open_time,
                     close_time: data.close_time,
+                    image: data.image,
                     latitude: data.latitude,
                     longitude: data.longitude
                 }
@@ -66,6 +67,7 @@ export const positionRepository = {
                     ...(data.open_date && { open_date: data.open_date }),
                     ...(data.open_time && { open_time: data.open_time }),
                     ...(data.close_time && { close_time: data.close_time }),
+                    ...(data.image && { image: data.image }),
                     ...(data.latitude && { latitude: data.latitude }),
                     ...(data.longitude && { longitude: data.longitude })
                 },
@@ -94,6 +96,15 @@ export const positionRepository = {
         }
     },
 
+    getAllPositions: async () => {
+        try {
+            return await prisma.position.findMany();
+        }
+        catch (err) {
+            throw err;
+        }
+    },
+
     searchPosition: async (data: SearchPositionInput) => {
         try {
             return await prisma.position.findMany({
@@ -107,6 +118,18 @@ export const positionRepository = {
                         lte: data.user_longitude + data.radius
                     }
                 }
+            });
+        }
+        catch (err) {
+            throw err;
+        }
+    },
+
+    updatePositionImage: async (positionId: string, imageUrl: string) => {
+        try {
+            return await prisma.position.update({
+                where: { id: positionId },
+                data: { image: imageUrl }
             });
         }
         catch (err) {

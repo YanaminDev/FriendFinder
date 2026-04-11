@@ -1,9 +1,11 @@
 // ==================== Authentication ====================
+export const CHECK_USERNAME = "/v1/api/auth/check-username";
 export const REGISTER = "/v1/api/auth/register";
 export const LOGIN = "/v1/api/auth/login";
 export const LOGOUT = "/v1/api/auth/logout";
 export const DELETE_USER = "/v1/api/auth/delete";
 export const DELETE_USER_BY_ID = "/v1/api/auth/delete/:id";
+export const GET_USER_PROFILE = "/v1/api/auth/profile";
 
 // ==================== User Image ====================
 export const UPLOAD_USER_IMAGE = "/v1/user-image/upload";
@@ -167,10 +169,12 @@ export const UPDATE_LANGUAGE = "/v1/language/update/language";
 
 // ==================== Position ====================
 export const CREATE_POSITION = "/v1/position/create";
+export const GET_ALL_POSITIONS = "/v1/position/get";
 export const GET_POSITION_BY_ID = "/v1/position/get/:position_id";
 export const UPDATE_POSITION = "/v1/position/update/:position_id";
 export const DELETE_POSITION = "/v1/position/delete/:position_id";
 export const SEARCH_NEARBY_POSITION = "/v1/position/search-nearby";
+export const UPLOAD_POSITION_IMAGE = "/v1/position/upload-image/:position_id";
 
 // ==================== Map ====================
 export const GET_MAPBOX_TOKEN = "/v1/map/token";

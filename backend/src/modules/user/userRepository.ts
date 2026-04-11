@@ -4,13 +4,14 @@ import { hashPassword, verifyPassword } from "../../common/utils/hashPassword";
 
 
 export const userRepository = {
-    register: async (data: Prisma.UserCreateInput) => {
-        try{
-            const existingUser = await prisma.user.findUnique({
-            where: {
-                username: data.username
-            }
+    findByUsername: async (username: string) => {
+        return await prisma.user.findUnique({
+            where: { username }
         })
+    },
+
+    register: async (data: Prisma.UserCreateInput) => {
+        const existingUser = await userRepository.findByUsername(data.username)
         if (existingUser) {
             throw new Error("Username already exists")
         }
@@ -27,14 +28,7 @@ export const userRepository = {
                 birth_of_date: new Date(data.birth_of_date),
                 interested_gender: data.interested_gender
             }
-            
         })
-        }
-        catch(err){
-            console.error(err)
-            throw new Error("Registration failed")
-        }
-        
     },
 
     login : async (data: {username: string, password: string}) => {
@@ -87,7 +81,22 @@ export const userRepository = {
         catch(err){
             throw new Error("Failed to delete user")
         }
-    }
+    },
 
+    getProfile: async (user_id: string) => {
+        return await prisma.user.findUnique({
+            where: { user_id },
+            select: {
+                user_id: true,
+                username: true,
+                user_show_name: true,
+                sex: true,
+                age: true,
+                birth_of_date: true,
+                interested_gender: true,
+                role: true,
+            }
+        })
+    }
 
 }

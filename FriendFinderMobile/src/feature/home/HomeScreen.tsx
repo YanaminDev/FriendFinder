@@ -1,7 +1,7 @@
 // ─── HomeScreen ────────────────────────────────────────────────────────────────
 
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../components/common/AppHeader';
 import NotificationButton from '../../components/common/NotificationButton';
@@ -10,6 +10,8 @@ import LocationDetailCard from '../../components/map/LocationDetailCard';
 import PrimaryButton from '../../components/common/PrimaryButton';
 import MapComponentWeb from '../../components/map/MapComponentWeb';
 import { MOCK_VENUES } from '../../constants/mockData';
+import { getAllPositions, Position } from '../../service/position.service';
+import { useUserLocation } from '../../hooks/useUserLocation';
 
 const MOCK_NOTIFICATIONS = [
   {
@@ -41,6 +43,24 @@ const MOCK_NOTIFICATIONS = [
 const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { userLocation, loading: locationLoading } = useUserLocation();
+
+  useEffect(() => {
+    const fetchPositions = async () => {
+      try {
+        const data = await getAllPositions();
+        setPositions(data);
+      } catch (error) {
+        console.error('Failed to fetch positions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPositions();
+  }, []);
 
   return (
   <View className="flex-1 bg-white">
@@ -49,23 +69,39 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <AppHeader title="Home" />
         {/* Map with responsive height */}
         <View className="relative flex-1">
-          <MapComponentWeb
-            pins={MOCK_VENUES.map(v => ({
-              id: v.id,
-              title: v.name,
-              longitude: v.longitude || 100.8861,
-              latitude: v.latitude || 13.7563,
-            }))}
-            height="100%"
-            onPinPress={(pin: any) => {
-              console.log('Pin pressed:', pin);
-              const venue = MOCK_VENUES.find(v => v.id === pin.id);
-              console.log('Found venue:', venue);
-              if (venue) {
-                setSelectedLocation({ ...venue, markerPosition: pin.position });
-              }
-            }}
-          />
+          {loading ? (
+            <View className="flex-1 justify-center items-center bg-gray-100">
+              <ActivityIndicator size="large" color="#FF6B6B" />
+            </View>
+          ) : (
+            <MapComponentWeb
+              pins={positions.map(p => ({
+                id: p.id,
+                title: p.name,
+                longitude: p.longitude,
+                latitude: p.latitude,
+              }))}
+              userLocation={userLocation || undefined}
+              height="100%"
+              onPinPress={(pin: any) => {
+                console.log('Pin pressed:', pin);
+                const position = positions.find(p => p.id === pin.id);
+                console.log('Found position:', position);
+                if (position) {
+                  setSelectedLocation({
+                    ...position,
+                    name: position.name,
+                    description: position.information,
+                    phone: position.phone,
+                    openHours: position.open_time && position.close_time
+                      ? `${position.open_time} - ${position.close_time}`
+                      : position.open_time || position.close_time || 'ไม่ระบุเวลา',
+                    markerPosition: pin.position
+                  });
+                }
+              }}
+            />
+          )}
 
           {/* Notification Button - Top Right */}
           <View className="absolute top-4 right-4 z-10">
@@ -100,6 +136,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               title={selectedLocation.name}
               description={selectedLocation.description}
               phone={selectedLocation.phone}
+              openDate={selectedLocation.open_date}
               openTime={selectedLocation.openHours}
               imageUrl={selectedLocation.image}
               markerPosition={selectedLocation.markerPosition}

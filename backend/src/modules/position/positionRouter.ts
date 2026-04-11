@@ -8,8 +8,11 @@ import {
     SearchPositionSchema
 } from "./positionModel";
 import { authenticateToken } from "../../common/middleware/authenticate";
-
 import { authorize } from "../../common/middleware/authorize";
+import multer from "multer";
+import { uploadFile } from "../../common/utils/uploadImage";
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 export const positionRouter = () => {
     const router = Router();
@@ -23,6 +26,17 @@ export const positionRouter = () => {
         }
         catch (err) {
             return res.status(500).json({ message: "Failed to create position" });
+        }
+    });
+
+    // Get all positions
+    router.get("/get", authenticateToken, async (req, res) => {
+        try {
+            const data = await positionRepository.getAllPositions();
+            res.status(200).json(data);
+        }
+        catch (err) {
+            return res.status(500).json({ message: "Failed to fetch positions" });
         }
     });
 
@@ -83,6 +97,26 @@ export const positionRouter = () => {
         }
         catch (err) {
             return res.status(500).json({ message: "Failed to search nearby positions" });
+        }
+    });
+
+    // Upload position image
+    router.post("/upload-image/:position_id", authenticateToken, authorize("admin"), upload.single("image"), async (req, res) => {
+        try {
+            const positionId = String(req.params.position_id);
+            if (!positionId) {
+                return res.status(400).json({ message: "Position ID not found" });
+            }
+            if (!req.file) {
+                return res.status(400).json({ message: "No file uploaded" });
+            }
+
+            const uploadResult = await uploadFile(req.file, "positionImage", "position-images");
+            const position = await positionRepository.updatePositionImage(positionId, uploadResult.imageUrl);
+
+            return res.status(201).json(position);
+        } catch (err) {
+            return res.status(500).json({ message: `Failed to upload position image: ${err}` });
         }
     });
 

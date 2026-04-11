@@ -10,6 +10,20 @@ import {authorize} from '../../common/middleware/authorize'
 export const userRouter = () => {
     const router = Router();
 
+    router.post("/check-username" , async (req , res) => {
+        try{
+            const { username } = req.body;
+            if (!username) {
+                return res.status(400).json({message:"Username is required"})
+            }
+            const existingUser = await userRepository.findByUsername(username);
+            return res.status(200).json({exists: !!existingUser})
+        }
+        catch(err){
+            return res.status(500).json({message:"Failed to check username"})
+        }
+    })
+
     router.post("/register" , async (req , res) => {
         try{
             const validateData = UserSignupSchema.parse(req.body);
@@ -17,17 +31,17 @@ export const userRouter = () => {
             if (responsedata) {
                 const accessToken = generateAccessToken({user_id: responsedata.user_id, username: responsedata.username, role: "user"});
                 const refreshToken = generateRefreshToken({user_id: responsedata.user_id});
-                
+
                 res.cookie('accessToken',accessToken , {
                     httpOnly : true,
-                    secure : process.env.NODE_ENV === 'development',
+                    secure : process.env.NODE_ENV === 'production',
                     sameSite : 'strict',
                     maxAge : 15 * 60 * 1000
                 })
 
                 res.cookie('refreshToken', refreshToken , {
                     httpOnly : true,
-                    secure : process.env.NODE_ENV === 'development',
+                    secure : process.env.NODE_ENV === 'production',
                     sameSite : 'strict',
                     maxAge : 7 * 24 * 60 * 60 * 1000
                 })
@@ -37,10 +51,14 @@ export const userRouter = () => {
         }
         return res.status(400).json({message:"Failed to register user"})
         }
-        catch(err){
-            return res.status(400).json({message:"Failed to register user" + err})
+        catch(err: any){
+            console.error("Register error:", err);
+            if (err.message === "Username already exists") {
+                return res.status(409).json({message:"Username already exists"})
+            }
+            return res.status(400).json({message: err.message || "Failed to register user"})
         }
-        
+
     })
 
     router.post("/login" , async (req , res) => {
@@ -53,14 +71,14 @@ export const userRouter = () => {
 
                 res.cookie('accessToken',accessToken , {
                     httpOnly : true,
-                    secure : process.env.NODE_ENV === 'development',
+                    secure : process.env.NODE_ENV === 'production',
                     sameSite : 'strict',
                     maxAge : 15 * 60 * 1000
                 })
 
                 res.cookie('refreshToken', refreshToken , {
                     httpOnly : true,
-                    secure : process.env.NODE_ENV === 'development',
+                    secure : process.env.NODE_ENV === 'production',
                     sameSite : 'strict',
                     maxAge : 7 * 24 * 60 * 60 * 1000
                 })
@@ -111,6 +129,19 @@ export const userRouter = () => {
     }) 
 
 
+
+    router.get("/profile", authenticateToken, authorize("user", "admin"), async (req, res) => {
+        try {
+            const user_id = (req as any).user.user_id;
+            const user = await userRepository.getProfile(user_id);
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            return res.status(200).json(user);
+        } catch (err) {
+            return res.status(500).json({ message: "Failed to get profile" });
+        }
+    })
 
     router.post("/logout" , authenticateToken ,authorize("user","admin"), async (req , res) => {
         res.clearCookie("accessToken");

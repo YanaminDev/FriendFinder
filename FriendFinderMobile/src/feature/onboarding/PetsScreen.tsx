@@ -37,12 +37,13 @@ const PetsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     setSubmitting(true);
     dispatch(setPetId(selected));
     console.log('Redux user:', { username, password, user_show_name, sex, age, birth_of_date, interested_gender });
+    console.log('Redux lifestyle:', { looking_for_id, drinking_id, smoke_id, workout_id, pet_id: selected });
     try {
       const { user_id } = await registerUser();
       dispatch(setUserId(user_id));
       await uploadImage(user_id);
       await createProfile(user_id, selected);
-      navigation.navigate('Home');
+      navigation.replace('Home');
     } catch (err: any) {
       Alert.alert('เกิดข้อผิดพลาด', err?.message ?? 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่');
     } finally {
