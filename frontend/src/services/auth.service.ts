@@ -26,6 +26,9 @@ export const authService = {
       if (response.data.user_id) {
         localStorage.setItem('userId', response.data.user_id);
       }
+      if (response.data.role) {
+        localStorage.setItem('role', response.data.role);
+      }
 
       return response.data;
     } catch (error: any) {
@@ -55,6 +58,7 @@ export const authService = {
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('username');
       localStorage.removeItem('userId');
+      localStorage.removeItem('role');
     }
   },
 
@@ -76,6 +80,7 @@ export const authService = {
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('username');
     localStorage.removeItem('userId');
+    localStorage.removeItem('role');
   },
 
   getStoredUser() {
@@ -83,6 +88,7 @@ export const authService = {
       username: localStorage.getItem('username'),
       userId: localStorage.getItem('userId'),
       accessToken: localStorage.getItem('accessToken'),
+      role: localStorage.getItem('role'),
     };
   },
 };

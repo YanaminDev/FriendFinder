@@ -5,6 +5,7 @@ export interface AuthResponse {
   refreshToken?: string;
   user_id?: string;
   username?: string;
+  role?: string;
 }
 
 // Activity Response DTOs

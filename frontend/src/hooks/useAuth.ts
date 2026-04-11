@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { authService } from '../services';
 import { useAuthStore } from '../zustand/useAuthStore';
+import { useAuth as useAuthContext } from '../context/AuthContext';
 import type { LoginRequest, RegisterRequest, ForgotPasswordRequest } from '../types/requests';
 
 export const useAuth = () => {
   const { isAuthenticated, username, userId, setAuth, logout: zustandLogout } = useAuthStore();
+  const { login: contextLogin, logout: contextLogout } = useAuthContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -12,26 +14,28 @@ export const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
-      
-      // Mock response for frontend development
-      const mockResponse = {
-        username: credentials.username,
-        user_id: 'mock-user-id-' + Date.now(),
-        accessToken: 'mock-access-token-' + Date.now(),
-        refreshToken: 'mock-refresh-token-' + Date.now(),
-        role: 'user'
-      };
+      const response = await authService.login(credentials);
       
       // Update Zustand store
       setAuth(
         true,
-        mockResponse.username,
-        mockResponse.user_id,
-        mockResponse.accessToken
+        response.username || credentials.username,
+        response.user_id || '',
+        response.accessToken || ''
       );
       
-      console.log('✅ Mock login successful:', mockResponse);
-      return mockResponse;
+      // Update Context store with role
+      if (response.username && response.user_id && response.accessToken && response.role) {
+        contextLogin(
+          response.accessToken,
+          response.username,
+          response.user_id,
+          response.role
+        );
+      }
+      
+      console.log('✅ Login successful:', response);
+      return response;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
       setError(message);
@@ -61,6 +65,7 @@ export const useAuth = () => {
     try {
       await authService.logout();
       zustandLogout();
+      contextLogout();
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
