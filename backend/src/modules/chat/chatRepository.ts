@@ -86,7 +86,25 @@ export const chatRepository = {
                     },
                     chatMessage: {
                         orderBy: { createdAt: 'desc' },
-                        take: 1
+                        take: 1,
+                        select: {
+                            id: true,
+                            message: true,
+                            sender_id: true,
+                            isRead: true,
+                            chatType: true,
+                            createdAt: true,
+                        }
+                    },
+                    _count: {
+                        select: {
+                            chatMessage: {
+                                where: {
+                                    isRead: false,
+                                    sender_id: { not: data.user_id }
+                                }
+                            }
+                        }
                     }
                 },
                 orderBy: {

@@ -1,6 +1,6 @@
 // ─── ChatDetailScreen ──────────────────────────────────────────────────────────
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,7 @@ import * as ImagePicker from 'expo-image-picker';
 import AppHeader from '../../components/common/AppHeader';
 import MessageBubble from '../../components/chat/MessageBubble';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
-import { fetchMessages, clearMessages } from '../../redux/chatSlice';
+import { fetchMessages, clearMessages, addMessage } from '../../redux/chatSlice';
 import { useSocket } from '../../hooks/useSocket';
 import { uploadChatImage } from '../../service/chat_message.service';
 import { colors } from '../../constants/theme';
@@ -46,9 +46,6 @@ const ChatDetailScreen: React.FC<{
 
   const [text, setText] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
-  const flatListRef = useRef<FlatList>(null);
-  const isFirstLoad = useRef(true);
-
   const { sendMessage } = useSocket(conversationId);
 
   useEffect(() => {
@@ -57,12 +54,6 @@ const ChatDetailScreen: React.FC<{
       dispatch(clearMessages());
     };
   }, [conversationId]);
-
-  useEffect(() => {
-    if (!loadingMessages && currentMessages.length > 0) {
-      isFirstLoad.current = true;
-    }
-  }, [loadingMessages]);
 
   const handleSend = () => {
     if (!text.trim()) return;
@@ -109,6 +100,20 @@ const ChatDetailScreen: React.FC<{
     setUploadingImage(true);
     try {
       const { imageUrl } = await uploadChatImage(uri, mimeType);
+
+      // Optimistic add ฝั่ง sender ทันที (ไม่รอ socket echo)
+      const tempId = `temp_${Date.now()}`;
+      dispatch(addMessage({
+        id: tempId,
+        chat_id: conversationId,
+        message: imageUrl,
+        sender_id: currentUserId,
+        createdAt: new Date().toISOString(),
+        chatType: 'image',
+        isRead: false,
+        status: 'sent',
+      }));
+
       sendMessage({
         chat_id: conversationId,
         message: imageUrl,
@@ -141,15 +146,9 @@ const ChatDetailScreen: React.FC<{
           </View>
         ) : (
           <FlatList
-            ref={flatListRef}
-            data={currentMessages}
+            data={[...currentMessages].reverse()}
+            inverted
             keyExtractor={item => item.id}
-            onContentSizeChange={() => {
-              const animated = !isFirstLoad.current;
-              isFirstLoad.current = false;
-              flatListRef.current?.scrollToEnd({ animated });
-            }}
-            onLayout={() => flatListRef.current?.scrollToEnd({ animated: false })}
             renderItem={({ item }) => (
               <MessageBubble
                 message={{
@@ -170,10 +169,10 @@ const ChatDetailScreen: React.FC<{
                 showAvatar
               />
             )}
-            contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', paddingVertical: 12 }}
+            contentContainerStyle={{ paddingVertical: 12 }}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
-              <View className="items-center justify-center py-20">
+              <View className="items-center justify-center py-20" style={{ transform: [{ scaleY: -1 }] }}>
                 <Ionicons name="chatbubbles-outline" size={48} color={colors.gray300} style={{ marginBottom: 12 }} />
                 <Text className="text-base text-gray-500">เริ่มการสนทนาได้เลย</Text>
               </View>

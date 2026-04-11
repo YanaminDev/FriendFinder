@@ -10,6 +10,8 @@ export const setupSocket = (io: Server) => {
         socket.on("user_online", async (user_id: string) => {
             try {
                 userSockets.set(socket.id, user_id);
+                // join personal room เพื่อรับ conversation_updated
+                socket.join(`user_${user_id}`);
                 await prisma.user.update({
                     where: { user_id },
                     data: { isOnline: true },
@@ -81,6 +83,17 @@ export const setupSocket = (io: Server) => {
 
                     // broadcast ไปทุกคนใน room (รวม sender)
                     io.to(chat_id).emit("new_message", newMessage);
+
+                    // แจ้ง personal room ของทั้ง 2 user ให้ update conversation list
+                    const payload = {
+                        chat_id,
+                        message,
+                        chatType,
+                        sender_id,
+                        createdAt: newMessage.createdAt.toISOString(),
+                    };
+                    io.to(`user_${chat.user1_id}`).emit("conversation_updated", payload);
+                    io.to(`user_${chat.user2_id}`).emit("conversation_updated", payload);
                 } catch (err) {
                     console.error("[Socket] send_message error:", err);
                     socket.emit("error", { message: "Failed to send message" });

@@ -76,7 +76,7 @@ const ImageSlot = React.memo(({ index, uri, onPress, onDelete }: ImageSlotProps)
 const CardHeader = ({ icon, title }: { icon: string; title: string }) => (
   <View className="flex-row items-center gap-2 mb-4 pb-3 border-b border-gray-100">
     <MaterialCommunityIcons name={icon as any} size={20} color={colors.primary} />
-    <Text className="text-lg font-bold text-gray-900">{title}</Text>
+    <Text className="text-base font-bold text-gray-900 flex-1">{title}</Text>
   </View>
 );
 

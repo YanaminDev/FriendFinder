@@ -46,6 +46,8 @@ const mapChatToConversation = (chat: Chat, currentUserId: string): ChatConversat
   const initials = getInitials(otherUser?.user_show_name ?? otherUser?.username ?? 'Unknown');
   const avatarBgColor = getColorFromUserId(otherUser?.user_id ?? '');
 
+  const unreadCount = chat._count?.chatMessage ?? 0;
+
   return {
     id: chat.id,
     user: {
@@ -59,11 +61,12 @@ const mapChatToConversation = (chat: Chat, currentUserId: string): ChatConversat
       gender: 'Male',
       isOnline: (otherUser as any)?.isOnline ?? false,
     },
-    lastMessage: lastMsg?.message ?? '',
+    lastMessage: lastMsg?.chatType === 'image' ? 'รูปภาพ' : (lastMsg?.message ?? ''),
+    lastMessageType: lastMsg?.chatType,
     lastMessageTime: lastMsg
       ? new Date(lastMsg.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
       : '',
-    unreadCount: 0,
+    unreadCount,
   };
 };
 
@@ -160,7 +163,7 @@ const ChatListScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     <View className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-online border-2 border-white" />
                   )}
                 </View>
-                <Text className="text-xs text-gray-900 text-center w-16" numberOfLines={2}>
+                <Text className="text-xs text-gray-900 text-center w-16" numberOfLines={1} ellipsizeMode="tail">
                   {item.user.name}
                 </Text>
               </TouchableOpacity>

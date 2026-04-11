@@ -51,6 +51,7 @@ export interface ChatConversation {
   id: string;
   user: UserBase;
   lastMessage: string;
+  lastMessageType?: string;
   lastMessageTime: string;
   unreadCount: number;
 }

@@ -18,7 +18,15 @@ export interface Chat {
     createdAt: string;
     user1?: any;
     user2?: any;
-    chatMessage?: any[];
+    chatMessage?: {
+        id: string;
+        message: string;
+        sender_id: string;
+        isRead: boolean;
+        chatType: string;
+        createdAt: string;
+    }[];
+    _count?: { chatMessage: number };
 }
 
 export const createChat = async (data: CreateChatRequest): Promise<Chat> => {

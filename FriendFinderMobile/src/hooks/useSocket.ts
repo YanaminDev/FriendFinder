@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import { addMessage, markAllMessagesRead } from '../redux/chatSlice';
+import { addMessage, markAllMessagesRead, updateConversationLastMessage } from '../redux/chatSlice';
 import type { ChatMessage } from '../service/chat_message.service';
 
 const SOCKET_URL = 'http://192.168.1.100:3000';
@@ -47,6 +47,20 @@ export const useSocket = (chat_id: string | null) => {
 
             globalSocket.on('error', (err: { message: string }) => {
                 console.error('[Socket] global error:', err.message);
+            });
+
+            // รับ update conversation list real-time
+            globalSocket.on('conversation_updated', (data: {
+                chat_id: string;
+                message: string;
+                chatType: string;
+                sender_id: string;
+                createdAt: string;
+            }) => {
+                dispatch(updateConversationLastMessage({
+                    ...data,
+                    isFromOtherUser: data.sender_id !== currentUserId,
+                }));
             });
 
         }

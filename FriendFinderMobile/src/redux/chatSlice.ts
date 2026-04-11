@@ -40,9 +40,20 @@ const chatSlice = createSlice({
   reducers: {
     // เพิ่มข้อความใหม่จาก socket แบบ real-time
     addMessage: (state, action: PayloadAction<ChatMessage>) => {
-      const exists = state.currentMessages.some(m => m.id === action.payload.id);
+      const p = action.payload;
+      const exists = state.currentMessages.some(m =>
+        m.id === p.id ||
+        // dedup image: ถ้า URL + sender เดิมอยู่แล้ว (temp vs real) ให้ข้าม
+        (p.chatType === 'image' && m.message === p.message && m.sender_id === p.sender_id)
+      );
       if (!exists) {
-        state.currentMessages.push(action.payload);
+        state.currentMessages.push(p);
+      } else if (p.chatType === 'image' && !p.id.startsWith('temp_')) {
+        // แทนที่ temp message ด้วย real message จาก DB (มี id จริง)
+        const idx = state.currentMessages.findIndex(
+          m => m.message === p.message && m.sender_id === p.sender_id
+        );
+        if (idx !== -1) state.currentMessages[idx] = p;
       }
     },
     clearMessages: (state) => {
@@ -54,6 +65,27 @@ const chatSlice = createSlice({
         isRead: true,
         status: 'read',
       }));
+    },
+    updateConversationLastMessage: (state, action: PayloadAction<{
+      chat_id: string;
+      message: string;
+      chatType: string;
+      sender_id: string;
+      createdAt: string;
+      isFromOtherUser: boolean;
+    }>) => {
+      const { chat_id, message, chatType, sender_id, createdAt, isFromOtherUser } = action.payload;
+      const idx = state.conversations.findIndex(c => c.id === chat_id);
+      if (idx !== -1) {
+        const conv = { ...state.conversations[idx] };
+        conv.chatMessage = [{ id: Date.now().toString(), message, sender_id, isRead: false, chatType, createdAt }];
+        if (isFromOtherUser) {
+          conv._count = { chatMessage: (conv._count?.chatMessage ?? 0) + 1 };
+        }
+        // ดึง conversation ขึ้นมาด้านบน (ข้อความล่าสุด)
+        state.conversations.splice(idx, 1);
+        state.conversations.unshift(conv);
+      }
     },
   },
   extraReducers: (builder) => {
@@ -85,5 +117,5 @@ const chatSlice = createSlice({
   },
 });
 
-export const { addMessage, clearMessages, markAllMessagesRead } = chatSlice.actions;
+export const { addMessage, clearMessages, markAllMessagesRead, updateConversationLastMessage } = chatSlice.actions;
 export default chatSlice.reducer;

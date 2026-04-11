@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { ChatConversation } from '../../types';
 
 interface ChatListItemProps {
@@ -51,14 +52,32 @@ const ChatListItem: React.FC<ChatListItemProps> = ({ conversation, onPress }) =>
         <Text className="text-base font-semibold text-gray-900" numberOfLines={1}>
           {conversation.user.name}
         </Text>
-        <Text className="text-sm text-gray-500" numberOfLines={1}>
-          {conversation.lastMessage}
-        </Text>
+        {conversation.lastMessageType === 'image' ? (
+          <View className="flex-row items-center gap-1">
+            <Ionicons
+              name="image-outline"
+              size={14}
+              color={conversation.unreadCount > 0 ? '#111827' : '#6b7280'}
+            />
+            <Text className={`text-sm ${conversation.unreadCount > 0 ? 'text-gray-900 font-semibold' : 'text-gray-500'}`}>
+              {conversation.lastMessage}
+            </Text>
+          </View>
+        ) : (
+          <Text
+            className={`text-sm ${conversation.unreadCount > 0 ? 'text-gray-900 font-semibold' : 'text-gray-500'}`}
+            numberOfLines={1}
+          >
+            {conversation.lastMessage}
+          </Text>
+        )}
       </View>
 
       {/* Meta */}
       <View className="items-end gap-1">
-        <Text className="text-xs text-gray-400">{conversation.lastMessageTime}</Text>
+        <Text className={`text-xs ${conversation.unreadCount > 0 ? 'text-primary font-semibold' : 'text-gray-400'}`}>
+          {conversation.lastMessageTime}
+        </Text>
         {conversation.unreadCount > 0 && (
           <View className="bg-primary rounded-full min-w-[20px] h-5 items-center justify-center px-1">
             <Text className="text-xs text-white font-bold">{conversation.unreadCount}</Text>

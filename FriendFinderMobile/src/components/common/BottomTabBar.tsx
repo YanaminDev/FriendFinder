@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { cn } from '../../utils/cn';
 import { TabRoute } from '../../types';
@@ -19,8 +20,10 @@ interface BottomTabBarProps {
   onTabPress: (tab: TabRoute) => void;
 }
 
-const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onTabPress }) => (
-  <View className="flex-row bg-white pb-6 pt-2 -mt-10">
+const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onTabPress }) => {
+  const insets = useSafeAreaInsets();
+  return (
+  <View className="flex-row bg-white pt-2 -mt-10" style={{ paddingBottom: Math.max(insets.bottom, 8) }}>
     {TABS.map(({ route, label, iconName }) => {
       const active = activeTab === route;
       return (
@@ -42,6 +45,7 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onTabPress }) =>
       );
     })}
   </View>
-);
+  );
+};
 
 export default BottomTabBar;

@@ -128,7 +128,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
           {/* Check In Now Button - Bottom Center */}
           <View className="absolute left-0 right-0 items-center" style={{ bottom: 30 }}>
-            <PrimaryButton onPress={() => navigation.navigate('FindMatch')} size="md" text="CHECK IN NOW" />
+            <PrimaryButton onPress={() => navigation.navigate('SelectActivity')} size="md" text="CHECK IN NOW" />
           </View>
 
           {/* Location Detail Card */}
