@@ -56,22 +56,20 @@ export default function AddData() {
     }
   }
 
-  const handleAddOption = async (categoryId: string, newName: string) => {
-    const cat = CATEGORIES.find(c => c.key === categoryId)
-    if (!cat) return
+  const handleAddOption = async (categoryId: string, newName: string, icon?: string) => {
     try {
-      await lookupService.create(categoryId, { name: newName, icon: cat.icon })
+      await lookupService.create(categoryId, { name: newName, icon: icon || '⭐' })
       await fetchCategory(categoryId as CategoryKey)
     } catch (err) {
       console.error('Failed to add option:', err)
     }
   }
 
-  const handleEditOption = async (categoryId: string, optionId: string, newName: string) => {
+  const handleEditOption = async (categoryId: string, optionId: string, newName: string, icon?: string) => {
     const item = data[categoryId]?.find(i => i.id === optionId)
     if (!item) return
     try {
-      await lookupService.update(categoryId, { id: optionId, name: newName, icon: item.icon })
+      await lookupService.update(categoryId, { id: optionId, name: newName, icon: icon || item.icon })
       await fetchCategory(categoryId as CategoryKey)
     } catch (err) {
       console.error('Failed to edit option:', err)
@@ -174,7 +172,8 @@ export default function AddData() {
               id={cat.key}
               icon={cat.icon}
               title={cat.title}
-              options={(data[cat.key] || []).map(item => ({ id: item.id, name: item.name }))}
+              enableIconPicker
+              options={(data[cat.key] || []).map(item => ({ id: item.id, name: item.name, icon: item.icon }))}
               onAddOption={handleAddOption}
               onEditOption={handleEditOption}
               onDeleteOption={handleDeleteOption}

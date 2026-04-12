@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import ImageCarousel from '../../components/ImageCarousel';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { locationService } from '../../services';
-import type { LocationResponse, LocationImage } from '../../types/responses';
+import type { LocationResponse } from '../../types/responses';
 
 interface PlaceListModalProps {
   isOpen: boolean;
@@ -25,31 +26,23 @@ const PlaceListModal: React.FC<PlaceListModalProps> = ({
   onDeletePlace,
 }) => {
   const [locations, setLocations] = useState<LocationResponse[]>([]);
-  const [locationImages, setLocationImages] = useState<Record<string, LocationImage[]>>({});
   const [loading, setLoading] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmLabel: string;
+    confirmVariant: 'danger' | 'primary';
+    onConfirm: () => void;
+  }>({ isOpen: false, title: '', message: '', confirmLabel: '', confirmVariant: 'danger', onConfirm: () => {} });
 
   useEffect(() => {
     if (!isOpen || !positionId) return;
     setLoading(true);
-    setLocationImages({});
     locationService
-      .getByPositionId(positionId)
-      .then(async (data) => {
+      .getByPositionIdWithImages(positionId)
+      .then((data) => {
         setLocations(data);
-        // Fetch signed images for each location in parallel
-        const imageResults = await Promise.allSettled(
-          data.map(loc =>
-            locationService.getImagesByLocationId(loc.id).then(imgs => ({ id: loc.id, imgs }))
-          )
-        );
-        const imagesMap: Record<string, LocationImage[]> = {};
-        imageResults.forEach(result => {
-          if (result.status === 'fulfilled') {
-            // Sort by position so the user-chosen first image shows first
-            imagesMap[result.value.id] = result.value.imgs.sort((a, b) => a.position - b.position);
-          }
-        });
-        setLocationImages(imagesMap);
       })
       .catch(err => console.error('Failed to fetch places:', err))
       .finally(() => setLoading(false));
@@ -101,9 +94,9 @@ const PlaceListModal: React.FC<PlaceListModalProps> = ({
               >
                 {/* Images Carousel - Left */}
                 <div className="w-full md:w-48 shrink-0">
-                  {locationImages[loc.id] && locationImages[loc.id].length > 0 ? (
+                  {loc.location_image && loc.location_image.length > 0 ? (
                     <ImageCarousel
-                      images={locationImages[loc.id].map(img => img.imageUrl)}
+                      images={loc.location_image.map(img => img.imageUrl)}
                     />
                   ) : (
                     <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center">
@@ -148,14 +141,38 @@ const PlaceListModal: React.FC<PlaceListModalProps> = ({
                     <Button
                       variant="primary"
                       size="sm"
-                      onClick={() => onEditPlace(loc)}
+                      onClick={() =>
+                        setConfirmDialog({
+                          isOpen: true,
+                          title: 'แก้ไขสถานที่',
+                          message: `คุณต้องการแก้ไข "${loc.name}" ใช่หรือไม่?`,
+                          confirmLabel: 'แก้ไข',
+                          confirmVariant: 'primary',
+                          onConfirm: () => {
+                            setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+                            onEditPlace(loc);
+                          },
+                        })
+                      }
                     >
                       EDIT
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onDeletePlace(loc.id)}
+                      onClick={() =>
+                        setConfirmDialog({
+                          isOpen: true,
+                          title: 'ลบสถานที่',
+                          message: `คุณต้องการลบ "${loc.name}" ใช่หรือไม่? การลบจะไม่สามารถกู้คืนได้`,
+                          confirmLabel: 'ยืนยันลบ',
+                          confirmVariant: 'danger',
+                          onConfirm: () => {
+                            setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+                            onDeletePlace(loc.id);
+                          },
+                        })
+                      }
                     >
                       DELETE
                     </Button>
@@ -172,6 +189,17 @@ const PlaceListModal: React.FC<PlaceListModalProps> = ({
           </Button>
         </div>
       </Card>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmLabel={confirmDialog.confirmLabel}
+        confirmVariant={confirmDialog.confirmVariant}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };

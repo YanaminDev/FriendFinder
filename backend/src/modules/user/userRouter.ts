@@ -66,15 +66,6 @@ export const userRouter = () => {
             const validateData = UserLoginSchema.parse(req.body);
             const responsedata = await userRepository.login(validateData);
             if (responsedata) {
-                // เช็ค online status ก่อนตั้งค่า
-                const isAlreadyOnline = await userRepository.getOnlineStatus(responsedata.user_id);
-                if (isAlreadyOnline) {
-                    return res.status(409).json({
-                        message: "User is already logged in on another device",
-                        is_online: true
-                    });
-                }
-
                 // Set user as online
                 await userRepository.setUserOnline(responsedata.user_id, true);
 

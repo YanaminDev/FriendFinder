@@ -3,6 +3,7 @@ import {
   LOCATION_GET_ALL,
   LOCATION_GET_BY_ID,
   LOCATION_GET_BY_POSITION,
+  LOCATION_GET_BY_POSITION_WITH_IMAGES,
   LOCATION_CREATE,
   LOCATION_UPDATE,
   LOCATION_DELETE,
@@ -47,6 +48,18 @@ export const locationService = {
       return response.data || [];
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to fetch locations';
+      throw new Error(message);
+    }
+  },
+
+  async getByPositionIdWithImages(positionId: string): Promise<LocationResponse[]> {
+    try {
+      const response = await axiosInstance.get<LocationResponse[]>(
+        LOCATION_GET_BY_POSITION_WITH_IMAGES(positionId)
+      );
+      return response.data || [];
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to fetch locations with images';
       throw new Error(message);
     }
   },

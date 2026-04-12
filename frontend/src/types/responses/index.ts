@@ -80,3 +80,68 @@ export interface ApiResponse<T> {
   message?: string;
   data?: T;
 }
+
+// ============ Match Review (Admin Feedback) ============
+export interface MatchReviewUser {
+  user_id: string;
+  username: string;
+  user_show_name: string;
+  images: { imageUrl: string }[];
+}
+
+export interface MatchExperience {
+  id: string;
+  content?: string;
+  status: number;
+  match_id: string;
+  reviewer_id: string;
+  reviewee_id: string;
+  createdAt: string;
+  reviewer: { user_id: string; username: string };
+  reviewee: { user_id: string; username: string };
+}
+
+export interface MatchLocationReview {
+  id: string;
+  location_id: string;
+  user_id: string;
+  status: number;
+  review_text?: string;
+  match_id: string;
+  createdAt: string;
+  user: { user_id: string; username: string };
+  location: { name: string };
+}
+
+export interface MatchCancellation {
+  id: string;
+  content?: string;
+  match_id: string;
+  reviewer_id: string;
+  reviewee_id: string;
+  quick_select_id?: string;
+  createdAt: string;
+  reviewer: { user_id: string; username: string };
+  reviewee: { user_id: string; username: string };
+  quick_select?: { id: string; name: string } | null;
+}
+
+export interface MatchWithReviews {
+  id: string;
+  user1_id: string;
+  user2_id: string;
+  location_id?: string;
+  activity_id: string;
+  cancel_status: boolean;
+  end_date?: string;
+  createdAt: string;
+  position_id: string;
+  user1: MatchReviewUser;
+  user2: MatchReviewUser;
+  activity: { name: string; icon: string };
+  location?: { name: string; location_image?: { imageUrl: string }[] } | null;
+  position: { name: string };
+  experience: MatchExperience[];
+  location_review: MatchLocationReview[];
+  cancellation: MatchCancellation[];
+}
