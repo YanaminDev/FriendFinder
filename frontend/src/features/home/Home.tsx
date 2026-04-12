@@ -1,11 +1,11 @@
 import BottomNav from "../../components/BottomNav"
 import TopBar from "../../components/TopBar"
-import LocationPicker, { type SelectedLocation } from "../map/LocationPicker"
-import AddLocationModal from "../map/AddLocationModal"
-import EditLocationModal from "../map/EditLocationModal"
-import PositionDetailPopup from "../map/PositionDetailPopup"
-import PlaceListModal from "../map/PlaceListModal"
-import PlaceFormModal from "../map/PlaceFormModal"
+import LocationPicker, { type SelectedLocation } from "../map/PositionPicker"
+import AddPositionModal from "../Position/AddPositionModal"
+import EditPositionModal from "../Position/EditPositionModal"
+import PositionDetailPopup from "../Position/PositionDetailPopup"
+import PlaceListModal from "../location/PlaceListModal"
+import PlaceFormModal from "../location/PlaceFormModal"
 import { useState, useEffect } from "react"
 import { positionService, locationService } from "../../services"
 import type { LocationResponse } from "../../types/responses"
@@ -46,7 +46,7 @@ export default function Home() {
 
   // ========== Position (marker) handlers ==========
 
-  const handleAddLocationClick = (coords: SelectedLocation) => {
+  const handleAddPositionClick = (coords: SelectedLocation) => {
     setSelectedPickerCoords(coords)
     setIsAddPositionOpen(true)
   }
@@ -155,13 +155,13 @@ export default function Home() {
 
   // ========== Detail popup actions ==========
 
-  const handleEditPlace = (position: Position) => {
+  const handleEditLocation = (position: Position) => {
     setSelectedPosition(position)
     setIsDetailPopupOpen(false)
     setIsPlaceListOpen(true)
   }
 
-  const handleEditLocation = (position: Position) => {
+  const handleEditPosition = (position: Position) => {
     setSelectedPosition(position)
     setIsDetailPopupOpen(false)
     setIsEditPositionOpen(true)
@@ -197,7 +197,8 @@ export default function Home() {
     open_date: string
     open_time: string
     close_time: string
-    image: File | null
+    newImages: File[]
+    removedImageIds: string[]
   }) => {
     if (!selectedPosition) return
     try {
@@ -209,13 +210,21 @@ export default function Home() {
           open_time: formData.open_time || undefined,
           close_time: formData.close_time || undefined,
         })
-        // Upload image if provided
-        if (formData.image) {
-          try {
-            await locationService.uploadImage(editingPlace.id, formData.image)
-          } catch {
-            console.error('Image upload failed for location')
-          }
+        // Delete removed images
+        if (formData.removedImageIds.length > 0) {
+          await Promise.allSettled(
+            formData.removedImageIds.map(id =>
+              locationService.deleteImage(id, editingPlace.id)
+            )
+          )
+        }
+        // Upload new images
+        if (formData.newImages.length > 0) {
+          await Promise.allSettled(
+            formData.newImages.map(image =>
+              locationService.uploadImage(editingPlace.id, image)
+            )
+          )
         }
       } else {
         const newLocation = await locationService.create({
@@ -230,13 +239,13 @@ export default function Home() {
           open_time: formData.open_time || undefined,
           close_time: formData.close_time || undefined,
         })
-        // Upload image if provided
-        if (formData.image && newLocation?.id) {
-          try {
-            await locationService.uploadImage(newLocation.id, formData.image)
-          } catch {
-            console.error('Image upload failed for location')
-          }
+        // Upload new images
+        if (formData.newImages.length > 0 && newLocation?.id) {
+          await Promise.allSettled(
+            formData.newImages.map(image =>
+              locationService.uploadImage(newLocation.id, image)
+            )
+          )
         }
       }
       setIsPlaceFormOpen(false)
@@ -253,14 +262,14 @@ export default function Home() {
 
       <div className="flex-1 pt-16 relative">
         <LocationPicker
-          onAddLocationClick={handleAddLocationClick}
+          onAddPositionClick={handleAddPositionClick}
           locations={positions}
           onLocationClick={handleMarkerClick}
         />
       </div>
 
       {/* Add Position Modal */}
-      <AddLocationModal
+      <AddPositionModal
         isOpen={isAddPositionOpen}
         onClose={() => setIsAddPositionOpen(false)}
         onSave={handleSavePosition}
@@ -268,7 +277,7 @@ export default function Home() {
       />
 
       {/* Edit Position Modal */}
-      <EditLocationModal
+      <EditPositionModal
         isOpen={isEditPositionOpen}
         onClose={() => setIsEditPositionOpen(false)}
         onSave={handleUpdatePosition}
@@ -281,8 +290,8 @@ export default function Home() {
         isOpen={isDetailPopupOpen}
         onClose={() => setIsDetailPopupOpen(false)}
         position={selectedPosition}
-        onEditPlace={handleEditPlace}
         onEditLocation={handleEditLocation}
+        onEditPosition={handleEditPosition}
         onDelete={handleDeletePosition}
       />
 
