@@ -8,7 +8,7 @@ import AppLogo from '../../components/common/AppLogo';
 import Button from '../../components/common/Button';
 import AlertModal from '../../components/common/AlertModal';
 import { colors } from '../../constants/theme';
-import { login } from '../../service/user.service';
+import { login, checkUserOnlineStatus } from '../../service/user.service';
 import { useAppDispatch } from '../../redux/hooks';
 import { setCredentials, setIsAuthenticated } from '../../redux/authSlice';
 import { setUserId } from '../../redux/userSlice';
@@ -18,6 +18,7 @@ interface AlertState {
   type: 'success' | 'error' | 'warning' | 'info';
   title: string;
   message: string;
+  callback?: () => void;
 }
 
 const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
@@ -26,13 +27,10 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState<AlertState>({ visible: false, type: 'info', title: '', message: '' });
+  const [alert, setAlert] = useState<AlertState>({ visible: false, type: 'info', title: '', message: '', callback: undefined });
 
   const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string, callback?: () => void) => {
-    setAlert({ visible: true, type, title, message });
-    if (callback) {
-      setTimeout(callback, 300);
-    }
+    setAlert({ visible: true, type, title, message, callback });
   };
 
   const handleLogin = async () => {
@@ -44,13 +42,21 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     setLoading(true);
     try {
       const response = await login({ username, password });
+
       dispatch(setCredentials({ username, password }));
-      dispatch(setUserId(response.user_id));  // ← เพิ่ม user_id
+      dispatch(setUserId(response.user_id));
       dispatch(setIsAuthenticated(true));
       showAlert('success', 'สำเร็จ', response.message || 'เข้าสู่ระบบสำเร็จ', () => {
         navigation.replace('Home');
       });
     } catch (error: any) {
+      // ตรวจสอบหากบัญชีถูก login ที่อื่นอยู่ (409 Conflict)
+      if (error?.status === 409 || error?.data?.is_online) {
+        showAlert('warning', 'แจ้งเตือน', 'บัญชีนี้กำลังถูกใช้งานอยู่ที่อื่น กรุณาลองใหม่อีกครั้ง', () => {
+          navigation.replace('Splash');
+        });
+        return;
+      }
       const errorMsg = error?.message || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
       showAlert('error', 'ข้อผิดพลาด', errorMsg);
     } finally {
@@ -145,7 +151,12 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       title={alert.title}
       message={alert.message}
       buttonLabel="ตกลง"
-      onPress={() => setAlert({ visible: false, type: 'info', title: '', message: '' })}
+      onPress={() => {
+        if (alert.callback) {
+          alert.callback();
+        }
+        setAlert({ visible: false, type: 'info', title: '', message: '', callback: undefined });
+      }}
     />
     </>
   );

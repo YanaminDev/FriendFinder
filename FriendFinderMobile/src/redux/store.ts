@@ -5,6 +5,7 @@ import userImageReducer from './userImageSlice';
 import userInformationReducer from './userInformationSlice';
 import userLifeStyleReducer from './userLifeStyleSlice';
 import chatReducer from './chatSlice';
+import findMatchReducer from './findMatchSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     userInformation: userInformationReducer,
     userLifeStyle: userLifeStyleReducer,
     chat: chatReducer,
+    findMatch: findMatchReducer,
   },
 });
 

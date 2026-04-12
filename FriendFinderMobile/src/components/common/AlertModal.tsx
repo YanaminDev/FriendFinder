@@ -55,7 +55,8 @@ const AlertModal: React.FC<AlertModalProps> = ({
 
           {/* Button */}
           <TouchableOpacity
-            className="bg-primary rounded-lg py-3 items-center"
+            className="rounded-lg py-3 items-center"
+            style={{ backgroundColor: config.color }}
             onPress={onPress}
           >
             <Text className="text-white font-semibold text-base">{buttonLabel}</Text>

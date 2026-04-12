@@ -33,10 +33,11 @@ export const activityRouter = () => {
         try {
             const validateData = CreateActivitySchema.parse(req.body)
             const data = await activityRepository.createActivity(validateData)
-            res.status(201).json(`create activity success`)
+            res.status(201).json({ message: "create activity success", data })
         }
-        catch (err) {
-            return res.status(500).json({ message: "Failed to create activity data" })
+        catch (err: any) {
+            console.error("Create activity error:", err);
+            return res.status(500).json({ message: err.message || "Failed to create activity data" })
         }
     })
 

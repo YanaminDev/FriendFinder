@@ -12,7 +12,10 @@ async function request<T>(method: string, endpoint: string, body?: unknown): Pro
         });
         if (!response.ok) {
             const error = await response.json().catch(() => ({ message: response.statusText }));
-            throw new Error(error.message ?? response.statusText);
+            const apiError = new Error(error.message ?? response.statusText) as any;
+            apiError.status = response.status;
+            apiError.data = error;
+            throw apiError;
         }
         return response.json();
     } catch (error) {

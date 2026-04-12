@@ -1,6 +1,6 @@
 // ─── SelectActivityScreen ──────────────────────────────────────────────────────
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,16 +12,11 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Activity } from '../../types';
-import { MOCK_ACTIVITIES } from '../../constants/mockData';
 import { colors } from '../../constants/theme';
-// import { getActivity } from '../../service/activity.service'; // ← uncomment เมื่อ backend พร้อม
+import { getActivity } from '../../service/activity.service';
+import { useAppDispatch } from '../../redux/hooks';
+import { setSelectedActivities } from '../../redux/findMatchSlice';
 
-// ─── Activity Icon Map ────────────────────────────────────────────────────────
-// ใช้ใน fetchActivities เพื่อ map icon จาก backend → emoji
-// const ACTIVITY_ICON_MAP: Record<string, string> = {
-//   GAMING: '🎮', Singing: '🎤', Shopping: '🛒', Reading: '📖',
-//   Movie: '🎬', Gym: '🏋️', 'Working Together': '💼', Coffee: '☕',
-// };
 
 // ─── Popular Chip ─────────────────────────────────────────────────────────────
 const PopularChip: React.FC<{
@@ -38,7 +33,12 @@ const PopularChip: React.FC<{
         : 'bg-white border-gray-200'
     }`}
   >
-    <Text className="text-sm mr-1">{activity.icon}</Text>
+    <Ionicons
+      name={activity.icon as any}
+      size={15}
+      color={selected ? '#fff' : colors.primary}
+      style={{ marginRight: 5 }}
+    />
     <Text
       className={`text-sm font-medium ${
         selected ? 'text-white' : 'text-gray-700'
@@ -64,7 +64,7 @@ const RecommendedCard: React.FC<{
     style={{ elevation: 1, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } }}
   >
     <View className="w-16 h-16 rounded-2xl bg-primary/10 items-center justify-center mb-3">
-      <Text style={{ fontSize: 30 }}>{activity.icon}</Text>
+      <Ionicons name={activity.icon as any} size={32} color={selected ? colors.primary : colors.gray400} />
     </View>
     <Text className={`text-sm font-medium ${selected ? 'text-primary' : 'text-gray-700'}`}>
       {activity.name}
@@ -75,35 +75,44 @@ const RecommendedCard: React.FC<{
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 const SelectActivityScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
-  const [selected, setSelected] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
+  const [selected, setSelected] = useState<string[]>([]);
   const [search, setSearch]     = useState('');
-  const [activities, setActivities] = useState<Activity[]>(MOCK_ACTIVITIES);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading]   = useState(false);
 
   // ── fetch จาก backend ──────────────────────────────────────────────────────
-  // TODO: ดึงข้อมูลจริงจาก backend → ลบ MOCK_ACTIVITIES แล้ว uncomment block นี้
-  // useEffect(() => {
-  //   const fetchActivities = async () => {
-  //     try {
-  //       setLoading(true);
-  //       const data = await getActivity(); // GET /activity
-  //       const mapped: Activity[] = data.map((a) => ({
-  //         id: a.id,
-  //         name: a.name,
-  //         icon: ACTIVITY_ICON_MAP[a.name] ?? '🎯',
-  //         isPopular: true,
-  //         isRecommended: true,
-  //       }));
-  //       setActivities(mapped);
-  //     } catch (err) {
-  //       console.error('Failed to load activities', err);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  //   fetchActivities();
-  // }, []);
-  void setActivities; void setLoading; // ← ลบบรรทัดนี้เมื่อ uncomment block ด้านบน
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        setLoading(true);
+        const data = await getActivity();
+
+        // สุ่มเลือก activities
+        const shuffled = [...data].sort(() => Math.random() - 0.5);
+
+        // Popular = ขั้นต่ำ 4 ตัว หรือ 30% เเล้วแต่ว่ามากกว่า (แต่ไม่เกิน 70% ของทั้งหมด)
+        const popularIds = new Set(data.map((a: any) => a.id));
+
+        const recommendedCount = Math.min(4, data.length);
+        const recommendedIds = new Set(shuffled.slice(0, recommendedCount).map((a: any) => a.id));
+
+        const mapped: Activity[] = data.map((a: any) => ({
+          id: a.id,
+          name: a.name,
+          icon: a.icon,
+          isPopular: popularIds.has(a.id),
+          isRecommended: recommendedIds.has(a.id),
+        }));
+        setActivities(mapped);
+      } catch (err) {
+        console.error('Failed to load activities', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchActivities();
+  }, []);
 
   // ── filter by search ───────────────────────────────────────────────────────
   const filtered = activities.filter((a) =>
@@ -114,8 +123,22 @@ const SelectActivityScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
   const recommended = filtered.filter((a) => a.isRecommended);
 
   const handleSelect = useCallback((id: string) => {
-    setSelected((prev) => (prev === id ? null : id));
+    setSelected((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((i) => i !== id);
+      }
+      if (prev.length >= 3) return prev;
+      return [...prev, id];
+    });
   }, []);
+
+  const handleFindFriend = () => {
+    const selectedData = activities
+      .filter((a) => selected.includes(a.id))
+      .map((a) => ({ id: a.id, name: a.name, icon: a.icon }));
+    dispatch(setSelectedActivities(selectedData));
+    navigation.navigate('Home');
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -165,20 +188,16 @@ const SelectActivityScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             <Text className="px-5 text-xs font-bold text-gray-400 tracking-widest mb-3">
               POPULAR ACTIVITY
             </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 20 }}
-            >
+            <View className="flex-row flex-wrap px-5 gap-y-2">
               {popular.map((act) => (
                 <PopularChip
                   key={act.id}
                   activity={act}
-                  selected={selected === act.id}
+                  selected={selected.includes(act.id)}
                   onPress={() => handleSelect(act.id)}
                 />
               ))}
-            </ScrollView>
+            </View>
           </View>
         )}
 
@@ -196,7 +215,7 @@ const SelectActivityScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                   <View key={act.id} style={{ width: '50%' }}>
                     <RecommendedCard
                       activity={act}
-                      selected={selected === act.id}
+                      selected={selected.includes(act.id)}
                       onPress={() => handleSelect(act.id)}
                     />
                   </View>
@@ -213,15 +232,15 @@ const SelectActivityScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
         style={{ paddingBottom: Math.max(insets.bottom + 16, 36) }}
       >
         <TouchableOpacity
-          onPress={() => navigation.navigate('Match')}
-          disabled={!selected}
+          onPress={handleFindFriend}
+          disabled={selected.length === 0}
           activeOpacity={0.85}
           className={`h-14 rounded-full items-center justify-center ${
-            selected ? 'bg-primary' : 'bg-primary opacity-50'
+            selected.length > 0 ? 'bg-primary' : 'bg-primary opacity-50'
           }`}
         >
           <Text className="text-white text-base font-semibold tracking-wide">
-            Find Friend
+            Find Friend ({selected.length}/3)
           </Text>
         </TouchableOpacity>
       </View>

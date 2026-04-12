@@ -1,4 +1,4 @@
-import { CHECK_USERNAME, REGISTER, LOGIN, LOGOUT, DELETE_USER, DELETE_USER_BY_ID, GET_USER_PROFILE, UPDATE_USER_SHOW_NAME, UPDATE_USER_INTERESTED_GENDER } from "../api/endpoint";
+import { CHECK_USERNAME, REGISTER, LOGIN, LOGOUT, DELETE_USER, DELETE_USER_BY_ID, GET_USER_PROFILE, UPDATE_USER_SHOW_NAME, UPDATE_USER_INTERESTED_GENDER, CHECK_USER_ONLINE_STATUS } from "../api/endpoint";
 import mainApi from "../api/main.api";
 
 export type Sex = "male" | "female" | "lgbtq";
@@ -56,9 +56,9 @@ export const register = async (data: RegisterRequest): Promise<{ message: string
     }
 };
 
-export const login = async (data: LoginRequest): Promise<{ message: string }> => {
+export const login = async (data: LoginRequest): Promise<{ message: string; user_id: string }> => {
     try {
-        return await mainApi.post<{ message: string }>(LOGIN, data);
+        return await mainApi.post<{ message: string; user_id: string }>(LOGIN, data);
     } catch (error) {
         console.error("Error logging in:", error);
         throw error;
@@ -107,6 +107,16 @@ export const updateUserInterestedGender = async (interested_gender: Sex): Promis
         return await mainApi.put<UserProfile>(UPDATE_USER_INTERESTED_GENDER, { interested_gender });
     } catch (error) {
         console.error("Error updating interested gender:", error);
+        throw error;
+    }
+};
+
+export const checkUserOnlineStatus = async (user_id: string): Promise<{ is_online: boolean; message?: string }> => {
+    try {
+        const endpoint = CHECK_USER_ONLINE_STATUS.replace(":user_id", user_id);
+        return await mainApi.get<{ is_online: boolean; message?: string }>(endpoint);
+    } catch (error) {
+        console.error("Error checking online status:", error);
         throw error;
     }
 };
