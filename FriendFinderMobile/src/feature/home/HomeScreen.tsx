@@ -1,6 +1,6 @@
 // ─── HomeScreen ────────────────────────────────────────────────────────────────
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../components/common/AppHeader';
@@ -13,40 +13,16 @@ import { getAllPositions, Position } from '../../service/position.service';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useSocket } from '../../hooks/useSocket';
 import { useAppSelector, useAppDispatch } from '../../redux/hooks';
-import { setIsFinding, setPositionId, clearFindMatch } from '../../redux/findMatchSlice';
+import { setIsFinding, setPositionId, clearFindMatch, setUserLocation } from '../../redux/findMatchSlice';
 import { createFindMatch, deleteFindMatch } from '../../service/find_match.service';
+import { getPendingNotifications, respondNotification, NotificationData } from '../../service/notification.service';
+import { createMatch } from '../../service/match.service';
 import AlertModal from '../../components/common/AlertModal';
 
-const MOCK_NOTIFICATIONS = [
-  {
-    id: '1',
-    title: 'New Match!',
-    message: 'You matched with Sarah. Start a conversation now!',
-    timestamp: '2 minutes ago',
-    icon: 'heart',
-    type: 'match' as const,
-  },
-  {
-    id: '2',
-    title: 'Message from John',
-    message: 'Hey, how are you doing?',
-    timestamp: '1 hour ago',
-    icon: 'chatbubble',
-    type: 'message' as const,
-  },
-  {
-    id: '3',
-    title: 'Someone liked you',
-    message: 'Emma likes your profile',
-    timestamp: '3 hours ago',
-    icon: 'heart',
-    type: 'like' as const,
-  },
-];
 
 const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
-  const { selectedActivities, isFinding } = useAppSelector((state) => state.findMatch);
+  const { selectedActivities, isFinding, userLatitude, userLongitude } = useAppSelector((state) => state.findMatch);
   const userId = useAppSelector((state) => state.user.user_id);
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -54,8 +30,16 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [findMatchLoading, setFindMatchLoading] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [alert, setAlert] = useState<{ visible: boolean; type: 'success' | 'error' | 'warning' | 'info'; title: string; message: string }>({ visible: false, type: 'info', title: '', message: '' });
   const { userLocation, loading: locationLoading } = useUserLocation();
+
+  // บันทึก GPS ลง Redux เมื่อได้ตำแหน่งใหม่
+  useEffect(() => {
+    if (userLocation) {
+      dispatch(setUserLocation({ latitude: userLocation.latitude, longitude: userLocation.longitude }));
+    }
+  }, [userLocation]);
 
   // Initialize Socket.IO connection when home screen loads
   useSocket(null);
@@ -75,15 +59,77 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     fetchPositions();
   }, []);
 
-  // หา position ที่ใกล้กับ user มากที่สุด
+  // ดึง notifications จริง
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const data = await getPendingNotifications();
+      const mapped = data.map((n: NotificationData) => ({
+        id: n.id,
+        title: n.type === 'match_request' ? 'คำขอ Match!' : 'Match สำเร็จ!',
+        message: n.type === 'match_request'
+          ? `${n.sender?.user_show_name || 'ผู้ใช้'} อยากเจอคุณ`
+          : `คุณ match กับ ${n.sender?.user_show_name || 'ผู้ใช้'} สำเร็จ`,
+        timestamp: new Date(n.createdAt).toLocaleString('th-TH'),
+        icon: n.type === 'match_request' ? 'heart' : 'checkmark-circle',
+        type: n.type,
+        hasActions: n.type === 'match_request',
+        senderId: n.sender_id,
+        positionId: n.position_id,
+        activityId: n.activity_id,
+      }));
+      setNotifications(mapped);
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    // Poll every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
+
+  // กดยอมรับ match request
+  const handleAcceptNotification = async (notification: any) => {
+    try {
+      await respondNotification(notification.id, 'accepted');
+      // สร้าง Match
+      await createMatch({
+        user1_id: notification.senderId,
+        user2_id: userId,
+        activity_id: notification.activityId || selectedActivities[0]?.id || '',
+        position_id: notification.positionId || positionId || '',
+      });
+      setShowNotifications(false);
+      fetchNotifications();
+      navigation.navigate('MatchSuccess');
+    } catch (error: any) {
+      setAlert({ visible: true, type: 'error', title: 'ข้อผิดพลาด', message: error?.message || 'ไม่สามารถยอมรับได้' });
+    }
+  };
+
+  // กดปฏิเสธ match request
+  const handleRejectNotification = async (notification: any) => {
+    try {
+      await respondNotification(notification.id, 'rejected');
+      fetchNotifications();
+    } catch (error: any) {
+      setAlert({ visible: true, type: 'error', title: 'ข้อผิดพลาด', message: error?.message || 'ไม่สามารถปฏิเสธได้' });
+    }
+  };
+
+  // หา position ที่ใกล้กับ user มากที่สุด (ใช้ GPS ปัจจุบัน หรือ fallback จาก Redux)
   const findNearestPosition = (): Position | null => {
-    if (!userLocation || positions.length === 0) return null;
+    const lat = userLocation?.latitude ?? userLatitude;
+    const lng = userLocation?.longitude ?? userLongitude;
+    if (!lat || !lng || positions.length === 0) return null;
     let nearest: Position | null = null;
     let minDistance = Infinity;
     for (const pos of positions) {
       const dist = Math.sqrt(
-        Math.pow(pos.latitude - userLocation.latitude, 2) +
-        Math.pow(pos.longitude - userLocation.longitude, 2)
+        Math.pow(pos.latitude - lat, 2) +
+        Math.pow(pos.longitude - lng, 2)
       );
       if (dist < minDistance) {
         minDistance = dist;
@@ -111,7 +157,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       });
       dispatch(setPositionId(nearest.id));
       dispatch(setIsFinding(true));
-      setAlert({ visible: true, type: 'success', title: 'สำเร็จ', message: 'กำลังค้นหาเพื่อนให้คุณ...' });
+      navigation.navigate('Match');
     } catch (error: any) {
       setAlert({ visible: true, type: 'error', title: 'ข้อผิดพลาด', message: error?.message || 'ไม่สามารถค้นหาได้' });
     } finally {
@@ -176,7 +222,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <View className="absolute top-4 right-4 z-10">
             <NotificationButton
               onPress={() => setShowNotifications(!showNotifications)}
-              badge={3}
+              badge={notifications.length}
               size="md"
             />
           </View>
@@ -184,12 +230,13 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           {/* Notification Card Popup */}
           {showNotifications && (
             <NotificationCard
-              notifications={MOCK_NOTIFICATIONS}
+              notifications={notifications}
               onClose={() => setShowNotifications(false)}
               onNotificationPress={(notification) => {
                 setShowNotifications(false);
-                navigation.navigate('Chat');
               }}
+              onAccept={handleAcceptNotification}
+              onReject={handleRejectNotification}
             />
           )}
 
@@ -199,7 +246,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               <PrimaryButton
                 onPress={handleCancelFindMatch}
                 size="md"
-                text={findMatchLoading ? 'กำลังยกเลิก...' : 'CANCEL FIND MATCH'}
+                text={findMatchLoading ? 'ยกเลิก...' : 'ยกเลิกการค้นหา'}
               />
             ) : selectedActivities.length > 0 ? (
               <PrimaryButton

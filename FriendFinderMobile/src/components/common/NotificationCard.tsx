@@ -11,26 +11,32 @@ interface Notification {
   message: string;
   timestamp: string;
   icon: string;
-  type: 'message' | 'match' | 'like' | 'system';
+  type: 'message' | 'match' | 'like' | 'system' | 'match_request';
+  hasActions?: boolean;
 }
 
 interface NotificationCardProps {
   notifications: Notification[];
   onClose: () => void;
   onNotificationPress?: (notification: Notification) => void;
+  onAccept?: (notification: Notification) => void;
+  onReject?: (notification: Notification) => void;
 }
 
-const ICON_COLOR = {
+const ICON_COLOR: Record<string, string> = {
   message: colors.primary,
   match: colors.success,
   like: colors.danger,
   system: colors.warning,
+  match_request: colors.warning,
 };
 
 const NotificationCard: React.FC<NotificationCardProps> = ({
   notifications,
   onClose,
   onNotificationPress,
+  onAccept,
+  onReject,
 }) => {
   const renderNotification = ({ item }: { item: Notification }) => (
     <TouchableOpacity
@@ -43,7 +49,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
           width: 40,
           height: 40,
           borderRadius: 20,
-          backgroundColor: ICON_COLOR[item.type],
+          backgroundColor: ICON_COLOR[item.type] || colors.primary,
           justifyContent: 'center',
           alignItems: 'center',
         }}
@@ -56,10 +62,29 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
         <Text className="font-semibold text-gray-900">{item.title}</Text>
         <Text className="text-sm text-gray-600 mt-1">{item.message}</Text>
         <Text className="text-xs text-gray-400 mt-1">{item.timestamp}</Text>
+
+        {/* Accept/Reject buttons for match_request */}
+        {item.hasActions && (
+          <View className="flex-row gap-2 mt-2">
+            <TouchableOpacity
+              className="bg-green-500 rounded-lg px-3 py-1.5"
+              onPress={() => onAccept?.(item)}
+            >
+              <Text className="text-white text-xs font-semibold">ยอมรับ</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="bg-gray-300 rounded-lg px-3 py-1.5"
+              onPress={() => onReject?.(item)}
+            >
+              <Text className="text-gray-700 text-xs font-semibold">ปฏิเสธ</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
-      {/* Arrow */}
-      <Ionicons name="chevron-forward" size={20} color={colors.gray300} />
+      {!item.hasActions && (
+        <Ionicons name="chevron-forward" size={20} color={colors.gray300} />
+      )}
     </TouchableOpacity>
   );
 
@@ -88,13 +113,6 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
           <Ionicons name="notifications-off" size={48} color={colors.gray300} />
           <Text className="text-gray-400 mt-2">No notifications</Text>
         </View>
-      )}
-
-      {/* Footer */}
-      {notifications.length > 0 && (
-        <TouchableOpacity className="px-4 py-3 border-t border-gray-100 items-center">
-          <Text className="text-primary font-semibold">View All</Text>
-        </TouchableOpacity>
       )}
     </View>
   );

@@ -10,12 +10,16 @@ interface FindMatchState {
   selectedActivities: SelectedActivity[];
   isFinding: boolean;
   positionId: string;
+  userLatitude: number | null;
+  userLongitude: number | null;
 }
 
 const initialState: FindMatchState = {
   selectedActivities: [],
   isFinding: false,
   positionId: '',
+  userLatitude: null,
+  userLongitude: null,
 };
 
 export const findMatchSlice = createSlice({
@@ -31,6 +35,10 @@ export const findMatchSlice = createSlice({
     setPositionId: (state, action: PayloadAction<string>) => {
       state.positionId = action.payload;
     },
+    setUserLocation: (state, action: PayloadAction<{ latitude: number; longitude: number }>) => {
+      state.userLatitude = action.payload.latitude;
+      state.userLongitude = action.payload.longitude;
+    },
     clearFindMatch: () => initialState,
   },
 });
@@ -39,6 +47,7 @@ export const {
   setSelectedActivities,
   setIsFinding,
   setPositionId,
+  setUserLocation,
   clearFindMatch,
 } = findMatchSlice.actions;
 

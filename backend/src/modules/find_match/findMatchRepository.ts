@@ -98,13 +98,20 @@ export const findMatchRepository = {
 
     createFindMatch: async (data: CreateFindMatchInput) => {
         try {
-            return await prisma.find_Match.create({
-                data: {
+            return await prisma.find_Match.upsert({
+                where: { user_id: data.user_id },
+                update: {
+                    position_id: data.position_id,
+                    activity_id1: data.activity_id1 ?? null,
+                    activity_id2: data.activity_id2 ?? null,
+                    activity_id3: data.activity_id3 ?? null,
+                },
+                create: {
                     user_id: data.user_id,
                     position_id: data.position_id,
-                    ...(data.activity_id1 && { activity_id1: data.activity_id1 }),
-                    ...(data.activity_id2 && { activity_id2: data.activity_id2 }),
-                    ...(data.activity_id3 && { activity_id3: data.activity_id3 })
+                    activity_id1: data.activity_id1 ?? null,
+                    activity_id2: data.activity_id2 ?? null,
+                    activity_id3: data.activity_id3 ?? null,
                 },
                 include: {
                     activity1: true,

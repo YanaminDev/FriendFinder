@@ -40,8 +40,13 @@ export const findMatchRouter = () => {
             const data = await findMatchRepository.createFindMatch(validateData);
             res.status(201).json(data);
         }
-        catch (err) {
-            return res.status(500).json({ message: "Failed to create find match" });
+        catch (err: any) {
+            console.error("Create find match error:", err);
+            // ถ้า user มี find_match อยู่แล้ว ให้ upsert แทน
+            if (err?.code === 'P2002') {
+                return res.status(409).json({ message: "Find match already exists" });
+            }
+            return res.status(500).json({ message: err.message || "Failed to create find match" });
         }
     });
 
