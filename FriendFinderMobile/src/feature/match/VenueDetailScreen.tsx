@@ -1,23 +1,27 @@
 // ─── VenueDetailScreen ─────────────────────────────────────────────────────────
 
 import React from 'react';
-import { View, Text, Image, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, Image, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../components/common/AppHeader';
 import Button from '../../components/common/Button';
+import { useResponsive } from '../../hooks/useResponsive';
 import { MOCK_VENUES } from '../../constants/mockData';
 
 const VenueDetailScreen: React.FC<{ navigation: any; route: { params: { venueId: string } } }> = ({ navigation, route }) => {
   const { venueId } = route.params;
   const venue = MOCK_VENUES.find(v => v.id === venueId) ?? MOCK_VENUES[0];
+  const { maxContentWidth, horizontalPadding, bottomPadding } = useResponsive();
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <AppHeader title={venue.name} showBack onBackPress={() => navigation.goBack()} />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100, alignItems: 'center' }}>
 
+        <View style={{ width: '100%', maxWidth: maxContentWidth }}>
         <Image source={{ uri: venue.image }} className="w-full h-52 bg-gray-200" resizeMode="cover" />
 
-        <View className="px-4 py-4 gap-3">
+        <View style={{ paddingHorizontal: horizontalPadding, paddingVertical: 16, rowGap: 12 }}>
           <View className="flex-row items-center justify-between">
             <Text className="text-xl font-bold text-gray-900">{venue.name}</Text>
             <View className="px-2.5 py-1 rounded-full bg-primary-light">
@@ -61,12 +65,12 @@ const VenueDetailScreen: React.FC<{ navigation: any; route: { params: { venueId:
           )}
         </View>
 
+        </View>
       </ScrollView>
-      <View className="px-4 pb-8 bg-white border-t border-gray-100 pt-3">
-        <Button
-          label="เลือกสถานที่นี้"
-          onPress={() => navigation.goBack()}
-        />
+      <View className="bg-white border-t border-gray-100 pt-3" style={{ alignItems: 'center' }}>
+        <View style={{ width: '100%', maxWidth: maxContentWidth, paddingHorizontal: horizontalPadding, paddingBottom: bottomPadding }}>
+          <Button label="เลือกสถานที่นี้" onPress={() => navigation.goBack()} />
+        </View>
       </View>
     </SafeAreaView>
   );

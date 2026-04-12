@@ -12,8 +12,10 @@ import { getUserInformation, UserInformation } from '../../service/user_informat
 import { getUserLifeStyle, UserLifeStyle } from '../../service/user_life_style.service';
 import { getUserImages, UserImage } from '../../service/user_image.service';
 import { colors } from '../../constants/theme';
+import { useResponsive } from '../../hooks/useResponsive';
 
 const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const { maxContentWidth } = useResponsive();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [userInfo, setUserInfo] = useState<UserInformation | null>(null);
   const [userLifeStyle, setUserLifeStyle] = useState<UserLifeStyle | null>(null);
@@ -79,7 +81,8 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <ActivityIndicator size="large" color="#FF6B6B" />
         </View>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={true} contentContainerStyle={{ paddingBottom: 24 }} nestedScrollEnabled={true} scrollEnabled={true}>
+        <ScrollView showsVerticalScrollIndicator={true} contentContainerStyle={{ paddingBottom: 24, alignItems: 'center' }} nestedScrollEnabled={true} scrollEnabled={true}>
+        <View style={{ width: '100%', maxWidth: maxContentWidth }}>
 
           {/* Header with name only */}
           <View className="items-center py-3 bg-white">
@@ -147,13 +150,14 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           {/* Card 3: Life Style */}
           <View className="mx-4 mt-4 bg-white rounded-2xl p-4 shadow-lg mb-6">
             <CardHeader icon="heart-multiple" title="ไลฟ์สไตล์" />
-            <InfoRow iconName="magnify-plus-heart" label="Looking for" value={userLifeStyle?.looking_for?.name || '-'} />
+            <InfoRow iconName="heart-search" label="Looking for" value={userLifeStyle?.looking_for?.name || '-'} />
             <InfoRow iconName="bottle-wine" label="การดื่มแอลกอฮอล์" value={userLifeStyle?.drinking?.name || '-'} />
             <InfoRow iconName="smoke" label="การสูบบุหรี่" value={userLifeStyle?.smoke?.name || '-'} />
             <InfoRow iconName="dumbbell" label="การออกกำลังกาย" value={userLifeStyle?.workout?.name || '-'} />
             <InfoRow iconName="paw" label="สัตว์เลี้ยง" value={userLifeStyle?.pet?.name || '-'} />
           </View>
 
+        </View>
         </ScrollView>
       )}
     </SafeAreaView>

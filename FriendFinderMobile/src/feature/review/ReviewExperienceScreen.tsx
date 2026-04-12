@@ -1,15 +1,18 @@
 // ─── ReviewExperienceScreen ────────────────────────────────────────────────────
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../components/common/AppHeader';
 import Button from '../../components/common/Button';
+import { useResponsive } from '../../hooks/useResponsive';
 
 const ReviewExperienceScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [locationComment, setLocationComment] = useState('');
   const [personComment, setPersonComment] = useState('');
   const [locationLiked, setLocationLiked] = useState<boolean | null>(null);
   const [personLiked, setPersonLiked] = useState<boolean | null>(null);
+  const { maxContentWidth, horizontalPadding, bottomPadding } = useResponsive();
 
   const canSubmit = locationComment.trim().length > 0 && personComment.trim().length > 0
     && locationLiked !== null && personLiked !== null;
@@ -18,7 +21,8 @@ const ReviewExperienceScreen: React.FC<{ navigation: any }> = ({ navigation }) =
     <SafeAreaView className="flex-1 bg-white">
       <AppHeader title="รีวิวประสบการณ์" showBack onBackPress={() => navigation.goBack()} />
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={{ padding: 20, gap: 20, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={{ paddingVertical: 20, paddingBottom: bottomPadding, alignItems: 'center' }} showsVerticalScrollIndicator={false}>
+        <View style={{ width: '100%', maxWidth: maxContentWidth, paddingHorizontal: horizontalPadding, rowGap: 20 }}>
 
           {/* Location review */}
           <View className="gap-3">
@@ -86,6 +90,7 @@ const ReviewExperienceScreen: React.FC<{ navigation: any }> = ({ navigation }) =
             disabled={!canSubmit}
           />
 
+        </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

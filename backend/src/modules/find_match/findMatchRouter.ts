@@ -58,11 +58,12 @@ export const findMatchRouter = () => {
                 return res.status(400).json({ message: "User ID not found in token" });
             }
             const validateData = DeleteFindMatchSchema.parse({ user_id: userId });
-            await findMatchRepository.deleteFindMatch(validateData);
-            res.status(200).json({ message: "Find match deleted successfully" });
+            const result = await findMatchRepository.deleteFindMatch(validateData);
+            res.status(200).json({ message: "Find match deleted successfully", deletedCount: result.count });
         }
-        catch (err) {
-            return res.status(500).json({ message: "Failed to delete find match" });
+        catch (err: any) {
+            console.error("Delete find match error:", err);
+            return res.status(500).json({ message: err.message || "Failed to delete find match" });
         }
     });
 

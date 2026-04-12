@@ -8,14 +8,20 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Activity } from '../../types';
 import { colors } from '../../constants/theme';
 import { getActivity } from '../../service/activity.service';
-import { useAppDispatch } from '../../redux/hooks';
-import { setSelectedActivities } from '../../redux/findMatchSlice';
+import { getAllPositions, Position } from '../../service/position.service';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
+import { setSelectedActivities, setPositionId, setIsFinding, setUserLocation } from '../../redux/findMatchSlice';
+import { useResponsive } from '../../hooks/useResponsive';
+import { useUserLocation } from '../../hooks/useUserLocation';
+import { createFindMatch } from '../../service/find_match.service';
+import AlertModal from '../../components/common/AlertModal';
 
 
 // ─── Popular Chip ─────────────────────────────────────────────────────────────
@@ -76,28 +82,38 @@ const RecommendedCard: React.FC<{
 const SelectActivityScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
+  const { maxContentWidth } = useResponsive();
+  const userId = useAppSelector((state) => state.user.user_id);
+  const { userLocation } = useUserLocation();
+
   const [selected, setSelected] = useState<string[]>([]);
   const [search, setSearch]     = useState('');
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading]   = useState(false);
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [finding, setFinding] = useState(false);
+  const [alert, setAlert] = useState<{ visible: boolean; type: 'success' | 'error' | 'warning' | 'info'; title: string; message: string }>({ visible: false, type: 'info', title: '', message: '' });
 
-  // ── fetch จาก backend ──────────────────────────────────────────────────────
+  // ── fetch activities และ positions ──────────────────────────────────────────
   useEffect(() => {
-    const fetchActivities = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await getActivity();
+        const [activitiesData, positionsData] = await Promise.all([
+          getActivity(),
+          getAllPositions(),
+        ]);
 
         // สุ่มเลือก activities
-        const shuffled = [...data].sort(() => Math.random() - 0.5);
+        const shuffled = [...activitiesData].sort(() => Math.random() - 0.5);
 
         // Popular = ขั้นต่ำ 4 ตัว หรือ 30% เเล้วแต่ว่ามากกว่า (แต่ไม่เกิน 70% ของทั้งหมด)
-        const popularIds = new Set(data.map((a: any) => a.id));
+        const popularIds = new Set(activitiesData.map((a: any) => a.id));
 
-        const recommendedCount = Math.min(4, data.length);
+        const recommendedCount = Math.min(4, activitiesData.length);
         const recommendedIds = new Set(shuffled.slice(0, recommendedCount).map((a: any) => a.id));
 
-        const mapped: Activity[] = data.map((a: any) => ({
+        const mapped: Activity[] = activitiesData.map((a: any) => ({
           id: a.id,
           name: a.name,
           icon: a.icon,
@@ -105,13 +121,14 @@ const SelectActivityScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
           isRecommended: recommendedIds.has(a.id),
         }));
         setActivities(mapped);
+        setPositions(positionsData);
       } catch (err) {
-        console.error('Failed to load activities', err);
+        console.error('Failed to load data', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchActivities();
+    fetchData();
   }, []);
 
   // ── filter by search ───────────────────────────────────────────────────────
@@ -132,12 +149,76 @@ const SelectActivityScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
     });
   }, []);
 
-  const handleFindFriend = () => {
+  const handleFindFriend = async () => {
     const selectedData = activities
       .filter((a) => selected.includes(a.id))
       .map((a) => ({ id: a.id, name: a.name, icon: a.icon }));
+
     dispatch(setSelectedActivities(selectedData));
-    navigation.navigate('Home');
+
+    // หา position ที่ใกล้กับ user มากที่สุด
+    if (!userLocation || positions.length === 0) {
+      setAlert({
+        visible: true,
+        type: 'warning',
+        title: 'ไม่พบสถานที่',
+        message: 'ไม่สามารถหาสถานที่ใกล้เคียง กรุณาเปิด GPS',
+      });
+      return;
+    }
+
+    const lat = userLocation.latitude;
+    const lng = userLocation.longitude;
+    let nearest: Position | null = null;
+    let minDistance = Infinity;
+
+    for (const pos of positions) {
+      const dist = Math.sqrt(
+        Math.pow(pos.latitude - lat, 2) +
+        Math.pow(pos.longitude - lng, 2)
+      );
+      if (dist < minDistance) {
+        minDistance = dist;
+        nearest = pos;
+      }
+    }
+
+    if (!nearest) {
+      setAlert({
+        visible: true,
+        type: 'warning',
+        title: 'ไม่พบสถานที่',
+        message: 'ไม่พบสถานที่ใกล้เคียง',
+      });
+      return;
+    }
+
+    // เริ่มค้นหา
+    setFinding(true);
+    try {
+      await createFindMatch({
+        user_id: userId,
+        position_id: nearest.id,
+        activity_id1: selectedData[0]?.id,
+        activity_id2: selectedData[1]?.id,
+        activity_id3: selectedData[2]?.id,
+      });
+
+      dispatch(setUserLocation({ latitude: lat, longitude: lng }));
+      dispatch(setPositionId(nearest.id));
+      dispatch(setIsFinding(true));
+
+      navigation.navigate('Match');
+    } catch (error: any) {
+      setAlert({
+        visible: true,
+        type: 'error',
+        title: 'ข้อผิดพลาด',
+        message: error?.message || 'ไม่สามารถค้นหาได้',
+      });
+    } finally {
+      setFinding(false);
+    }
   };
 
   return (
@@ -158,8 +239,9 @@ const SelectActivityScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 110 }}
+        contentContainerStyle={{ paddingBottom: 110, alignItems: 'center' }}
       >
+      <View style={{ width: '100%', maxWidth: maxContentWidth }}>
         {/* ── Hero text ── */}
         <View className="px-5 pt-6 pb-4">
           <Text className="text-2xl font-bold text-gray-900">What are you up for?</Text>
@@ -224,26 +306,58 @@ const SelectActivityScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             )}
           </View>
         )}
+      </View>
       </ScrollView>
 
       {/* ── Find Friend Button ── */}
       <View
-        className="absolute bottom-0 left-0 right-0 px-5 pt-3 bg-white border-t border-gray-100"
-        style={{ paddingBottom: Math.max(insets.bottom + 16, 36) }}
+        className="absolute bottom-0 left-0 right-0 pt-3 bg-white border-t border-gray-100"
+        style={{ paddingBottom: Math.max(insets.bottom + 16, 36), alignItems: 'center' }}
       >
+      <View style={{ width: '100%', maxWidth: maxContentWidth, paddingHorizontal: 20 }}>
         <TouchableOpacity
           onPress={handleFindFriend}
-          disabled={selected.length === 0}
+          disabled={selected.length === 0 || finding}
           activeOpacity={0.85}
           className={`h-14 rounded-full items-center justify-center ${
-            selected.length > 0 ? 'bg-primary' : 'bg-primary opacity-50'
+            selected.length > 0 && !finding ? 'bg-primary' : 'bg-primary opacity-50'
           }`}
         >
-          <Text className="text-white text-base font-semibold tracking-wide">
-            Find Friend ({selected.length}/3)
-          </Text>
+          {finding ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text className="text-white text-base font-semibold tracking-wide">
+              Find Friend ({selected.length}/3)
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
+      </View>
+
+      {/* ── Loading Popup ── */}
+      <Modal visible={finding} transparent animationType="fade">
+        <View className="flex-1 bg-black/50 items-center justify-center">
+          <View className="bg-white rounded-3xl px-8 py-10 items-center w-72">
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text className="mt-6 text-lg font-semibold text-gray-900 text-center">
+              กำลังค้นหาเพื่อน
+            </Text>
+            <Text className="mt-2 text-sm text-gray-500 text-center">
+              กรุณารอสักครู่...
+            </Text>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── Alert Modal ── */}
+      <AlertModal
+        visible={alert.visible}
+        type={alert.type}
+        title={alert.title}
+        message={alert.message}
+        buttonLabel="ตกลง"
+        onPress={() => setAlert({ visible: false, type: 'info', title: '', message: '' })}
+      />
     </SafeAreaView>
   );
 };

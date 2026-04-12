@@ -129,13 +129,15 @@ export const findMatchRepository = {
 
     deleteFindMatch: async (data: DeleteFindMatchInput) => {
         try {
-            return await prisma.find_Match.delete({
+            // Use deleteMany so it doesn't error if record doesn't exist (might be already deleted when match was created)
+            return await prisma.find_Match.deleteMany({
                 where: {
                     user_id: data.user_id
                 }
             });
         }
         catch (err) {
+            console.error("Delete find match error for user:", data.user_id, err);
             throw err;
         }
     }

@@ -99,6 +99,17 @@ export const userImageRouter = () => {
         }
     })
 
+    // ดึงรูปโปรไฟล์ของ user อื่น (สำหรับหน้า Match / ดูโปรไฟล์คนอื่น)
+    router.get("/public/:userId", authenticateToken, async (req, res) => {
+        try {
+            const { userId } = GetUserImageUrlSchema.parse(req.params);
+            const userImages = await userImageRepository.getUserImages(userId);
+            return res.status(200).json(userImages);
+        } catch (err) {
+            return res.status(500).json({ message: `Failed to fetch user images: ${err}` });
+        }
+    })
+
     router.delete("/delete/:imageId", authenticateToken, async (req, res) => {
         try{
             const {imageId} = DeleteUserImageUrlSchema.parse(req.params);

@@ -15,6 +15,7 @@ export const UPLOAD_USER_IMAGE = "/v1/user-image/upload";
 export const GET_USER_IMAGE_SIGNED_URL = "/v1/user-image/get-signed-url/:userId";
 export const GET_USER_IMAGE_SIGNED_URL_BY_ID = "/v1/user-image/get-signed-url/:userId/:id";
 export const GET_USER_IMAGES = "/v1/user-image/get/:userId";
+export const GET_PUBLIC_USER_IMAGES = "/v1/user-image/public/:userId";
 export const GET_USER_IMAGE_BY_ID = "/v1/user-image/get/:userId/:id";
 export const DELETE_USER_IMAGE = "/v1/user-image/delete/:imageId";
 export const UPDATE_USER_IMAGE = "/v1/user-image/update/:imageId";

@@ -22,7 +22,7 @@ import AlertModal from '../../components/common/AlertModal';
 
 const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
-  const { selectedActivities, isFinding, userLatitude, userLongitude } = useAppSelector((state) => state.findMatch);
+  const { selectedActivities, isFinding, userLatitude, userLongitude, positionId } = useAppSelector((state) => state.findMatch);
   const userId = useAppSelector((state) => state.user.user_id);
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -63,20 +63,35 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const fetchNotifications = useCallback(async () => {
     try {
       const data = await getPendingNotifications();
-      const mapped = data.map((n: NotificationData) => ({
-        id: n.id,
-        title: n.type === 'match_request' ? 'คำขอ Match!' : 'Match สำเร็จ!',
-        message: n.type === 'match_request'
-          ? `${n.sender?.user_show_name || 'ผู้ใช้'} อยากเจอคุณ`
-          : `คุณ match กับ ${n.sender?.user_show_name || 'ผู้ใช้'} สำเร็จ`,
-        timestamp: new Date(n.createdAt).toLocaleString('th-TH'),
-        icon: n.type === 'match_request' ? 'heart' : 'checkmark-circle',
-        type: n.type,
-        hasActions: n.type === 'match_request',
-        senderId: n.sender_id,
-        positionId: n.position_id,
-        activityId: n.activity_id,
-      }));
+
+      // ตรวจสอบว่ามี match_accepted notification ใหม่ไหม → แสดง modal ทันที
+      const matchAccepted = data.find((n: NotificationData) => n.type === 'match_accepted');
+      if (matchAccepted) {
+        // เปลี่ยนสถานะเป็น accepted เพื่อไม่ให้ poll เจออีก
+        await respondNotification(matchAccepted.id, 'accepted');
+        dispatch(clearFindMatch());
+        setAlert({
+          visible: true,
+          type: 'success',
+          title: 'Match สำเร็จ!',
+          message: `คุณได้ Match กับ ${matchAccepted.sender?.user_show_name || 'ผู้ใช้'} แล้ว`,
+        });
+      }
+
+      const mapped = data
+        .filter((n: NotificationData) => n.type !== 'match_accepted') // match_accepted แสดงเป็น modal ไม่ต้องเอาเข้า list
+        .map((n: NotificationData) => ({
+          id: n.id,
+          title: 'คำขอ Match!',
+          message: `${n.sender?.user_show_name || 'ผู้ใช้'} อยากเจอคุณ`,
+          timestamp: new Date(n.createdAt).toLocaleString('th-TH'),
+          icon: 'heart',
+          type: n.type,
+          hasActions: true,
+          senderId: n.sender_id,
+          positionId: n.position_id,
+          activityId: n.activity_id,
+        }));
       setNotifications(mapped);
     } catch (err) {
       console.error('Failed to fetch notifications:', err);
@@ -85,8 +100,8 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   useEffect(() => {
     fetchNotifications();
-    // Poll every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
+    // Poll every 5 seconds เพื่อให้รวดเร็วขึ้นเมื่อรับ match success notification
+    const interval = setInterval(fetchNotifications, 5000);
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
@@ -94,18 +109,20 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const handleAcceptNotification = async (notification: any) => {
     try {
       await respondNotification(notification.id, 'accepted');
-      // สร้าง Match
       await createMatch({
         user1_id: notification.senderId,
         user2_id: userId,
         activity_id: notification.activityId || selectedActivities[0]?.id || '',
         position_id: notification.positionId || positionId || '',
       });
+    } catch (error: any) {
+      console.error('Accept notification error:', error);
+    } finally {
+      // ยกเลิก findMatch session และไปหน้า MatchSuccess เสมอ
+      dispatch(clearFindMatch());
       setShowNotifications(false);
       fetchNotifications();
       navigation.navigate('MatchSuccess');
-    } catch (error: any) {
-      setAlert({ visible: true, type: 'error', title: 'ข้อผิดพลาด', message: error?.message || 'ไม่สามารถยอมรับได้' });
     }
   };
 
@@ -203,11 +220,14 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               onPinPress={(pin: any) => {
                 const position = positions.find(p => p.id === pin.id);
                 if (position) {
+                  console.log('Selected position:', position);
+                  console.log('Position image:', position.image);
                   setSelectedLocation({
                     ...position,
                     name: position.name,
                     description: position.information,
                     phone: position.phone,
+                    image: position.image,
                     openHours: position.open_time && position.close_time
                       ? `${position.open_time} - ${position.close_time}`
                       : position.open_time || position.close_time || 'ไม่ระบุเวลา',
@@ -240,14 +260,21 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             />
           )}
 
-          {/* Find Match / Cancel Button - Bottom Center */}
+          {/* Find Match / Cancel / Resume Button - Bottom Center */}
           <View className="absolute left-0 right-0 items-center" style={{ bottom: 30 }}>
             {isFinding ? (
-              <PrimaryButton
-                onPress={handleCancelFindMatch}
-                size="md"
-                text={findMatchLoading ? 'ยกเลิก...' : 'ยกเลิกการค้นหา'}
-              />
+              <View style={{ gap: 12, alignItems: 'center' }}>
+                <PrimaryButton
+                  onPress={() => navigation.navigate('Match')}
+                  size="md"
+                  text="กลับไปปัดหาคน"
+                />
+                <PrimaryButton
+                  onPress={handleCancelFindMatch}
+                  size="sm"
+                  text={findMatchLoading ? 'ยกเลิก...' : 'ยกเลิกการค้นหา'}
+                />
+              </View>
             ) : selectedActivities.length > 0 ? (
               <PrimaryButton
                 onPress={handleFindMatch}

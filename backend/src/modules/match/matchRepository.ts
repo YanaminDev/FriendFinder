@@ -33,6 +33,16 @@ export const matchRepository = {
 
     createMatch: async (data: CreateMatchInput) => {
         try {
+            // ยกเลิก findMatch ของทั้งคู่เมื่อ match สำเร็จ
+            await prisma.find_Match.deleteMany({
+                where: {
+                    OR: [
+                        { user_id: data.user1_id },
+                        { user_id: data.user2_id }
+                    ]
+                }
+            });
+
             return await prisma.match.create({
                 data: {
                     user1_id: data.user1_id,
