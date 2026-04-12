@@ -57,6 +57,11 @@ function formatDate(dateStr: string) {
   })
 }
 
+function formatReviewDate(dateStr: string) {
+  const d = new Date(dateStr)
+  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
+}
+
 function getAvatar(user: MatchReviewUser) {
   return user.images?.[0]?.imageUrl || ""
 }
@@ -258,7 +263,7 @@ function LocationReviewCard({
                     {review!.review_text || "(no comment)"}
                   </p>
                   <p className="mt-1 text-[10px] text-gray-300">
-                    {formatDate(review!.createdAt)}
+                    {formatReviewDate(review!.createdAt)}
                   </p>
                 </div>
 
