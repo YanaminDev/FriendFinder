@@ -120,8 +120,8 @@ export const positionRouter = () => {
         }
     });
 
-    // Upload multiple position images (up to 4)
-    router.post("/upload-images/:position_id", authenticateToken, authorize("admin"), upload.array("images", 4), async (req, res) => {
+    // Upload multiple position images (up to 4) — stores only the first URL
+    router.post("/upload-images/:position_id", authenticateToken, authorize("admin"), upload.array("images", 1), async (req, res) => {
         try {
             const positionId = String(req.params.position_id);
             if (!positionId) {
@@ -132,13 +132,8 @@ export const positionRouter = () => {
                 return res.status(400).json({ message: "No files uploaded" });
             }
 
-            const urls: string[] = [];
-            for (const file of files) {
-                const result = await uploadFile(file, "positionImage", "position-images");
-                urls.push(result.imageUrl);
-            }
-
-            const position = await positionRepository.updatePositionImage(positionId, JSON.stringify(urls));
+            const result = await uploadFile(files[0], "positionImage", "position-images");
+            const position = await positionRepository.updatePositionImage(positionId, result.imageUrl);
             return res.status(201).json(position);
         } catch (err) {
             return res.status(500).json({ message: `Failed to upload position images: ${err}` });

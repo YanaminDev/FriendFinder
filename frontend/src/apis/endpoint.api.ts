@@ -18,6 +18,7 @@ export const LOCATION_CREATE = '/v1/location/create';
 export const LOCATION_UPDATE = (id: string) => `/v1/location/update/${id}`;
 export const LOCATION_DELETE = (id: string) => `/v1/location/delete/${id}`;
 export const LOCATION_GET_BY_POSITION = (positionId: string) => `/v1/location/get-by-position/${positionId}`;
+export const LOCATION_GET_BY_POSITION_WITH_IMAGES = (positionId: string) => `/v1/location/get-by-position-with-images/${positionId}`;
 
 // ============ USER ENDPOINTS ============
 export const USER_GET_PROFILE = '/v1/user/profile';
@@ -46,6 +47,9 @@ export const ADMIN_GET_ALL_USERS = '/v1/api/admin/users';
 export const ADMIN_UPDATE_USER_ROLE = (id: string) => `/v1/api/admin/users/${id}/role`;
 export const ADMIN_BAN_USER = (id: string) => `/v1/api/admin/users/${id}/ban`;
 export const ADMIN_UNBAN_USER = (id: string) => `/v1/api/admin/users/${id}/unban`;
+
+// ============ MATCH ENDPOINTS ============
+export const MATCH_ADMIN_ALL_REVIEWS = '/v1/match/admin/all-reviews';
 
 // ============ LOOKUP TABLE ENDPOINTS ============
 // Looking For

@@ -108,5 +108,51 @@ export const matchRepository = {
         catch(err) {
             throw err
         }
+    },
+
+    getAllMatchesWithReviews: async () => {
+        try {
+            return await prisma.match.findMany({
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    user1: { select: { user_id: true, username: true, user_show_name: true, images: { take: 1, select: { imageUrl: true } } } },
+                    user2: { select: { user_id: true, username: true, user_show_name: true, images: { take: 1, select: { imageUrl: true } } } },
+                    activity: { select: { name: true, icon: true } },
+                    location: {
+                        select: {
+                            name: true,
+                            location_image: {
+                                take: 1,
+                                orderBy: { createdAt: 'asc' },
+                                select: { imageUrl: true }
+                            }
+                        }
+                    },
+                    position: { select: { name: true } },
+                    experience: {
+                        include: {
+                            reviewer: { select: { user_id: true, username: true } },
+                            reviewee: { select: { user_id: true, username: true } }
+                        }
+                    },
+                    location_review: {
+                        include: {
+                            user: { select: { user_id: true, username: true } },
+                            location: { select: { name: true } }
+                        }
+                    },
+                    cancellation: {
+                        include: {
+                            reviewer: { select: { user_id: true, username: true } },
+                            reviewee: { select: { user_id: true, username: true } },
+                            quick_select: true
+                        }
+                    }
+                }
+            })
+        }
+        catch(err) {
+            throw err
+        }
     }
 }

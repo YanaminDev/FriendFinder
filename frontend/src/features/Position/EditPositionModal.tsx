@@ -41,7 +41,7 @@ interface EditPositionModalProps {
   } | null;
 }
 
-const MAX_IMAGES = 4;
+const MAX_IMAGES = 1;
 
 const EditPositionModal: React.FC<EditPositionModalProps> = ({ isOpen, onClose, onSave, onDelete, location }) => {
   const [formData, setFormData] = useState<Omit<PositionFormData, 'images'>>({
@@ -64,7 +64,7 @@ const EditPositionModal: React.FC<EditPositionModalProps> = ({ isOpen, onClose, 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [tokenLoaded, setTokenLoaded] = useState(false);
 
-  // Sync form data whenever location changes
+  // Parse existing images
   useEffect(() => {
     if (location) {
       setFormData({
@@ -77,13 +77,13 @@ const EditPositionModal: React.FC<EditPositionModalProps> = ({ isOpen, onClose, 
         latitude: location.latitude,
         longitude: location.longitude,
       });
-      // Parse existing images from JSON array string
+      // Parse existing image — handle both JSON array and plain URL
       if (location.image) {
         try {
           const parsed = JSON.parse(location.image);
           setExistingImages(Array.isArray(parsed) ? parsed : [location.image]);
         } catch {
-          setExistingImages(location.image ? [location.image] : []);
+          setExistingImages([location.image]);
         }
       } else {
         setExistingImages([]);
@@ -102,7 +102,7 @@ const EditPositionModal: React.FC<EditPositionModalProps> = ({ isOpen, onClose, 
   const handleImageAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const totalSlots = MAX_IMAGES - existingImages.length;
-    setImages(prev => [...prev, ...files].slice(0, totalSlots));
+    setImages(files.slice(0, totalSlots));
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -253,7 +253,7 @@ const EditPositionModal: React.FC<EditPositionModalProps> = ({ isOpen, onClose, 
             {/* Images  */}
             <div>
               <label className="block text-sm font-semibold mb-2">
-                Images (max {1})
+                Image
               </label>
               <div className="grid grid-cols-4 gap-2">
                 {existingImages.map((url, i) => (
@@ -294,7 +294,6 @@ const EditPositionModal: React.FC<EditPositionModalProps> = ({ isOpen, onClose, 
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                multiple
                 className="hidden"
                 onChange={handleImageAdd}
               />

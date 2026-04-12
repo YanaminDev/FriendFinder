@@ -10,6 +10,7 @@ import {
 } from "./matchModel";
 import { authenticateToken } from "../../common/middleware/authenticate";
 import { authorize } from "../../common/middleware/authorize";
+import { supabase } from '../../../lib/supabase';
 
 export const matchRouter = () => {
     const router = Router();
@@ -99,6 +100,47 @@ export const matchRouter = () => {
         }
         catch(err) {
             return res.status(500).json({ message: "Failed to delete match" });
+        }
+    });
+
+    // Get all matches with reviews (admin feedback page)
+    router.get("/admin/all-reviews", authenticateToken, authorize("admin"), async (_req, res) => {
+        try {
+            const data = await matchRepository.getAllMatchesWithReviews();
+
+            // Sign location image URLs
+            const paths: { matchIdx: number; path: string }[] = [];
+            data.forEach((match, idx) => {
+                const img = match.location?.location_image?.[0];
+                if (img?.imageUrl) {
+                    const pathMatch = img.imageUrl.match(/location-images\/(.+)$/);
+                    if (pathMatch) {
+                        paths.push({ matchIdx: idx, path: `location-images/${pathMatch[1]}` });
+                    }
+                }
+            });
+
+            if (paths.length > 0) {
+                const { data: signedData, error } = await supabase.storage
+                    .from('locationImage')
+                    .createSignedUrls(paths.map(p => p.path), 5 * 60);
+
+                if (!error && signedData) {
+                    signedData.forEach((signed, idx) => {
+                        if (signed.signedUrl) {
+                            const m = data[paths[idx].matchIdx];
+                            if (m.location?.location_image?.[0]) {
+                                (m.location.location_image[0] as any).imageUrl = signed.signedUrl;
+                            }
+                        }
+                    });
+                }
+            }
+
+            res.status(200).json(data);
+        }
+        catch(err) {
+            return res.status(500).json({ message: "Failed to fetch reviews" });
         }
     });
 

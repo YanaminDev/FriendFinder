@@ -42,6 +42,23 @@ export const locationRepository = {
         }
     },
 
+    getLocationWithImagesByPositionId : async (position_id : string) => {
+        try{
+            return await prisma.location.findMany({
+                where : {
+                    position_id : position_id
+                },
+                include : {
+                    location_image : {
+                        orderBy : { createdAt : 'asc' }
+                    }
+                }
+            })
+        }catch(err){
+            throw err
+        }
+    },
+
     getLocationForMatch : async (user_id_1 : string , user_id_2 : string , activity_id : string , position_id : string) => {
         try{
             
@@ -106,10 +123,11 @@ export const locationRepository = {
 
     deleteLocation : async (id : string) => {
         try{
-            return await prisma.location.delete({
-                where:{
-                    id : id
-                }
+            return await prisma.$transaction(async (tx) => {
+                await tx.location_image.deleteMany({ where: { location_id: id } })
+                await tx.location_review.deleteMany({ where: { location_id: id } })
+                await tx.match.deleteMany({ where: { location_id: id } })
+                return await tx.location.delete({ where: { id: id } })
             })
         }
         catch(err){

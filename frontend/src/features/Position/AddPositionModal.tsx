@@ -26,7 +26,7 @@ interface AddPositionModalProps {
   initialCoords?: { latitude: number; longitude: number } | null;
 }
 
-const MAX_IMAGES = 4;
+const MAX_IMAGES = 1;
 
 const AddPositionModal: React.FC<AddPositionModalProps> = ({ isOpen, onClose, onSave, initialCoords }) => {
   const [formData, setFormData] = useState<Omit<PositionFormData, 'images'>>({
@@ -70,7 +70,7 @@ const AddPositionModal: React.FC<AddPositionModalProps> = ({ isOpen, onClose, on
 
   const handleImageAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setImages(prev => [...prev, ...files].slice(0, MAX_IMAGES));
+    setImages(files.slice(0, 1));
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -151,10 +151,10 @@ const AddPositionModal: React.FC<AddPositionModalProps> = ({ isOpen, onClose, on
             />
           </div>
 
-          {/* Images (up to 4) */}
+          {/* Images */}
           <div>
             <label className="block text-sm font-semibold mb-2">
-              Images 
+              Image
             </label>
             <div className="grid grid-cols-4 gap-2">
               {previews.map((url, i) => (
@@ -183,7 +183,6 @@ const AddPositionModal: React.FC<AddPositionModalProps> = ({ isOpen, onClose, on
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              multiple
               className="hidden"
               onChange={handleImageAdd}
             />
