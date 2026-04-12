@@ -1,16 +1,15 @@
 import axiosInstance from '../apis/main.api';
-
-// TODO: Add admin endpoints when backend is ready
-const ADMIN_API = {
-  GET_ALL_USERS: '/v1/api/admin/users',
-  UPDATE_USER_ROLE: '/v1/api/admin/users/:id/role',
-  DELETE_USER: '/v1/api/admin/users/:id',
-};
+import {
+  ADMIN_GET_ALL_USERS,
+  ADMIN_UPDATE_USER_ROLE,
+  ADMIN_BAN_USER,
+  ADMIN_UNBAN_USER,
+} from '../apis/endpoint.api';
 
 export const adminService = {
   async getAllUsers() {
     try {
-      const response = await axiosInstance.get(ADMIN_API.GET_ALL_USERS);
+      const response = await axiosInstance.get(ADMIN_GET_ALL_USERS);
       return response.data;
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to fetch users';
@@ -21,7 +20,7 @@ export const adminService = {
   async updateUserRole(userId: string, role: string) {
     try {
       const response = await axiosInstance.patch(
-        ADMIN_API.UPDATE_USER_ROLE.replace(':id', userId),
+        ADMIN_UPDATE_USER_ROLE(userId),
         { role }
       );
       return response.data;
@@ -31,14 +30,22 @@ export const adminService = {
     }
   },
 
-  async deleteUser(userId: string) {
+  async banUser(userId: string) {
     try {
-      const response = await axiosInstance.delete(
-        ADMIN_API.DELETE_USER.replace(':id', userId)
-      );
+      const response = await axiosInstance.patch(ADMIN_BAN_USER(userId));
       return response.data;
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to delete user';
+      const message = error.response?.data?.message || 'Failed to ban user';
+      throw new Error(message);
+    }
+  },
+
+  async unbanUser(userId: string) {
+    try {
+      const response = await axiosInstance.patch(ADMIN_UNBAN_USER(userId));
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to unban user';
       throw new Error(message);
     }
   },

@@ -1,3 +1,8 @@
+interface LookupValue {
+  id: string
+  name: string
+}
+
 interface User {
   user_id: string
   user_show_name: string
@@ -5,6 +10,18 @@ interface User {
   role: string
   sex: string
   age: number
+  info?: {
+    user_height: number | null
+    language: LookupValue | null
+    education: LookupValue | null
+  } | null
+  life_style?: {
+    looking_for: LookupValue | null
+    drinking: LookupValue | null
+    pet: LookupValue | null
+    smoke: LookupValue | null
+    workout: LookupValue | null
+  } | null
 }
 
 interface UserInfoProps {
@@ -13,14 +30,14 @@ interface UserInfoProps {
 
 export default function UserInfo({ user }: UserInfoProps) {
   const infoItems = [
-    { label: "Education", value: "-", icon: "🎓" },
-    { label: "Height", value: "-", icon: "📏" },
-    { label: "Language", value: "-", icon: "🌐" },
-    { label: "Looking For", value: "-", icon: "🔍" },
-    { label: "Smoking", value: "-", icon: "🚬" },
-    { label: "Drinking", value: "-", icon: "🍷" },
-    { label: "Workout", value: "-", icon: "💪" },
-    { label: "Pet", value: "-", icon: "🐾" },
+    { label: "Education", value: user.info?.education?.name || "-", icon: "🎓" },
+    { label: "Height", value: user.info?.user_height ? `${user.info.user_height} cm` : "-", icon: "📏" },
+    { label: "Language", value: user.info?.language?.name || "-", icon: "🌐" },
+    { label: "Looking For", value: user.life_style?.looking_for?.name || "-", icon: "🔍" },
+    { label: "Smoking", value: user.life_style?.smoke?.name || "-", icon: "🚬" },
+    { label: "Drinking", value: user.life_style?.drinking?.name || "-", icon: "🍷" },
+    { label: "Workout", value: user.life_style?.workout?.name || "-", icon: "💪" },
+    { label: "Pet", value: user.life_style?.pet?.name || "-", icon: "🐾" },
   ]
 
   const getSexBadge = () => {

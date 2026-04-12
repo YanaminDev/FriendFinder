@@ -6,6 +6,7 @@ import TimeInput from '../../components/TimeInput';
 import OpenDateSelect from '../../components/OpenDateSelect';
 import Button from '../../components/Button';
 import Select from '../../components/Select';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { useActivities } from '../../hooks/useActivities';
 import { locationService } from '../../services';
 import type { LocationResponse } from '../../types/responses';
@@ -123,13 +124,18 @@ const PlaceFormModal: React.FC<PlaceFormModalProps> = ({
     setNewImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const [showValidation, setShowValidation] = useState(false);
+  const [validationMessage, setValidationMessage] = useState('');
+
   const handleSave = () => {
     if (!formData.name.trim()) {
-      alert('Please enter location name');
+      setValidationMessage('กรุณากรอกชื่อสถานที่');
+      setShowValidation(true);
       return;
     }
     if (!formData.activity_id) {
-      alert('Please select an activity');
+      setValidationMessage('กรุณาเลือกประเภทกิจกรรม');
+      setShowValidation(true);
       return;
     }
     onSave({ ...formData, newImages, removedImageIds });
@@ -333,6 +339,16 @@ const PlaceFormModal: React.FC<PlaceFormModalProps> = ({
           </Button>
         </div>
       </Card>
+
+      <ConfirmDialog
+        isOpen={showValidation}
+        title="ข้อมูลไม่ครบ"
+        message={validationMessage}
+        confirmLabel="ตกลง"
+        confirmVariant="primary"
+        onConfirm={() => setShowValidation(false)}
+        onCancel={() => setShowValidation(false)}
+      />
     </div>
   );
 };

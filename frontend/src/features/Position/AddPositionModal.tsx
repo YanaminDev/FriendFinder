@@ -5,6 +5,7 @@ import PhoneInput from '../../components/PhoneInput';
 import TimeInput from '../../components/TimeInput';
 import OpenDateSelect from '../../components/OpenDateSelect';
 import Button from '../../components/Button';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 interface PositionFormData {
   name: string;
@@ -77,9 +78,11 @@ const AddPositionModal: React.FC<AddPositionModalProps> = ({ isOpen, onClose, on
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const [showValidation, setShowValidation] = useState(false);
+
   const handleSave = () => {
     if (!formData.name.trim()) {
-      alert('Please enter a name');
+      setShowValidation(true);
       return;
     }
     onSave({ ...formData, images });
@@ -264,6 +267,16 @@ const AddPositionModal: React.FC<AddPositionModalProps> = ({ isOpen, onClose, on
           </Button>
         </div>
       </Card>
+
+      <ConfirmDialog
+        isOpen={showValidation}
+        title="ข้อมูลไม่ครบ"
+        message="กรุณากรอกชื่อตำแหน่ง"
+        confirmLabel="ตกลง"
+        confirmVariant="primary"
+        onConfirm={() => setShowValidation(false)}
+        onCancel={() => setShowValidation(false)}
+      />
     </div>
   );
 };

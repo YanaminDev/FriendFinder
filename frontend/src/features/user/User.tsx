@@ -2,8 +2,13 @@ import { useState, useEffect } from "react"
 import BottomNav from "../../components/BottomNav"
 import TopBar from "../../components/TopBar"
 import UserList from "./components/UserList"
-import ConfirmDialog from "./components/ConfirmDialog"
+import ConfirmDialog from "../../components/ConfirmDialog"
 import { adminService } from "../../services"
+
+interface LookupValue {
+  id: string
+  name: string
+}
 
 interface UserData {
   user_id: string
@@ -13,6 +18,18 @@ interface UserData {
   sex: string
   age: number
   isBanned: boolean
+  info?: {
+    user_height: number | null
+    language: LookupValue | null
+    education: LookupValue | null
+  } | null
+  life_style?: {
+    looking_for: LookupValue | null
+    drinking: LookupValue | null
+    pet: LookupValue | null
+    smoke: LookupValue | null
+    workout: LookupValue | null
+  } | null
 }
 
 type Tab = "all" | "user" | "admin" | "banned"

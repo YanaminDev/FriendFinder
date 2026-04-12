@@ -1,0 +1,112 @@
+import { type IconType } from 'react-icons'
+import {
+  IoMicOutline, IoCafeOutline, IoBarbellOutline, IoGameControllerOutline,
+  IoPeopleOutline, IoCartOutline, IoBookOutline, IoFilmOutline,
+  IoMusicalNotesOutline, IoRestaurantOutline, IoBicycleOutline, IoAirplaneOutline,
+  IoCameraOutline, IoFitnessOutline, IoPawOutline, IoFootballOutline,
+  IoBeerOutline, IoWineOutline, IoFishOutline, IoPizzaOutline,
+  IoSchoolOutline, IoEarthOutline, IoHeartOutline, IoStarOutline,
+  IoFlameOutline, IoRocketOutline, IoFlowerOutline, IoLeafOutline,
+  IoDiamondOutline, IoTrophyOutline, IoShirtOutline, IoGlobeOutline,
+  IoBonfireOutline, IoCompassOutline, IoMapOutline, IoHomeOutline,
+  IoBrushOutline, IoColorPaletteOutline, IoCodeOutline, IoTerminalOutline,
+  IoCarOutline, IoBoatOutline, IoTrainOutline, IoBedOutline,
+  IoGiftOutline, IoIceCreamOutline, IoFastFoodOutline, IoBasketballOutline,
+  IoTennisballOutline, IoGolfOutline, IoSkullOutline, IoBulbOutline,
+  IoSparklesOutline, IoSunnyOutline, IoMoonOutline, IoWaterOutline,
+  IoUmbrellaOutline, IoSnowOutline, IoThunderstormOutline, IoAlbumsOutline,
+  IoHappyOutline, IoSadOutline, IoChatbubblesOutline, IoHandRightOutline,
+  IoWalkOutline, IoManOutline, IoWomanOutline, IoBodyOutline,
+  IoNutritionOutline, IoMedkitOutline, IoEyeOutline, IoEarOutline,
+  IoHelpCircleOutline,
+} from 'react-icons/io5'
+
+// Map: ionicon name (DB value) → react-icons component
+const ICON_MAP: Record<string, IconType> = {
+  'mic-outline': IoMicOutline,
+  'cafe-outline': IoCafeOutline,
+  'barbell-outline': IoBarbellOutline,
+  'game-controller-outline': IoGameControllerOutline,
+  'people-outline': IoPeopleOutline,
+  'cart-outline': IoCartOutline,
+  'book-outline': IoBookOutline,
+  'film-outline': IoFilmOutline,
+  'musical-notes-outline': IoMusicalNotesOutline,
+  'restaurant-outline': IoRestaurantOutline,
+  'bicycle-outline': IoBicycleOutline,
+  'airplane-outline': IoAirplaneOutline,
+  'camera-outline': IoCameraOutline,
+  'fitness-outline': IoFitnessOutline,
+  'paw-outline': IoPawOutline,
+  'football-outline': IoFootballOutline,
+  'beer-outline': IoBeerOutline,
+  'wine-outline': IoWineOutline,
+  'fish-outline': IoFishOutline,
+  'pizza-outline': IoPizzaOutline,
+  'school-outline': IoSchoolOutline,
+  'earth-outline': IoEarthOutline,
+  'heart-outline': IoHeartOutline,
+  'star-outline': IoStarOutline,
+  'flame-outline': IoFlameOutline,
+  'rocket-outline': IoRocketOutline,
+  'flower-outline': IoFlowerOutline,
+  'leaf-outline': IoLeafOutline,
+  'diamond-outline': IoDiamondOutline,
+  'trophy-outline': IoTrophyOutline,
+  'shirt-outline': IoShirtOutline,
+  'globe-outline': IoGlobeOutline,
+  'bonfire-outline': IoBonfireOutline,
+  'compass-outline': IoCompassOutline,
+  'map-outline': IoMapOutline,
+  'home-outline': IoHomeOutline,
+  'brush-outline': IoBrushOutline,
+  'color-palette-outline': IoColorPaletteOutline,
+  'code-outline': IoCodeOutline,
+  'terminal-outline': IoTerminalOutline,
+  'car-outline': IoCarOutline,
+  'boat-outline': IoBoatOutline,
+  'train-outline': IoTrainOutline,
+  'bed-outline': IoBedOutline,
+  'gift-outline': IoGiftOutline,
+  'ice-cream-outline': IoIceCreamOutline,
+  'fast-food-outline': IoFastFoodOutline,
+  'basketball-outline': IoBasketballOutline,
+  'tennisball-outline': IoTennisballOutline,
+  'golf-outline': IoGolfOutline,
+  'skull-outline': IoSkullOutline,
+  'bulb-outline': IoBulbOutline,
+  'sparkles-outline': IoSparklesOutline,
+  'sunny-outline': IoSunnyOutline,
+  'moon-outline': IoMoonOutline,
+  'water-outline': IoWaterOutline,
+  'umbrella-outline': IoUmbrellaOutline,
+  'snow-outline': IoSnowOutline,
+  'thunderstorm-outline': IoThunderstormOutline,
+  'albums-outline': IoAlbumsOutline,
+  'happy-outline': IoHappyOutline,
+  'sad-outline': IoSadOutline,
+  'chatbubbles-outline': IoChatbubblesOutline,
+  'hand-right-outline': IoHandRightOutline,
+  'walk-outline': IoWalkOutline,
+  'man-outline': IoManOutline,
+  'woman-outline': IoWomanOutline,
+  'body-outline': IoBodyOutline,
+  'nutrition-outline': IoNutritionOutline,
+  'medkit-outline': IoMedkitOutline,
+  'eye-outline': IoEyeOutline,
+  'ear-outline': IoEarOutline,
+}
+
+/** Get all available icons for the picker */
+export const AVAILABLE_ICONS = Object.keys(ICON_MAP)
+
+/** Render an Ionicon by its DB name (e.g. "mic-outline") */
+export function getIonicon(name: string): IconType {
+  return ICON_MAP[name] || IoHelpCircleOutline
+}
+
+/** Render icon as JSX */
+export function IoniconRender({ name, size = 20, className }: { name: string; size?: number; className?: string }) {
+  const Icon = getIonicon(name)
+  return <Icon size={size} className={className} />
+}

@@ -29,6 +29,7 @@ import { cancellationRouter } from "./modules/cancellation/cancellationRouter"
 import { positionRouter } from "./modules/position/positionRouter"
 import { educationRouter } from "./modules/education/educationRouter"
 import { languageRouter } from "./modules/language/languageRouter"
+import { adminRouter } from "./modules/admin/adminRouter"
 
 // import { aiRouter } from "./modules/ai/aiRouter"
 
@@ -76,6 +77,7 @@ app.use("/v1/cancellation", cancellationRouter())
 app.use("/v1/position", positionRouter())
 app.use("/v1/education", educationRouter())
 app.use("/v1/language", languageRouter())
+app.use("/v1/api/admin", adminRouter())
 // app.use("/v1/ai", aiRouter())
 
 // Mapbox token endpoint

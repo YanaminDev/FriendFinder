@@ -47,10 +47,12 @@ export interface DeleteLocationRequest {
 // Activity Request DTOs
 export interface CreateActivityRequest {
   name: string;
+  icon: string;
 }
 
 export interface UpdateActivityRequest {
   name: string;
+  icon: string;
 }
 
 export interface DeleteActivityRequest {

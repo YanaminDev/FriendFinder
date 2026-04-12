@@ -49,9 +49,8 @@ export const useActivity = () => {
     setLoading(true);
     setError(null);
     try {
-      const newActivity = await activityService.create(data);
-      setActivities([...activities, newActivity]);
-      return newActivity;
+      await activityService.create(data);
+      await getAll();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to create activity';
       setError(message);
@@ -65,9 +64,8 @@ export const useActivity = () => {
     setLoading(true);
     setError(null);
     try {
-      const updated = await activityService.update(id, data);
-      setActivities(activities.map(act => (act.id === id ? updated : act)));
-      return updated;
+      await activityService.update({ id, ...data });
+      await getAll();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to update activity';
       setError(message);

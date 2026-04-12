@@ -7,6 +7,7 @@ import PhoneInput from '../../components/PhoneInput';
 import TimeInput from '../../components/TimeInput';
 import OpenDateSelect from '../../components/OpenDateSelect';
 import Button from '../../components/Button';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { mapService } from '../../services';
 
 interface PositionFormData {
@@ -175,9 +176,13 @@ const EditPositionModal: React.FC<EditPositionModalProps> = ({ isOpen, onClose, 
     }));
   };
 
+  const [showValidation, setShowValidation] = useState(false);
+  const [validationMessage, setValidationMessage] = useState('');
+
   const handleSave = () => {
     if (!formData.name.trim()) {
-      alert('Please enter a name');
+      setValidationMessage('กรุณากรอกชื่อตำแหน่ง');
+      setShowValidation(true);
       return;
     }
     if (location) {
@@ -190,11 +195,12 @@ const EditPositionModal: React.FC<EditPositionModalProps> = ({ isOpen, onClose, 
   };
 
   const handleDelete = () => {
-    if (location && onDelete && confirm('Are you sure you want to delete this position?')) {
-      onDelete(location.id);
-      onClose();
+    if (location && onDelete) {
+      setShowDeleteConfirm(true);
     }
   };
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   if (!isOpen || !location) return null;
 
@@ -387,6 +393,32 @@ const EditPositionModal: React.FC<EditPositionModalProps> = ({ isOpen, onClose, 
           </div>
         </div>
       </Card>
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="ลบตำแหน่ง"
+        message="คุณต้องการลบตำแหน่งนี้ใช่หรือไม่?"
+        confirmLabel="ยืนยันลบ"
+        confirmVariant="danger"
+        onConfirm={() => {
+          if (location) {
+            onDelete?.(location.id);
+            onClose();
+          }
+          setShowDeleteConfirm(false);
+        }}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={showValidation}
+        title="ข้อมูลไม่ครบ"
+        message={validationMessage}
+        confirmLabel="ตกลง"
+        confirmVariant="primary"
+        onConfirm={() => setShowValidation(false)}
+        onCancel={() => setShowValidation(false)}
+      />
     </div>
   );
 };

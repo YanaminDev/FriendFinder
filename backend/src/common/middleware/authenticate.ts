@@ -26,7 +26,7 @@ export async function authenticateToken(req : Request , res : Response , next : 
             if(!user){
                 return res.status(401).json({message:"Refresh token invalid"})
             }
-            const newAccessToken = await generateAccessToken({user_id : user.user_id, username : user.username, role : "user"});
+            const newAccessToken = await generateAccessToken({user_id : user.user_id, username : user.username, role : user.role});
                     
             res.cookie('accessToken', newAccessToken , {
                 httpOnly : true,
@@ -52,7 +52,7 @@ export async function authenticateToken(req : Request , res : Response , next : 
                 if(!user){
                     return res.status(401).json({message:"Refresh token invalid"})
                 }
-                const newAccessToken = await generateAccessToken({user_id : user.user_id, username : user.username, role : "user"});
+                const newAccessToken = await generateAccessToken({user_id : user.user_id, username : user.username, role : user.role});
                         
                 res.cookie('accessToken', newAccessToken , {
                     httpOnly : true,
@@ -64,7 +64,7 @@ export async function authenticateToken(req : Request , res : Response , next : 
                 ;(req as any).user = {
                     sub : user.user_id,
                     username : user.username,
-                    role : "user"
+                    role : user.role
                 }
                 return next()
             }

@@ -12,6 +12,7 @@ export interface AuthResponse {
 export interface ActivityResponse {
   id: string;
   name: string;
+  icon: string;
 }
 
 // Location Response DTOs
