@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import Button from '../../components/Button';
+import { mapService } from '../../services';
 
 export interface SelectedLocation {
   latitude: number;
@@ -22,7 +23,7 @@ export interface Location {
 }
 
 interface LocationPickerProps {
-  onAddLocationClick?: (coords: SelectedLocation) => void;
+  onAddPositionClick?: (coords: SelectedLocation) => void;
   initialCenter?: [number, number];
   initialZoom?: number;
   locations?: Location[];
@@ -30,7 +31,7 @@ interface LocationPickerProps {
 }
 
 const LocationPicker: React.FC<LocationPickerProps> = ({
-  onAddLocationClick,
+  onAddPositionClick,
   initialCenter = [100.5018, 13.7563],
   initialZoom = 12,
   locations = [],
@@ -54,12 +55,10 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
 
   // Fetch Mapbox token from backend
   useEffect(() => {
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-    fetch(`${API_BASE_URL}/v1/map/token`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => {
-        if (data.token) {
-          mapboxgl.accessToken = data.token;
+    mapService.getToken()
+      .then(token => {
+        if (token) {
+          mapboxgl.accessToken = token;
         }
       })
       .catch(err => {
@@ -173,14 +172,14 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
     });
   }, [mapLoaded, locations, onLocationClickStable]);
 
-  const handleAddLocation = () => {
+  const handleAddPosition = () => {
     if (!map.current) return;
     const center = map.current.getCenter();
     const coords = {
       latitude: parseFloat(center.lat.toFixed(6)),
       longitude: parseFloat(center.lng.toFixed(6)),
     };
-    onAddLocationClick?.(coords);
+    onAddPositionClick?.(coords);
   };
 
   return (
@@ -218,9 +217,9 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
         <Button
           variant="primary"
           size="md"
-          onClick={handleAddLocation}
+          onClick={handleAddPosition}
         >
-          ADD LOCATION
+          ADD POSITION
         </Button>
       </div>
 

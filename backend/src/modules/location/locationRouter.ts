@@ -51,19 +51,20 @@ export const locationRouter = () => {
         }
     })
 
-    router.post("/create" , authenticateToken , authorize("admin") , async (req, res) => {
+    router.post("/create" , authenticateToken , async (req, res) => {
         try{
             const validateData = CreateLocationSchema.parse(req.body)
             const data = await locationRepository.createLocation(validateData)
             res.status(201).json(data)
         }
         catch(err){
+            console.error("Location create error:", err)
             return res.status(500).json({message:"Failed to create location data" })
         }
 
     })
 
-    router.put("/update/:id" , authenticateToken , authorize("admin") , async (req, res) => {
+    router.put("/update/:id" , authenticateToken , async (req, res) => {
         try{
             const id = String(req.params.id);
             const validateData = UpdateLocationSchema.parse(req.body)
@@ -75,7 +76,7 @@ export const locationRouter = () => {
         }
     })
 
-    router.delete("/delete/:id" , authenticateToken , authorize("admin") , async (req, res) => {
+    router.delete("/delete/:id" , authenticateToken , async (req, res) => {
         try{
             const id = String(req.params.id);
             const data = await locationRepository.deleteLocation(id)
