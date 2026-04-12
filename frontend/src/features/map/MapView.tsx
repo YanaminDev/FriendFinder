@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { mapService } from '../../services';
 
 export interface LocationData {
   id: string;
@@ -28,12 +29,10 @@ const MapView: React.FC<MapProps> = ({ className = '', onLocationClick }) => {
 
   useEffect(() => {
     // Fetch Mapbox token from backend
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-    fetch(`${API_BASE_URL}/v1/map/token`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => {
-        if (data.token) {
-          mapboxgl.accessToken = data.token;
+    mapService.getToken()
+      .then(token => {
+        if (token) {
+          mapboxgl.accessToken = token;
           setTokenLoaded(true);
         }
       })
@@ -48,7 +47,7 @@ const MapView: React.FC<MapProps> = ({ className = '', onLocationClick }) => {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v12',
-      center: [100.5018, 13.7563],
+      center: [100.543627, 13.865072],
       zoom: 12,
     });
 

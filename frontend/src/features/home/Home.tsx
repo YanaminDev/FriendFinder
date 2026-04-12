@@ -1,13 +1,14 @@
 import BottomNav from "../../components/BottomNav"
 import TopBar from "../../components/TopBar"
-import LocationPicker, { type SelectedLocation } from "../map/LocationPicker"
-import AddLocationModal from "../map/AddLocationModal"
-import EditLocationModal from "../map/EditLocationModal"
-import PositionDetailPopup from "../map/PositionDetailPopup"
-import PlaceListModal from "../map/PlaceListModal"
-import PlaceFormModal from "../map/PlaceFormModal"
+import LocationPicker, { type SelectedLocation } from "../map/PositionPicker"
+import AddPositionModal from "../Position/AddPositionModal"
+import EditPositionModal from "../Position/EditPositionModal"
+import PositionDetailPopup from "../Position/PositionDetailPopup"
+import PlaceListModal from "../location/PlaceListModal"
+import PlaceFormModal from "../location/PlaceFormModal"
 import { useState, useEffect } from "react"
 import { positionService, locationService } from "../../services"
+import ConfirmDialog from "../../components/ConfirmDialog"
 import type { LocationResponse } from "../../types/responses"
 
 interface Position {
@@ -38,6 +39,23 @@ export default function Home() {
   const [editingPlace, setEditingPlace] = useState<LocationResponse | null>(null)
   const [placeListKey, setPlaceListKey] = useState(0)
 
+  // Confirm dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    confirmLabel: string
+    onConfirm: () => void
+  }>({ isOpen: false, title: '', message: '', confirmLabel: '', onConfirm: () => {} })
+
+  const openConfirm = (title: string, message: string, confirmLabel: string, onConfirm: () => void) => {
+    setConfirmDialog({ isOpen: true, title, message, confirmLabel, onConfirm })
+  }
+
+  const closeConfirm = () => {
+    setConfirmDialog(prev => ({ ...prev, isOpen: false }))
+  }
+
   useEffect(() => {
     positionService.getAll()
       .then(data => setPositions(data))
@@ -46,7 +64,7 @@ export default function Home() {
 
   // ========== Position (marker) handlers ==========
 
-  const handleAddLocationClick = (coords: SelectedLocation) => {
+  const handleAddPositionClick = (coords: SelectedLocation) => {
     setSelectedPickerCoords(coords)
     setIsAddPositionOpen(true)
   }
@@ -95,11 +113,11 @@ export default function Home() {
       setIsAddPositionOpen(false)
     } catch (err) {
       console.error('Failed to create position:', err)
-      alert('Failed to create position')
+      openConfirm('เกิดข้อผิดพลาด', 'ไม่สามารถสร้างตำแหน่งได้ กรุณาลองใหม่อีกครั้ง', 'ตกลง', closeConfirm)
     }
   }
 
-  const handleUpdatePosition = async (positionId: string, formData: {
+  const handleUpdatePosition = (positionId: string, formData: {
     name: string
     information: string
     phone: string
@@ -110,58 +128,72 @@ export default function Home() {
     longitude: number
     images: File[]
   }) => {
-    try {
-      const updated = await positionService.update(positionId, {
-        name: formData.name,
-        information: formData.information || undefined,
-        phone: formData.phone || undefined,
-        open_date: formData.open_date || undefined,
-        open_time: formData.open_time || undefined,
-        close_time: formData.close_time || undefined,
-        latitude: formData.latitude,
-        longitude: formData.longitude,
-      })
-
-      // Upload new images if any
-      if (formData.images.length > 0) {
+    openConfirm(
+      'อัปเดตตำแหน่ง',
+      'คุณต้องการบันทึกการแก้ไขตำแหน่งนี้ใช่หรือไม่?',
+      'ยืนยันบันทึก',
+      async () => {
         try {
-          const withImages = await positionService.uploadImages(positionId, formData.images)
-          setPositions(prev => prev.map(p => p.id === positionId ? withImages : p))
-        } catch {
-          setPositions(prev => prev.map(p => p.id === positionId ? updated : p))
-        }
-      } else {
-        setPositions(prev => prev.map(p => p.id === positionId ? updated : p))
-      }
+          const updated = await positionService.update(positionId, {
+            name: formData.name,
+            information: formData.information || undefined,
+            phone: formData.phone || undefined,
+            open_date: formData.open_date || undefined,
+            open_time: formData.open_time || undefined,
+            close_time: formData.close_time || undefined,
+            latitude: formData.latitude,
+            longitude: formData.longitude,
+          })
 
-      setIsEditPositionOpen(false)
-    } catch (err) {
-      console.error('Failed to update position:', err)
-      alert('Failed to update position')
-    }
+          // Upload new images if any
+          if (formData.images.length > 0) {
+            try {
+              const withImages = await positionService.uploadImages(positionId, formData.images)
+              setPositions(prev => prev.map(p => p.id === positionId ? withImages : p))
+            } catch {
+              setPositions(prev => prev.map(p => p.id === positionId ? updated : p))
+            }
+          } else {
+            setPositions(prev => prev.map(p => p.id === positionId ? updated : p))
+          }
+
+          setIsEditPositionOpen(false)
+        } catch (err) {
+          console.error('Failed to update position:', err)
+        }
+        closeConfirm()
+      }
+    )
   }
 
-  const handleDeletePosition = async (positionId: string) => {
-    if (!confirm('Are you sure you want to delete this position?')) return
-    try {
-      await positionService.delete(positionId)
-      setPositions(prev => prev.filter(p => p.id !== positionId))
-      setIsDetailPopupOpen(false)
-      setIsEditPositionOpen(false)
-    } catch (err) {
-      console.error('Failed to delete position:', err)
-    }
+  const handleDeletePosition = (positionId: string) => {
+    openConfirm(
+      'ลบตำแหน่ง',
+      'คุณต้องการลบตำแหน่งนี้ใช่หรือไม่?',
+      'ยืนยันลบ',
+      async () => {
+        try {
+          await positionService.delete(positionId)
+          setPositions(prev => prev.filter(p => p.id !== positionId))
+          setIsDetailPopupOpen(false)
+          setIsEditPositionOpen(false)
+        } catch (err) {
+          console.error('Failed to delete position:', err)
+        }
+        closeConfirm()
+      }
+    )
   }
 
   // ========== Detail popup actions ==========
 
-  const handleEditPlace = (position: Position) => {
+  const handleEditLocation = (position: Position) => {
     setSelectedPosition(position)
     setIsDetailPopupOpen(false)
     setIsPlaceListOpen(true)
   }
 
-  const handleEditLocation = (position: Position) => {
+  const handleEditPosition = (position: Position) => {
     setSelectedPosition(position)
     setIsDetailPopupOpen(false)
     setIsEditPositionOpen(true)
@@ -179,17 +211,24 @@ export default function Home() {
     setIsPlaceFormOpen(true)
   }
 
-  const handleDeletePlaceItem = async (locationId: string) => {
-    if (!confirm('Are you sure you want to delete this place?')) return
-    try {
-      await locationService.delete(locationId)
-      setPlaceListKey(prev => prev + 1)
-    } catch (err) {
-      console.error('Failed to delete place:', err)
-    }
+  const handleDeletePlaceItem = (locationId: string) => {
+    openConfirm(
+      'ลบสถานที่',
+      'คุณต้องการลบสถานที่นี้ใช่หรือไม่?',
+      'ยืนยันลบ',
+      async () => {
+        try {
+          await locationService.delete(locationId)
+          setPlaceListKey(prev => prev + 1)
+        } catch (err) {
+          console.error('Failed to delete place:', err)
+        }
+        closeConfirm()
+      }
+    )
   }
 
-  const handleSavePlace = async (formData: {
+  const handleSavePlace = (formData: {
     name: string
     description: string
     phone: string
@@ -197,53 +236,77 @@ export default function Home() {
     open_date: string
     open_time: string
     close_time: string
-    image: File | null
+    newImages: File[]
+    removedImageIds: string[]
   }) => {
     if (!selectedPosition) return
-    try {
-      if (editingPlace) {
-        await locationService.update(editingPlace.id, {
-          description: formData.description || undefined,
-          phone: formData.phone || undefined,
-          open_date: formData.open_date || undefined,
-          open_time: formData.open_time || undefined,
-          close_time: formData.close_time || undefined,
-        })
-        // Upload image if provided
-        if (formData.image) {
-          try {
-            await locationService.uploadImage(editingPlace.id, formData.image)
-          } catch {
-            console.error('Image upload failed for location')
+
+    const doSave = async () => {
+      try {
+        if (editingPlace) {
+          await locationService.update(editingPlace.id, {
+            description: formData.description || undefined,
+            phone: formData.phone || undefined,
+            open_date: formData.open_date || undefined,
+            open_time: formData.open_time || undefined,
+            close_time: formData.close_time || undefined,
+          })
+          // Delete removed images
+          if (formData.removedImageIds.length > 0) {
+            await Promise.allSettled(
+              formData.removedImageIds.map(id =>
+                locationService.deleteImage(id, editingPlace.id)
+              )
+            )
+          }
+          // Upload new images
+          if (formData.newImages.length > 0) {
+            await Promise.allSettled(
+              formData.newImages.map(image =>
+                locationService.uploadImage(editingPlace.id, image)
+              )
+            )
+          }
+        } else {
+          const newLocation = await locationService.create({
+            name: formData.name,
+            description: formData.description || undefined,
+            phone: formData.phone || undefined,
+            activity_id: formData.activity_id,
+            latitude: selectedPosition.latitude,
+            longitude: selectedPosition.longitude,
+            position_id: selectedPosition.id,
+            open_date: formData.open_date || undefined,
+            open_time: formData.open_time || undefined,
+            close_time: formData.close_time || undefined,
+          })
+          // Upload new images
+          if (formData.newImages.length > 0 && newLocation?.id) {
+            await Promise.allSettled(
+              formData.newImages.map(image =>
+                locationService.uploadImage(newLocation.id, image)
+              )
+            )
           }
         }
-      } else {
-        const newLocation = await locationService.create({
-          name: formData.name,
-          description: formData.description || undefined,
-          phone: formData.phone || undefined,
-          activity_id: formData.activity_id,
-          latitude: selectedPosition.latitude,
-          longitude: selectedPosition.longitude,
-          position_id: selectedPosition.id,
-          open_date: formData.open_date || undefined,
-          open_time: formData.open_time || undefined,
-          close_time: formData.close_time || undefined,
-        })
-        // Upload image if provided
-        if (formData.image && newLocation?.id) {
-          try {
-            await locationService.uploadImage(newLocation.id, formData.image)
-          } catch {
-            console.error('Image upload failed for location')
-          }
-        }
+        setIsPlaceFormOpen(false)
+        setPlaceListKey(prev => prev + 1)
+      } catch (err) {
+        console.error('Failed to save place:', err)
+        openConfirm('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกสถานที่ได้ กรุณาลองใหม่อีกครั้ง', 'ตกลง', closeConfirm)
       }
-      setIsPlaceFormOpen(false)
-      setPlaceListKey(prev => prev + 1)
-    } catch (err) {
-      console.error('Failed to save place:', err)
-      alert('Failed to save place')
+      closeConfirm()
+    }
+
+    if (editingPlace) {
+      openConfirm(
+        'อัปเดตสถานที่',
+        'คุณต้องการบันทึกการแก้ไขสถานที่นี้ใช่หรือไม่?',
+        'ยืนยันบันทึก',
+        doSave
+      )
+    } else {
+      doSave()
     }
   }
 
@@ -253,14 +316,14 @@ export default function Home() {
 
       <div className="flex-1 pt-16 relative">
         <LocationPicker
-          onAddLocationClick={handleAddLocationClick}
+          onAddPositionClick={handleAddPositionClick}
           locations={positions}
           onLocationClick={handleMarkerClick}
         />
       </div>
 
       {/* Add Position Modal */}
-      <AddLocationModal
+      <AddPositionModal
         isOpen={isAddPositionOpen}
         onClose={() => setIsAddPositionOpen(false)}
         onSave={handleSavePosition}
@@ -268,7 +331,7 @@ export default function Home() {
       />
 
       {/* Edit Position Modal */}
-      <EditLocationModal
+      <EditPositionModal
         isOpen={isEditPositionOpen}
         onClose={() => setIsEditPositionOpen(false)}
         onSave={handleUpdatePosition}
@@ -281,8 +344,8 @@ export default function Home() {
         isOpen={isDetailPopupOpen}
         onClose={() => setIsDetailPopupOpen(false)}
         position={selectedPosition}
-        onEditPlace={handleEditPlace}
         onEditLocation={handleEditLocation}
+        onEditPosition={handleEditPosition}
         onDelete={handleDeletePosition}
       />
 
@@ -304,6 +367,16 @@ export default function Home() {
         onClose={() => setIsPlaceFormOpen(false)}
         onSave={handleSavePlace}
         editingPlace={editingPlace}
+      />
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmLabel={confirmDialog.confirmLabel}
+        confirmVariant="danger"
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={closeConfirm}
       />
 
       <BottomNav />

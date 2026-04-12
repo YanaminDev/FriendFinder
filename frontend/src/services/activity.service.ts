@@ -6,78 +6,33 @@ import {
   ACTIVITY_UPDATE,
   ACTIVITY_DELETE,
 } from '../apis/endpoint.api';
-import type {
-  CreateActivityRequest,
-  UpdateActivityRequest,
-} from '../types/requests';
-import type { ActivityResponse } from '../types/responses';
+
+export interface ActivityItem {
+  id: string;
+  name: string;
+  icon: string;
+}
 
 export const activityService = {
-  async getAll(): Promise<ActivityResponse[]> {
-    try {
-      const response = await axiosInstance.get<ActivityResponse[]>(ACTIVITY_GET_ALL);
-      return response.data || [];
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to fetch activities';
-      throw new Error(message);
-    }
+  async getAll(): Promise<ActivityItem[]> {
+    const response = await axiosInstance.get<ActivityItem[]>(ACTIVITY_GET_ALL);
+    return response.data || [];
   },
 
-  async getById(id: string): Promise<ActivityResponse> {
-    try {
-      const response = await axiosInstance.get<ActivityResponse>(
-        ACTIVITY_GET_BY_ID(id)
-      );
-      return response.data;
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to fetch activity';
-      throw new Error(message);
-    }
+  async getById(id: string): Promise<ActivityItem> {
+    const response = await axiosInstance.get<ActivityItem>(ACTIVITY_GET_BY_ID(id));
+    return response.data;
   },
 
-  async create(data: CreateActivityRequest): Promise<ActivityResponse> {
-    try {
-      const response = await axiosInstance.post<ActivityResponse>(ACTIVITY_CREATE, {
-        name: data.name.trim(),
-      });
-      return response.data;
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to create activity';
-      throw new Error(message);
-    }
+  async create(data: { name: string; icon: string }): Promise<void> {
+    await axiosInstance.post(ACTIVITY_CREATE, { activity: data.name, icon: data.icon });
   },
 
-  async update(id: string, data: UpdateActivityRequest): Promise<ActivityResponse> {
-    try {
-      const response = await axiosInstance.put<ActivityResponse>(
-        ACTIVITY_UPDATE(id),
-        { name: data.name.trim() }
-      );
-      return response.data;
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to update activity';
-      throw new Error(message);
-    }
+  async update(data: { id: string; name: string; icon: string }): Promise<void> {
+    await axiosInstance.put(ACTIVITY_UPDATE, data);
   },
 
   async delete(id: string): Promise<void> {
-    try {
-      await axiosInstance.delete(ACTIVITY_DELETE, {
-        data: { id },
-      });
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Failed to delete activity';
-      throw new Error(message);
-    }
-  },
-
-  // Helper: Find activity by name
-  findByName(activities: ActivityResponse[], name: string): ActivityResponse | undefined {
-    return activities.find((a) => a.name.toLowerCase() === name.toLowerCase());
-  },
-
-  // Helper: Sort activities alphabetically
-  sortAlphabetically(activities: ActivityResponse[]): ActivityResponse[] {
-    return [...activities].sort((a, b) => a.name.localeCompare(b.name));
+    await axiosInstance.delete(ACTIVITY_DELETE, { data: { id } });
   },
 };

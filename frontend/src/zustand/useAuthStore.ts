@@ -13,10 +13,10 @@ export interface AuthStore {
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
-  isAuthenticated: false,
-  username: null,
-  userId: null,
-  accessToken: null,
+  isAuthenticated: !!(localStorage.getItem('accessToken') && localStorage.getItem('username') && localStorage.getItem('userId')),
+  username: localStorage.getItem('username'),
+  userId: localStorage.getItem('userId'),
+  accessToken: localStorage.getItem('accessToken'),
 
   setAuth: (isAuthenticated, username = null, userId = null, accessToken = null) => {
     set({

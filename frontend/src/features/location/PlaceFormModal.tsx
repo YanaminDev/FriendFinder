@@ -5,7 +5,10 @@ import PhoneInput from '../../components/PhoneInput';
 import TimeInput from '../../components/TimeInput';
 import OpenDateSelect from '../../components/OpenDateSelect';
 import Button from '../../components/Button';
+import Select from '../../components/Select';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { useActivities } from '../../hooks/useActivities';
+import { locationService } from '../../services';
 import type { LocationResponse } from '../../types/responses';
 
 interface PlaceFormData {
@@ -16,7 +19,14 @@ interface PlaceFormData {
   open_date: string;
   open_time: string;
   close_time: string;
-  image: File | null;
+  newImages: File[];
+  removedImageIds: string[];
+}
+
+interface ExistingImage {
+  id: string;
+  imageUrl: string;
+  position: number;
 }
 
 interface PlaceFormModalProps {
@@ -34,9 +44,9 @@ const PlaceFormModal: React.FC<PlaceFormModalProps> = ({
 }) => {
   const { activities } = useActivities();
   const isEditing = !!editingPlace;
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const addImageRef = useRef<HTMLInputElement>(null);
 
-  const [formData, setFormData] = useState<Omit<PlaceFormData, 'image'>>({
+  const [formData, setFormData] = useState<Omit<PlaceFormData, 'newImages' | 'removedImageIds'>>({
     name: '',
     description: '',
     phone: '',
@@ -45,11 +55,19 @@ const PlaceFormModal: React.FC<PlaceFormModalProps> = ({
     open_time: '',
     close_time: '',
   });
-  const [image, setImage] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
 
+  const [existingImages, setExistingImages] = useState<ExistingImage[]>([]);
+  const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
+  const [newImages, setNewImages] = useState<File[]>([]);
+  const [newPreviews, setNewPreviews] = useState<string[]>([]);
+
+  // Active existing images (not removed)
+  const activeExisting = existingImages.filter(img => !removedImageIds.includes(img.id));
+  const totalFilled = activeExisting.length + newImages.length;
+
+  // Fetch existing images when editing
   useEffect(() => {
-    if (editingPlace) {
+    if (editingPlace && isOpen) {
       setFormData({
         name: editingPlace.name,
         description: editingPlace.description || '',
@@ -59,9 +77,10 @@ const PlaceFormModal: React.FC<PlaceFormModalProps> = ({
         open_time: editingPlace.open_time || '',
         close_time: editingPlace.close_time || '',
       });
-      setImage(null);
-      setPreview(null);
-    } else {
+      locationService.getImagesByLocationId(editingPlace.id)
+        .then(imgs => setExistingImages(imgs.sort((a, b) => a.position - b.position)))
+        .catch(() => setExistingImages([]));
+    } else if (isOpen) {
       setFormData({
         name: '',
         description: '',
@@ -71,21 +90,18 @@ const PlaceFormModal: React.FC<PlaceFormModalProps> = ({
         open_time: '',
         close_time: '',
       });
-      setImage(null);
-      setPreview(null);
+      setExistingImages([]);
     }
+    setRemovedImageIds([]);
+    setNewImages([]);
   }, [editingPlace, isOpen]);
 
-  // Generate preview URL
+  // Generate preview URLs for new files
   useEffect(() => {
-    if (image) {
-      const url = URL.createObjectURL(image);
-      setPreview(url);
-      return () => URL.revokeObjectURL(url);
-    } else {
-      setPreview(null);
-    }
-  }, [image]);
+    const urls = newImages.map(f => URL.createObjectURL(f));
+    setNewPreviews(urls);
+    return () => urls.forEach(u => URL.revokeObjectURL(u));
+  }, [newImages]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -94,29 +110,42 @@ const PlaceFormModal: React.FC<PlaceFormModalProps> = ({
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleAddImage = (file: File) => {
+    if (totalFilled < 4) {
+      setNewImages(prev => [...prev, file]);
+    }
+  };
+
+  const handleRemoveExisting = (id: string) => {
+    setRemovedImageIds(prev => [...prev, id]);
+  };
+
+  const handleRemoveNew = (index: number) => {
+    setNewImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const [showValidation, setShowValidation] = useState(false);
+  const [validationMessage, setValidationMessage] = useState('');
+
   const handleSave = () => {
     if (!formData.name.trim()) {
-      alert('Please enter place name');
+      setValidationMessage('กรุณากรอกชื่อสถานที่');
+      setShowValidation(true);
       return;
     }
     if (!formData.activity_id) {
-      alert('Please select an activity');
+      setValidationMessage('กรุณาเลือกประเภทกิจกรรม');
+      setShowValidation(true);
       return;
     }
-    onSave({ ...formData, image });
+    onSave({ ...formData, newImages, removedImageIds });
   };
 
   const handleClose = () => {
-    setFormData({
-      name: '',
-      description: '',
-      phone: '',
-      activity_id: '',
-      open_date: '',
-      open_time: '',
-      close_time: '',
-    });
-    setImage(null);
+    setFormData({ name: '', description: '', phone: '', activity_id: '', open_date: '', open_time: '', close_time: '' });
+    setExistingImages([]);
+    setRemovedImageIds([]);
+    setNewImages([]);
     onClose();
   };
 
@@ -128,7 +157,7 @@ const PlaceFormModal: React.FC<PlaceFormModalProps> = ({
         {/* Header */}
         <div className="flex justify-between items-center mb-4 pb-4 border-b">
           <h2 className="text-xl font-bold">
-            {isEditing ? 'Edit Place' : 'Create Place'}
+            {isEditing ? 'Edit Location' : 'Create Location'}
           </h2>
           <button
             onClick={handleClose}
@@ -144,7 +173,7 @@ const PlaceFormModal: React.FC<PlaceFormModalProps> = ({
             {/* Place Name */}
             <div>
               <label className="block text-sm font-semibold mb-2">
-                Place Name *
+                Location Name *
               </label>
               <Input
                 type="text"
@@ -164,46 +193,76 @@ const PlaceFormModal: React.FC<PlaceFormModalProps> = ({
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
-                placeholder="Add description about this place"
+                placeholder="Add description about this location"
                 rows={3}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
               />
             </div>
 
-            {/* Image (1) */}
+            {/* Images (up to 4) */}
             <div>
               <label className="block text-sm font-semibold mb-2">
-                Image
+                Images (up to 4)
               </label>
-              {preview ? (
-                <div className="relative w-32 aspect-square rounded-lg overflow-hidden border border-gray-300">
-                  <img src={preview} alt="preview" className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => setImage(null)}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-32 aspect-square rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center hover:border-red-400 hover:bg-red-50 transition"
-                >
-                  <span className="text-2xl text-gray-400">+</span>
-                </button>
-              )}
+              <div className="grid grid-cols-4 gap-3">
+                {[0, 1, 2, 3].map((slotIndex) => {
+                  // Slot shows: existing → new → "+" → empty placeholder
+                  if (slotIndex < activeExisting.length) {
+                    const img = activeExisting[slotIndex];
+                    return (
+                      <div key={img.id} className="relative w-full aspect-square rounded-lg overflow-hidden border border-gray-300">
+                        <img src={img.imageUrl} alt="existing" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveExisting(img.id)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    );
+                  }
+                  const newIndex = slotIndex - activeExisting.length;
+                  if (newIndex < newImages.length) {
+                    return (
+                      <div key={`new-${newIndex}`} className="relative w-full aspect-square rounded-lg overflow-hidden border border-gray-300">
+                        <img src={newPreviews[newIndex]} alt="new" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveNew(newIndex)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    );
+                  }
+                  if (newIndex === newImages.length && totalFilled < 4) {
+                    return (
+                      <button
+                        key={slotIndex}
+                        type="button"
+                        onClick={() => addImageRef.current?.click()}
+                        className="w-full aspect-square rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center hover:border-red-400 hover:bg-red-50 transition"
+                      >
+                        <span className="text-2xl text-gray-400">+</span>
+                      </button>
+                    );
+                  }
+                  return (
+                    <div key={slotIndex} className="w-full aspect-square rounded-lg border-2 border-dashed border-gray-100 bg-gray-50" />
+                  );
+                })}
+              </div>
               <input
-                ref={fileInputRef}
+                ref={addImageRef}
                 type="file"
                 accept="image/*"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (file) setImage(file);
-                  if (fileInputRef.current) fileInputRef.current.value = '';
+                  if (file) handleAddImage(file);
+                  if (addImageRef.current) addImageRef.current.value = '';
                 }}
               />
             </div>
@@ -213,19 +272,12 @@ const PlaceFormModal: React.FC<PlaceFormModalProps> = ({
               <label className="block text-sm font-semibold mb-2">
                 Choice Activity *
               </label>
-              <select
-                name="activity_id"
+              <Select
+                options={activities.map(a => ({ value: a.id, label: a.name }))}
                 value={formData.activity_id}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2.5 rounded-full border border-gray-300 focus:ring-2 focus:ring-[#FD7979] focus:border-transparent bg-white text-sm"
-              >
-                <option value="">Select an activity...</option>
-                {activities.map(activity => (
-                  <option key={activity.id} value={activity.id}>
-                    {activity.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setFormData(prev => ({ ...prev, activity_id: val }))}
+                placeholder="Select an activity..."
+              />
             </div>
 
             {/* Phone */}
@@ -287,6 +339,16 @@ const PlaceFormModal: React.FC<PlaceFormModalProps> = ({
           </Button>
         </div>
       </Card>
+
+      <ConfirmDialog
+        isOpen={showValidation}
+        title="ข้อมูลไม่ครบ"
+        message={validationMessage}
+        confirmLabel="ตกลง"
+        confirmVariant="primary"
+        onConfirm={() => setShowValidation(false)}
+        onCancel={() => setShowValidation(false)}
+      />
     </div>
   );
 };

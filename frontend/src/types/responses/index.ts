@@ -12,9 +12,18 @@ export interface AuthResponse {
 export interface ActivityResponse {
   id: string;
   name: string;
+  icon: string;
 }
 
 // Location Response DTOs
+export interface LocationImage {
+  id: string;
+  imageUrl: string;
+  position: number;
+  location_id: string;
+  createdAt: string;
+}
+
 export interface LocationResponse {
   id: string;
   name: string;
@@ -27,6 +36,7 @@ export interface LocationResponse {
   open_date?: string;
   open_time?: string;
   close_time?: string;
+  location_image?: LocationImage[];
   created_at?: string;
   updated_at?: string;
 }

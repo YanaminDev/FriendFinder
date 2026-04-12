@@ -3,17 +3,21 @@ import Button from "../../../components/Button"
 interface UserActionsProps {
   userId: string
   isAdmin: boolean
+  isBanned: boolean
   onAddAdmin: (userId: string) => void
   onRemoveAdmin: (userId: string) => void
-  onDeleteUser: (userId: string) => void
+  onBanUser: (userId: string) => void
+  onUnbanUser: (userId: string) => void
 }
 
 export default function UserActions({
   userId,
   isAdmin,
+  isBanned,
   onAddAdmin,
   onRemoveAdmin,
-  onDeleteUser,
+  onBanUser,
+  onUnbanUser,
 }: UserActionsProps) {
   return (
     <div className="flex items-center gap-3">
@@ -24,26 +28,37 @@ export default function UserActions({
           fullWidth
           onClick={() => onRemoveAdmin(userId)}
         >
-          REMOVE ADMIN
+          ถอด ADMIN
         </Button>
       ) : (
         <Button
-          variant="primary"
+          variant="admin"
           size="sm"
           fullWidth
           onClick={() => onAddAdmin(userId)}
         >
-          ADD ADMIN
+          แต่งตั้ง ADMIN
         </Button>
       )}
-      <Button
-        variant="danger"
-        size="sm"
-        fullWidth
-        onClick={() => onDeleteUser(userId)}
-      >
-        DELETE
-      </Button>
+      {isBanned ? (
+        <Button
+          variant="outline"
+          size="sm"
+          fullWidth
+          onClick={() => onUnbanUser(userId)}
+        >
+          ปลดแบน
+        </Button>
+      ) : (
+        <Button
+          variant="danger"
+          size="sm"
+          fullWidth
+          onClick={() => onBanUser(userId)}
+        >
+          แบน
+        </Button>
+      )}
     </div>
   )
 }

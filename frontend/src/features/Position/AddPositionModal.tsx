@@ -5,6 +5,7 @@ import PhoneInput from '../../components/PhoneInput';
 import TimeInput from '../../components/TimeInput';
 import OpenDateSelect from '../../components/OpenDateSelect';
 import Button from '../../components/Button';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 interface PositionFormData {
   name: string;
@@ -18,7 +19,7 @@ interface PositionFormData {
   images: File[];
 }
 
-interface AddLocationModalProps {
+interface AddPositionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: PositionFormData) => void;
@@ -27,7 +28,7 @@ interface AddLocationModalProps {
 
 const MAX_IMAGES = 4;
 
-const AddLocationModal: React.FC<AddLocationModalProps> = ({ isOpen, onClose, onSave, initialCoords }) => {
+const AddPositionModal: React.FC<AddPositionModalProps> = ({ isOpen, onClose, onSave, initialCoords }) => {
   const [formData, setFormData] = useState<Omit<PositionFormData, 'images'>>({
     name: '',
     information: '',
@@ -77,9 +78,11 @@ const AddLocationModal: React.FC<AddLocationModalProps> = ({ isOpen, onClose, on
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const [showValidation, setShowValidation] = useState(false);
+
   const handleSave = () => {
     if (!formData.name.trim()) {
-      alert('Please enter a name');
+      setShowValidation(true);
       return;
     }
     onSave({ ...formData, images });
@@ -264,8 +267,18 @@ const AddLocationModal: React.FC<AddLocationModalProps> = ({ isOpen, onClose, on
           </Button>
         </div>
       </Card>
+
+      <ConfirmDialog
+        isOpen={showValidation}
+        title="ข้อมูลไม่ครบ"
+        message="กรุณากรอกชื่อตำแหน่ง"
+        confirmLabel="ตกลง"
+        confirmVariant="primary"
+        onConfirm={() => setShowValidation(false)}
+        onCancel={() => setShowValidation(false)}
+      />
     </div>
   );
 };
 
-export default AddLocationModal;
+export default AddPositionModal;

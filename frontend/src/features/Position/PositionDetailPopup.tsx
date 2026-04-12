@@ -1,6 +1,7 @@
 import React from 'react';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
+import ImageCarousel from '../../components/ImageCarousel';
 
 interface PositionData {
   id: string;
@@ -19,8 +20,8 @@ interface PositionDetailPopupProps {
   isOpen: boolean;
   onClose: () => void;
   position: PositionData | null;
-  onEditPlace: (position: PositionData) => void;
   onEditLocation: (position: PositionData) => void;
+  onEditPosition: (position: PositionData) => void;
   onDelete: (positionId: string) => void;
 }
 
@@ -28,8 +29,8 @@ const PositionDetailPopup: React.FC<PositionDetailPopupProps> = ({
   isOpen,
   onClose,
   position,
-  onEditPlace,
   onEditLocation,
+  onEditPosition,
   onDelete,
 }) => {
   if (!isOpen || !position) return null;
@@ -75,23 +76,42 @@ const PositionDetailPopup: React.FC<PositionDetailPopupProps> = ({
           )}
         </div>
 
+        {/* Images */}
+        {position.image && (() => {
+          let images: string[] = [];
+          try {
+            images = Array.isArray(position.image)
+              ? position.image
+              : typeof position.image === 'string' && position.image.startsWith('[')
+                ? JSON.parse(position.image)
+                : [position.image];
+          } catch {
+            images = [position.image];
+          }
+          return images.length > 0 ? (
+            <div className="px-5 p-4">
+              <ImageCarousel images={images} />
+            </div>
+          ) : null;
+        })()}
+
         {/* Action Buttons */}
         <div className="px-5 pb-5 flex flex-col gap-2">
           <Button
             variant="primary"
             size="sm"
             fullWidth
-            onClick={() => onEditPlace(position)}
+            onClick={() => onEditLocation(position)}
           >
-            EDIT PLACE
+            EDIT LOCATION
           </Button>
           <Button
             variant="outline"
             size="sm"
             fullWidth
-            onClick={() => onEditLocation(position)}
+            onClick={() => onEditPosition(position)}
           >
-            EDIT LOCATION
+            EDIT POSITION
           </Button>
           <Button
             variant="outline"

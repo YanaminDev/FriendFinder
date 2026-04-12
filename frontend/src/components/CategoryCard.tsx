@@ -1,9 +1,13 @@
 import { useState } from 'react'
 import { Trash2, Edit2, Check, X } from 'lucide-react'
+import ConfirmDialog from './ConfirmDialog'
+import IconPicker from './IconPicker'
+import { IoniconRender } from '../utils/ionicon'
 
 interface Option {
   id: string
   name: string
+  icon?: string
 }
 
 interface CategoryCardProps {
@@ -12,8 +16,9 @@ interface CategoryCardProps {
   title?: string
   options?: Option[]
   isCreating?: boolean
-  onAddOption?: (categoryId: string, newName: string) => void
-  onEditOption?: (categoryId: string, optionId: string, newName: string) => void
+  enableIconPicker?: boolean
+  onAddOption?: (categoryId: string, newName: string, icon?: string) => void
+  onEditOption?: (categoryId: string, optionId: string, newName: string, icon?: string) => void
   onDeleteOption?: (categoryId: string, optionId: string) => void
   onDeleteCategory?: (categoryId: string) => void
   onSaveCategory?: (name: string, icon: string, options: Option[]) => void
@@ -26,6 +31,7 @@ export default function CategoryCard({
   title = '',
   options = [],
   isCreating = false,
+  enableIconPicker = false,
   onAddOption,
   onEditOption,
   onDeleteOption,
@@ -37,27 +43,32 @@ export default function CategoryCard({
   const [formTitle, setFormTitle] = useState(title)
   const [isAddingNew, setIsAddingNew] = useState(false)
   const [newOptionName, setNewOptionName] = useState('')
+  const [newOptionIcon, setNewOptionIcon] = useState('star-outline')
   const [editingOptionId, setEditingOptionId] = useState<string | null>(null)
   const [editingOptionValue, setEditingOptionValue] = useState('')
+  const [editingOptionIcon, setEditingOptionIcon] = useState('')
   const [draftOptions, setDraftOptions] = useState<Option[]>([])
-
+  const [deleteTarget, setDeleteTarget] = useState<{ optionId: string; optionName: string } | null>(null)
+  const [showValidation, setShowValidation] = useState(false)
+  const [iconPickerTarget, setIconPickerTarget] = useState<'add' | 'edit' | null>(null)
   const handleSaveNewOption = () => {
     if (!newOptionName.trim()) return
     if (isCreating) {
-      setDraftOptions([...draftOptions, { id: `draft-${Date.now()}`, name: newOptionName }])
+      setDraftOptions([...draftOptions, { id: `draft-${Date.now()}`, name: newOptionName, icon: enableIconPicker ? newOptionIcon : undefined }])
     } else {
-      onAddOption?.(id, newOptionName)
+      onAddOption?.(id, newOptionName, enableIconPicker ? newOptionIcon : undefined)
     }
     setNewOptionName('')
+    setNewOptionIcon('star-outline')
     setIsAddingNew(false)
   }
 
   const handleSaveEdit = (optionId: string) => {
     if (!editingOptionValue.trim()) return
     if (isCreating) {
-      setDraftOptions(draftOptions.map(o => o.id === optionId ? { ...o, name: editingOptionValue } : o))
+      setDraftOptions(draftOptions.map(o => o.id === optionId ? { ...o, name: editingOptionValue, icon: enableIconPicker ? editingOptionIcon : o.icon } : o))
     } else {
-      onEditOption?.(id, optionId, editingOptionValue)
+      onEditOption?.(id, optionId, editingOptionValue, enableIconPicker ? editingOptionIcon : undefined)
     }
     setEditingOptionId(null)
   }
@@ -68,7 +79,7 @@ export default function CategoryCard({
 
   const handleSaveCategory = () => {
     if (!formTitle.trim()) {
-      alert('Please enter a category name')
+      setShowValidation(true)
       return
     }
     onSaveCategory?.(formTitle, formIcon, draftOptions)
@@ -115,11 +126,11 @@ export default function CategoryCard({
                 Save
               </button>
             </div>
-          ) : (
+          ) : onDeleteCategory ? (
             <button onClick={() => onDeleteCategory?.(id)} className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm hover:bg-white/30 transition">
               Delete
             </button>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -132,6 +143,15 @@ export default function CategoryCard({
           <div key={option.id} className="flex items-center gap-2 bg-gray-50 rounded-lg p-3">
             {editingOptionId === option.id ? (
               <>
+                {enableIconPicker && (
+                  <button
+                    onClick={() => setIconPickerTarget('edit')}
+                    className="flex items-center justify-center w-8 h-8 rounded-lg bg-white border border-gray-200 hover:bg-red-50 transition"
+                    title="เปลี่ยน icon"
+                  >
+                    <IoniconRender name={editingOptionIcon} size={18} className="text-gray-700" />
+                  </button>
+                )}
                 <input
                   autoFocus
                   value={editingOptionValue}
@@ -148,11 +168,20 @@ export default function CategoryCard({
               </>
             ) : (
               <>
+                {enableIconPicker && option.icon && (
+                  <IoniconRender name={option.icon} size={18} className="text-gray-600" />
+                )}
                 <span className="flex-1 text-gray-700">{option.name}</span>
-                <button onClick={() => { setEditingOptionId(option.id); setEditingOptionValue(option.name) }} className="p-2 hover:bg-gray-200 rounded transition">
+                <button onClick={() => { setEditingOptionId(option.id); setEditingOptionValue(option.name); setEditingOptionIcon(option.icon || 'star-outline') }} className="p-2 hover:bg-gray-200 rounded transition">
                   <Edit2 size={16} className="text-gray-600" />
                 </button>
-                <button onClick={() => isCreating ? handleDeleteDraft(option.id) : onDeleteOption?.(id, option.id)} className="p-2 hover:bg-red-100 rounded transition">
+                <button onClick={() => {
+                  if (isCreating) {
+                    handleDeleteDraft(option.id)
+                  } else {
+                    setDeleteTarget({ optionId: option.id, optionName: option.name })
+                  }
+                }} className="p-2 hover:bg-red-100 rounded transition">
                   <Trash2 size={16} className="text-red-500" />
                 </button>
               </>
@@ -163,6 +192,15 @@ export default function CategoryCard({
         {/* Inline New Option Input */}
         {isAddingNew && (
           <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-3">
+            {enableIconPicker && (
+              <button
+                onClick={() => setIconPickerTarget('add')}
+                className="flex items-center justify-center w-8 h-8 rounded-lg bg-white border border-gray-200 hover:bg-red-50 transition"
+                title="เลือก icon"
+              >
+                <IoniconRender name={newOptionIcon} size={18} className="text-gray-700" />
+              </button>
+            )}
             <input
               autoFocus
               value={newOptionName}
@@ -189,6 +227,46 @@ export default function CategoryCard({
         + Add New Option
       </button>
       </div>
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        title="ลบตัวเลือก"
+        message={`คุณต้องการลบ "${deleteTarget?.optionName}" ออกจาก ${title} ใช่หรือไม่?`}
+        confirmLabel="ยืนยันลบ"
+        confirmVariant="danger"
+        onConfirm={() => {
+          if (deleteTarget) {
+            onDeleteOption?.(id, deleteTarget.optionId)
+            setDeleteTarget(null)
+          }
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
+
+      <ConfirmDialog
+        isOpen={showValidation}
+        title="ข้อมูลไม่ครบ"
+        message="กรุณากรอกชื่อหมวดหมู่"
+        confirmLabel="ตกลง"
+        confirmVariant="primary"
+        onConfirm={() => setShowValidation(false)}
+        onCancel={() => setShowValidation(false)}
+      />
+
+      {enableIconPicker && (
+        <IconPicker
+          isOpen={iconPickerTarget !== null}
+          currentIcon={iconPickerTarget === 'add' ? newOptionIcon : editingOptionIcon}
+          onSelect={(iconName) => {
+            if (iconPickerTarget === 'add') {
+              setNewOptionIcon(iconName)
+            } else {
+              setEditingOptionIcon(iconName)
+            }
+          }}
+          onClose={() => setIconPickerTarget(null)}
+        />
+      )}
     </div>
   )
 }

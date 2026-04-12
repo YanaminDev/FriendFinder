@@ -7,12 +7,14 @@ import {
   LOCATION_UPDATE,
   LOCATION_DELETE,
   LOCATION_IMAGE_UPLOAD,
+  LOCATION_IMAGE_GET_SIGNED_URL,
+  LOCATION_IMAGE_DELETE,
 } from '../apis/endpoint.api';
 import type {
   CreateLocationRequest,
   UpdateLocationRequest,
 } from '../types/requests';
-import type { LocationResponse } from '../types/responses';
+import type { LocationResponse, LocationImage } from '../types/responses';
 
 export const locationService = {
   async getAll(): Promise<LocationResponse[]> {
@@ -92,9 +94,7 @@ export const locationService = {
 
   async delete(id: string): Promise<void> {
     try {
-      await axiosInstance.delete(LOCATION_DELETE, {
-        data: { id },
-      });
+      await axiosInstance.delete(LOCATION_DELETE(id));
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to delete location';
       throw new Error(message);
@@ -147,6 +147,29 @@ export const locationService = {
       return response.data;
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to upload image';
+      throw new Error(message);
+    }
+  },
+
+  async getImagesByLocationId(locationId: string): Promise<LocationImage[]> {
+    try {
+      const response = await axiosInstance.get<LocationImage[]>(
+        LOCATION_IMAGE_GET_SIGNED_URL(locationId)
+      );
+      return response.data || [];
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to fetch location images';
+      throw new Error(message);
+    }
+  },
+
+  async deleteImage(imageId: string, locationId: string): Promise<void> {
+    try {
+      await axiosInstance.delete(LOCATION_IMAGE_DELETE(imageId), {
+        data: { locationId },
+      });
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to delete image';
       throw new Error(message);
     }
   },

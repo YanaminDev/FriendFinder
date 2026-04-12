@@ -46,7 +46,7 @@ export const userRouter = () => {
                     maxAge : 7 * 24 * 60 * 60 * 1000
                 })
 
-                return res.status(201).json({ message: "User registered successfully", user_id: responsedata.user_id });
+                return res.status(201).json({ message: "User registered successfully", user_id: responsedata.user_id, accessToken, refreshToken });
 
         }
         return res.status(400).json({message:"Failed to register user"})
@@ -99,7 +99,9 @@ export const userRouter = () => {
                     message:"User logged in successfully",
                     user_id: responsedata.user_id,
                     username: responsedata.username,
-                    role: responsedata.role
+                    role: responsedata.role,
+                    accessToken,
+                    refreshToken
                 })
             }
             return res.status(400).json({message:"Failed to login user"})

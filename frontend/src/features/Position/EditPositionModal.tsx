@@ -7,6 +7,8 @@ import PhoneInput from '../../components/PhoneInput';
 import TimeInput from '../../components/TimeInput';
 import OpenDateSelect from '../../components/OpenDateSelect';
 import Button from '../../components/Button';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import { mapService } from '../../services';
 
 interface PositionFormData {
   name: string;
@@ -20,7 +22,7 @@ interface PositionFormData {
   images: File[];
 }
 
-interface EditLocationModalProps {
+interface EditPositionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (positionId: string, data: PositionFormData) => void;
@@ -41,7 +43,7 @@ interface EditLocationModalProps {
 
 const MAX_IMAGES = 4;
 
-const EditLocationModal: React.FC<EditLocationModalProps> = ({ isOpen, onClose, onSave, onDelete, location }) => {
+const EditPositionModal: React.FC<EditPositionModalProps> = ({ isOpen, onClose, onSave, onDelete, location }) => {
   const [formData, setFormData] = useState<Omit<PositionFormData, 'images'>>({
     name: '',
     information: '',
@@ -115,12 +117,10 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({ isOpen, onClose, 
   // Fetch Mapbox token
   useEffect(() => {
     if (!isOpen) return;
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-    fetch(`${API_BASE_URL}/v1/map/token`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => {
-        if (data.token) {
-          mapboxgl.accessToken = data.token;
+    mapService.getToken()
+      .then(token => {
+        if (token) {
+          mapboxgl.accessToken = token;
         }
       })
       .catch(err => console.error('Failed to load Mapbox token:', err))
@@ -176,9 +176,13 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({ isOpen, onClose, 
     }));
   };
 
+  const [showValidation, setShowValidation] = useState(false);
+  const [validationMessage, setValidationMessage] = useState('');
+
   const handleSave = () => {
     if (!formData.name.trim()) {
-      alert('Please enter a name');
+      setValidationMessage('กรุณากรอกชื่อตำแหน่ง');
+      setShowValidation(true);
       return;
     }
     if (location) {
@@ -191,11 +195,12 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({ isOpen, onClose, 
   };
 
   const handleDelete = () => {
-    if (location && onDelete && confirm('Are you sure you want to delete this position?')) {
-      onDelete(location.id);
-      onClose();
+    if (location && onDelete) {
+      setShowDeleteConfirm(true);
     }
   };
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   if (!isOpen || !location) return null;
 
@@ -245,10 +250,10 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({ isOpen, onClose, 
               />
             </div>
 
-            {/* Images (up to 4) */}
+            {/* Images  */}
             <div>
               <label className="block text-sm font-semibold mb-2">
-                Images (max {MAX_IMAGES})
+                Images (max {1})
               </label>
               <div className="grid grid-cols-4 gap-2">
                 {existingImages.map((url, i) => (
@@ -388,8 +393,34 @@ const EditLocationModal: React.FC<EditLocationModalProps> = ({ isOpen, onClose, 
           </div>
         </div>
       </Card>
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="ลบตำแหน่ง"
+        message="คุณต้องการลบตำแหน่งนี้ใช่หรือไม่?"
+        confirmLabel="ยืนยันลบ"
+        confirmVariant="danger"
+        onConfirm={() => {
+          if (location) {
+            onDelete?.(location.id);
+            onClose();
+          }
+          setShowDeleteConfirm(false);
+        }}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={showValidation}
+        title="ข้อมูลไม่ครบ"
+        message={validationMessage}
+        confirmLabel="ตกลง"
+        confirmVariant="primary"
+        onConfirm={() => setShowValidation(false)}
+        onCancel={() => setShowValidation(false)}
+      />
     </div>
   );
 };
 
-export default EditLocationModal;
+export default EditPositionModal;

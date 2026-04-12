@@ -1,5 +1,10 @@
 import UserCard from "./UserCard"
 
+interface LookupValue {
+  id: string
+  name: string
+}
+
 interface User {
   user_id: string
   user_show_name: string
@@ -7,25 +12,40 @@ interface User {
   role: string
   sex: string
   age: number
+  isBanned: boolean
+  info?: {
+    user_height: number | null
+    language: LookupValue | null
+    education: LookupValue | null
+  } | null
+  life_style?: {
+    looking_for: LookupValue | null
+    drinking: LookupValue | null
+    pet: LookupValue | null
+    smoke: LookupValue | null
+    workout: LookupValue | null
+  } | null
 }
 
 interface UserListProps {
   users: User[]
   onAddAdmin: (userId: string) => void
   onRemoveAdmin: (userId: string) => void
-  onDeleteUser: (userId: string) => void
+  onBanUser: (userId: string) => void
+  onUnbanUser: (userId: string) => void
 }
 
 export default function UserList({
   users,
   onAddAdmin,
   onRemoveAdmin,
-  onDeleteUser,
+  onBanUser,
+  onUnbanUser,
 }: UserListProps) {
   if (users.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
-        No users found
+        ไม่พบผู้ใช้
       </div>
     )
   }
@@ -38,7 +58,8 @@ export default function UserList({
           user={user}
           onAddAdmin={onAddAdmin}
           onRemoveAdmin={onRemoveAdmin}
-          onDeleteUser={onDeleteUser}
+          onBanUser={onBanUser}
+          onUnbanUser={onUnbanUser}
         />
       ))}
     </div>
