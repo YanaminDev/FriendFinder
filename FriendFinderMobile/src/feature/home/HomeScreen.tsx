@@ -9,10 +9,13 @@ import NotificationCard from '../../components/common/NotificationCard';
 import LocationDetailCard from '../../components/map/LocationDetailCard';
 import PrimaryButton from '../../components/common/PrimaryButton';
 import MapComponentWeb from '../../components/map/MapComponentWeb';
-import { MOCK_VENUES } from '../../constants/mockData';
 import { getAllPositions, Position } from '../../service/position.service';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useSocket } from '../../hooks/useSocket';
+import { useAppSelector, useAppDispatch } from '../../redux/hooks';
+import { setIsFinding, setPositionId, clearFindMatch } from '../../redux/findMatchSlice';
+import { createFindMatch, deleteFindMatch } from '../../service/find_match.service';
+import AlertModal from '../../components/common/AlertModal';
 
 const MOCK_NOTIFICATIONS = [
   {
@@ -42,10 +45,16 @@ const MOCK_NOTIFICATIONS = [
 ];
 
 const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const dispatch = useAppDispatch();
+  const { selectedActivities, isFinding } = useAppSelector((state) => state.findMatch);
+  const userId = useAppSelector((state) => state.user.user_id);
+
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
+  const [findMatchLoading, setFindMatchLoading] = useState(false);
+  const [alert, setAlert] = useState<{ visible: boolean; type: 'success' | 'error' | 'warning' | 'info'; title: string; message: string }>({ visible: false, type: 'info', title: '', message: '' });
   const { userLocation, loading: locationLoading } = useUserLocation();
 
   // Initialize Socket.IO connection when home screen loads
@@ -65,6 +74,64 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
     fetchPositions();
   }, []);
+
+  // หา position ที่ใกล้กับ user มากที่สุด
+  const findNearestPosition = (): Position | null => {
+    if (!userLocation || positions.length === 0) return null;
+    let nearest: Position | null = null;
+    let minDistance = Infinity;
+    for (const pos of positions) {
+      const dist = Math.sqrt(
+        Math.pow(pos.latitude - userLocation.latitude, 2) +
+        Math.pow(pos.longitude - userLocation.longitude, 2)
+      );
+      if (dist < minDistance) {
+        minDistance = dist;
+        nearest = pos;
+      }
+    }
+    return nearest;
+  };
+
+  // กด Find Match
+  const handleFindMatch = async () => {
+    const nearest = findNearestPosition();
+    if (!nearest) {
+      setAlert({ visible: true, type: 'warning', title: 'ไม่พบสถานที่', message: 'ไม่พบสถานที่ใกล้เคียง กรุณาเปิด GPS' });
+      return;
+    }
+    setFindMatchLoading(true);
+    try {
+      await createFindMatch({
+        user_id: userId,
+        position_id: nearest.id,
+        activity_id1: selectedActivities[0]?.id,
+        activity_id2: selectedActivities[1]?.id,
+        activity_id3: selectedActivities[2]?.id,
+      });
+      dispatch(setPositionId(nearest.id));
+      dispatch(setIsFinding(true));
+      setAlert({ visible: true, type: 'success', title: 'สำเร็จ', message: 'กำลังค้นหาเพื่อนให้คุณ...' });
+    } catch (error: any) {
+      setAlert({ visible: true, type: 'error', title: 'ข้อผิดพลาด', message: error?.message || 'ไม่สามารถค้นหาได้' });
+    } finally {
+      setFindMatchLoading(false);
+    }
+  };
+
+  // กด Cancel Find Match
+  const handleCancelFindMatch = async () => {
+    setFindMatchLoading(true);
+    try {
+      await deleteFindMatch(userId);
+      dispatch(clearFindMatch());
+      setAlert({ visible: true, type: 'info', title: 'ยกเลิกสำเร็จ', message: 'ยกเลิกการค้นหาเพื่อนแล้ว' });
+    } catch (error: any) {
+      setAlert({ visible: true, type: 'error', title: 'ข้อผิดพลาด', message: error?.message || 'ไม่สามารถยกเลิกได้' });
+    } finally {
+      setFindMatchLoading(false);
+    }
+  };
 
   return (
   <View className="flex-1 bg-white">
@@ -126,9 +193,23 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             />
           )}
 
-          {/* Check In Now Button - Bottom Center */}
+          {/* Find Match / Cancel Button - Bottom Center */}
           <View className="absolute left-0 right-0 items-center" style={{ bottom: 30 }}>
-            <PrimaryButton onPress={() => navigation.navigate('SelectActivity')} size="md" text="CHECK IN NOW" />
+            {isFinding ? (
+              <PrimaryButton
+                onPress={handleCancelFindMatch}
+                size="md"
+                text={findMatchLoading ? 'กำลังยกเลิก...' : 'CANCEL FIND MATCH'}
+              />
+            ) : selectedActivities.length > 0 ? (
+              <PrimaryButton
+                onPress={handleFindMatch}
+                size="md"
+                text={findMatchLoading ? 'กำลังค้นหา...' : 'FIND MATCH'}
+              />
+            ) : (
+              <PrimaryButton onPress={() => navigation.navigate('SelectActivity')} size="md" text="CHECK IN NOW" />
+            )}
           </View>
 
           {/* Location Detail Card */}
@@ -152,6 +233,15 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         </View>
       </View>
     </SafeAreaView>
+
+    <AlertModal
+      visible={alert.visible}
+      type={alert.type}
+      title={alert.title}
+      message={alert.message}
+      buttonLabel="ตกลง"
+      onPress={() => setAlert({ visible: false, type: 'info', title: '', message: '' })}
+    />
   </View>
   );
 };

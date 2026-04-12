@@ -58,6 +58,12 @@ export function useNav() {
         router.replace(path as never);
       }
     },
-    goBack: () => router.back(),
+    goBack: () => {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/(tabs)/home' as never);
+      }
+    },
   };
 }

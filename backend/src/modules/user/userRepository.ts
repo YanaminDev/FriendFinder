@@ -130,6 +130,18 @@ export const userRepository = {
         } catch (err) {
             throw new Error("Failed to update user online status")
         }
+    },
+
+    getOnlineStatus: async (user_id: string) => {
+        try {
+            const user = await prisma.user.findUnique({
+                where: { user_id },
+                select: { isOnline: true }
+            })
+            return user?.isOnline ?? false
+        } catch (err) {
+            throw new Error("Failed to get user online status")
+        }
     }
 
 }

@@ -66,6 +66,15 @@ export const userRouter = () => {
             const validateData = UserLoginSchema.parse(req.body);
             const responsedata = await userRepository.login(validateData);
             if (responsedata) {
+                // เช็ค online status ก่อนตั้งค่า
+                const isAlreadyOnline = await userRepository.getOnlineStatus(responsedata.user_id);
+                if (isAlreadyOnline) {
+                    return res.status(409).json({
+                        message: "User is already logged in on another device",
+                        is_online: true
+                    });
+                }
+
                 // Set user as online
                 await userRepository.setUserOnline(responsedata.user_id, true);
 
@@ -176,6 +185,19 @@ export const userRouter = () => {
             return res.status(200).json(updatedUser);
         } catch (err) {
             return res.status(500).json({ message: "Failed to update user show name" });
+        }
+    })
+
+    router.get("/check-online-status/:user_id", async (req, res) => {
+        try {
+            const { user_id } = req.params;
+            if (!user_id || typeof user_id !== "string") {
+                return res.status(400).json({ message: "User ID is required" });
+            }
+            const isOnline = await userRepository.getOnlineStatus(user_id);
+            return res.status(200).json({ is_online: isOnline });
+        } catch (err) {
+            return res.status(500).json({ message: "Failed to check online status" });
         }
     })
 

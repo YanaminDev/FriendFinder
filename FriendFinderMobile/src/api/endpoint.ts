@@ -8,6 +8,7 @@ export const DELETE_USER_BY_ID = "/v1/api/auth/delete/:id";
 export const GET_USER_PROFILE = "/v1/api/auth/profile";
 export const UPDATE_USER_SHOW_NAME = "/v1/api/auth/update/name";
 export const UPDATE_USER_INTERESTED_GENDER = "/v1/user-information/update/interested-gender";
+export const CHECK_USER_ONLINE_STATUS = "/v1/api/auth/check-online-status/:user_id";
 
 // ==================== User Image ====================
 export const UPLOAD_USER_IMAGE = "/v1/user-image/upload";
@@ -179,6 +180,12 @@ export const UPDATE_POSITION = "/v1/position/update/:position_id";
 export const DELETE_POSITION = "/v1/position/delete/:position_id";
 export const SEARCH_NEARBY_POSITION = "/v1/position/search-nearby";
 export const UPLOAD_POSITION_IMAGE = "/v1/position/upload-image/:position_id";
+
+// ==================== Notification ====================
+export const CREATE_NOTIFICATION = "/v1/notification/create";
+export const GET_PENDING_NOTIFICATIONS = "/v1/notification/pending";
+export const GET_ALL_NOTIFICATIONS = "/v1/notification/all";
+export const RESPOND_NOTIFICATION = "/v1/notification/respond";
 
 // ==================== Map ====================
 export const GET_MAPBOX_TOKEN = "/v1/map/token";

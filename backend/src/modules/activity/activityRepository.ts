@@ -33,8 +33,9 @@ export const activityRepository = {
                 }
             })
         }
-        catch (err) {
-            throw new Error("Failed to create activity data")
+        catch (err: any) {
+            console.error("Activity create error:", err);
+            throw new Error(err.message || "Failed to create activity data")
         }
     },
 

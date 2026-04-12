@@ -84,13 +84,13 @@ export const MOCK_HISTORY: HistoryItem[] = [
 ];
 
 export const MOCK_ACTIVITIES: Activity[] = [
-  { id: 'a1', name: 'GAMING',           icon: '🎮', isPopular: true },
-  { id: 'a2', name: 'Singing',          icon: '🎤', isPopular: true },
-  { id: 'a3', name: 'Shopping',         icon: '🛒', isPopular: true },
-  { id: 'a4', name: 'Reading',          icon: '📖', isPopular: true },
-  { id: 'a5', name: 'Movie',            icon: '🎬', isPopular: true, isRecommended: true },
-  { id: 'a6', name: 'Gym',              icon: '🏋️', isPopular: true },
-  { id: 'a7', name: 'Working Together', icon: '💼', isPopular: true, isRecommended: true },
-  { id: 'a8', name: 'Coffee',           icon: '☕', isPopular: true, isRecommended: true },
-  { id: 'a9', name: 'Shopping',         icon: '🛍️', isRecommended: true },
+  { id: 'a1', name: 'Gaming',           icon: 'game-controller-outline', isPopular: true },
+  { id: 'a2', name: 'Singing',          icon: 'mic-outline',             isPopular: true },
+  { id: 'a3', name: 'Shopping',         icon: 'cart-outline',            isPopular: true },
+  { id: 'a4', name: 'Reading',          icon: 'book-outline',            isPopular: true },
+  { id: 'a5', name: 'Movie',            icon: 'film-outline',            isPopular: true, isRecommended: true },
+  { id: 'a6', name: 'Gym',              icon: 'barbell-outline',         isPopular: true },
+  { id: 'a7', name: 'Working Together', icon: 'people-outline',          isPopular: true, isRecommended: true },
+  { id: 'a8', name: 'Coffee',           icon: 'cafe-outline',            isPopular: true, isRecommended: true },
+  { id: 'a9', name: 'Travel',           icon: 'airplane-outline',        isRecommended: true },
 ];
