@@ -182,9 +182,9 @@ const MatchCancelledScreen: React.FC<Props> = ({ navigation, route }) => {
             {/* Quick select section */}
             <View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <Ionicons name="pricetag" size={18} color="#DC2626" />
+                <Ionicons name="pricetag" size={18} color="#FF8383" />
                 <Text style={{ fontSize: 14, fontWeight: '700', color: '#111827' }}>
-                  เหตุผลด่วน
+                  Quick Select
                 </Text>
               </View>
               {loadingOptions ? (
@@ -227,7 +227,7 @@ const MatchCancelledScreen: React.FC<Props> = ({ navigation, route }) => {
             <View>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Ionicons name="create" size={18} color="#DC2626" />
+                  <Ionicons name="create" size={18} color="#FF8383" />
                   <Text style={{ fontSize: 14, fontWeight: '700', color: '#111827' }}>
                     รายละเอียดเพิ่มเติม
                   </Text>

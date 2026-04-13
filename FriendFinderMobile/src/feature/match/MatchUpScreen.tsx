@@ -28,6 +28,7 @@ import { useAppSelector } from '../../redux/hooks';
 import { getMatchById, Match, updateMatchCancelStatus } from '../../service/match.service';
 import { getLocationsByPosition, Location } from '../../service/location.service';
 import { getPublicUserImages } from '../../service/user_image.service';
+import { getLocationImages, LocationImage } from '../../service/location_image.service';
 import {
   createLocationProposal,
   getLocationProposalByMatch,
@@ -77,6 +78,7 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const [match, setMatch] = useState<Match | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [locationImages, setLocationImages] = useState<Record<string, LocationImage[]>>({});
   const [loading, setLoading] = useState(true);
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
   const [selfImage, setSelfImage] = useState<string | undefined>();
@@ -111,6 +113,19 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
         if (m?.position_id) {
           const locs = await getLocationsByPosition(m.position_id);
           setLocations(locs);
+
+          // ดึงรูปของแต่ละ location
+          const imagesMap: Record<string, LocationImage[]> = {};
+          for (const loc of locs) {
+            try {
+              const imgs = await getLocationImages(loc.id);
+              imagesMap[loc.id] = imgs;
+            } catch (err) {
+              console.error(`Error fetching images for location ${loc.id}:`, err);
+              imagesMap[loc.id] = [];
+            }
+          }
+          setLocationImages(imagesMap);
         }
 
         // ดึงรูปของทั้งสองคน
@@ -288,37 +303,76 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
     return (
       <TouchableOpacity
         key={loc.id}
-        onPress={() => setSelectedLocationId(loc.id)}
         activeOpacity={0.85}
         style={{
           backgroundColor: 'white',
           borderRadius: 14,
-          padding: 14,
+          overflow: 'hidden',
           borderWidth: 2,
           borderColor: isSelected ? colors.primary : '#f3f4f6',
         }}
       >
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-              <Text className="text-base font-bold text-gray-900">{loc.name}</Text>
-              {recommended && (
-                <View style={{ backgroundColor: colors.primary, borderRadius: 99, paddingHorizontal: 8, paddingVertical: 2 }}>
-                  <Text style={{ color: 'white', fontSize: 10, fontWeight: '600' }}>แนะนำ</Text>
-                </View>
-              )}
-            </View>
-            {loc.description ? (
-              <Text className="text-xs text-gray-500" numberOfLines={2}>{loc.description}</Text>
-            ) : null}
-            {loc.activity?.name ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
-                <Ionicons name="pricetag-outline" size={12} color={colors.gray400} />
-                <Text className="text-xs text-gray-400">{loc.activity.name}</Text>
-              </View>
-            ) : null}
+        {/* Location Image */}
+        {locationImages[loc.id]?.[0]?.imageUrl ? (
+          <Image
+            source={{ uri: locationImages[loc.id][0].imageUrl }}
+            style={{ width: '100%', height: 140 }}
+          />
+        ) : (
+          <View style={{ width: '100%', height: 140, backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name="image-outline" size={40} color={colors.gray300} />
           </View>
-          {isSelected && <Ionicons name="checkmark-circle" size={22} color={colors.primary} />}
+        )}
+
+        {/* Content */}
+        <View style={{ padding: 14 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <View style={{ flex: 1 }}>
+              <Text className="text-base font-bold text-gray-900">{loc.name}</Text>
+              {loc.description ? (
+                <Text className="text-xs text-gray-500" numberOfLines={2}>{loc.description}</Text>
+              ) : null}
+              {loc.activity?.name ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
+                  <Ionicons name="pricetag-outline" size={12} color={colors.gray400} />
+                  <Text className="text-xs text-gray-400">{loc.activity.name}</Text>
+                </View>
+              ) : null}
+            </View>
+            {isSelected && <Ionicons name="checkmark-circle" size={22} color={colors.primary} />}
+          </View>
+
+          {/* Action Buttons */}
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
+            <TouchableOpacity
+              onPress={() => setSelectedLocationId(isSelected ? null : loc.id)}
+              style={{
+                flex: 1,
+                paddingVertical: 8,
+                paddingHorizontal: 10,
+                backgroundColor: isSelected ? colors.primary : '#f3f4f6',
+                borderRadius: 8,
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 12, fontWeight: '600', color: isSelected ? 'white' : colors.primary }}>
+                {isSelected ? 'เลือก' : 'เลือก'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('VenueDetail', { venueId: loc.id })}
+              style={{
+                flex: 1,
+                paddingVertical: 8,
+                paddingHorizontal: 10,
+                backgroundColor: '#f3f4f6',
+                borderRadius: 8,
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 12, fontWeight: '600', color: '#6B7280' }}>ดูรายละเอียด</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -373,36 +427,28 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
           )}
 
-          {/* Recommended locations */}
+          {/* Recommended locations only */}
           {recommendedLocations.length > 0 && (
             <>
               <Text className="text-sm font-bold text-gray-900 mt-2">
-                แนะนำสำหรับ {match.activity?.name || 'กิจกรรม'}
+                สถานที่สำหรับ {match.activity?.name || 'กิจกรรม'}
               </Text>
               {recommendedLocations.map((l) => renderLocationCard(l, true))}
             </>
           )}
 
-          {/* Other locations */}
-          {otherLocations.length > 0 && (
-            <>
-              <Text className="text-sm font-bold text-gray-900 mt-2">สถานที่อื่นๆ</Text>
-              {otherLocations.map((l) => renderLocationCard(l, false))}
-            </>
-          )}
-
-          {locations.length === 0 && (
+          {recommendedLocations.length === 0 && (
             <View style={{ alignItems: 'center', paddingVertical: 40 }}>
               <Ionicons name="storefront-outline" size={48} color={colors.gray300} />
-              <Text className="text-gray-400 mt-3">ยังไม่มีสถานที่ในบริเวณนี้</Text>
+              <Text className="text-gray-400 mt-3">ยังไม่มีสถานที่สำหรับกิจกรรมนี้ในบริเวณนี้</Text>
             </View>
           )}
         </View>
       </ScrollView>
 
       {/* Bottom buttons */}
-      <View className="bg-white border-t border-gray-100 pt-3" style={{ alignItems: 'center' }}>
-        <View style={{ width: '100%', maxWidth: maxContentWidth, paddingHorizontal: horizontalPadding, paddingBottom: bottomPadding, gap: 10 }}>
+      <View className="bg-white border-t border-gray-100" style={{ alignItems: 'center', paddingTop: 12 }}>
+        <View style={{ width: '100%', maxWidth: maxContentWidth, paddingHorizontal: horizontalPadding, paddingBottom: bottomPadding , gap: 10 }}>
           <Button
             label={proposing ? 'กำลังส่ง...' : 'เสนอสถานที่นี้'}
             onPress={handlePropose}

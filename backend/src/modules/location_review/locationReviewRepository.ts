@@ -21,6 +21,9 @@ export const locationReviewRepository = {
             return await prisma.location_review.findUnique({
                 where: {
                     id: review_id
+                },
+                include: {
+                    user: true
                 }
             })
         }
@@ -34,6 +37,9 @@ export const locationReviewRepository = {
             return await prisma.location_review.findMany({
                 where: {
                     location_id: data.location_id
+                },
+                include: {
+                    user: true
                 }
             })
         }
@@ -47,6 +53,9 @@ export const locationReviewRepository = {
             return await prisma.location_review.findMany({
                 where: {
                     user_id: data.user_id
+                },
+                include: {
+                    user: true
                 }
             })
         }
@@ -60,6 +69,9 @@ export const locationReviewRepository = {
             return await prisma.location_review.findMany({
                 where: {
                     match_id: data.match_id
+                },
+                include: {
+                    user: true
                 }
             })
         }
