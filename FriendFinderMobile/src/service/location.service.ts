@@ -1,6 +1,7 @@
 import {
     GET_LOCATION,
     GET_LOCATION_BY_ID,
+    GET_LOCATION_BY_POSITION,
     CREATE_LOCATION,
     UPDATE_LOCATION,
     DELETE_LOCATION,
@@ -45,6 +46,16 @@ export const getLocation = async (): Promise<Location[]> => {
         return await mainApi.get<Location[]>(GET_LOCATION);
     } catch (error) {
         console.error("Error getting locations:", error);
+        throw error;
+    }
+};
+
+export const getLocationsByPosition = async (position_id: string): Promise<Location[]> => {
+    try {
+        const endpoint = GET_LOCATION_BY_POSITION.replace(":position_id", position_id);
+        return await mainApi.get<Location[]>(endpoint);
+    } catch (error) {
+        console.error("Error getting locations by position:", error);
         throw error;
     }
 };

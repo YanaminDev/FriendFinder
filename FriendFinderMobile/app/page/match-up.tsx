@@ -4,7 +4,7 @@ import MatchUpScreen from '../../src/feature/match/MatchUpScreen';
 
 export default function MatchUpRoute() {
   const navigation = useNav();
-  const params = useLocalSearchParams<{ userId: string }>();
-  const route = { params: { userId: params.userId || '' } };
+  const params = useLocalSearchParams<{ matchId: string }>();
+  const route = { params: { matchId: params.matchId || '' } };
   return <MatchUpScreen navigation={navigation} route={route} />;
 }

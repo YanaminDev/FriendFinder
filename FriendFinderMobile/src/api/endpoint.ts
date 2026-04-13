@@ -58,9 +58,15 @@ export const UPDATE_PET = "/v1/life-style/pet/update";
 // ==================== Location ====================
 export const GET_LOCATION = "/v1/location/get";
 export const GET_LOCATION_BY_ID = "/v1/location/get/:id";
+export const GET_LOCATION_BY_POSITION = "/v1/location/get-by-position/:position_id";
 export const CREATE_LOCATION = "/v1/location/create";
 export const UPDATE_LOCATION = "/v1/location/update/:id";
 export const DELETE_LOCATION = "/v1/location/delete/:id";
+
+// ==================== Location Proposal ====================
+export const CREATE_LOCATION_PROPOSAL = "/v1/location-proposal/create";
+export const GET_LOCATION_PROPOSAL_BY_MATCH = "/v1/location-proposal/match/:match_id";
+export const RESPOND_LOCATION_PROPOSAL = "/v1/location-proposal/respond";
 
 // ==================== Location Image ====================
 export const UPLOAD_LOCATION_IMAGE = "/v1/location-image/upload";
@@ -108,6 +114,7 @@ export const DELETE_USER_LIFE_STYLE = "/v1/user-life-style/delete";
 
 // ==================== Match ====================
 export const GET_MATCH_BY_ID = "/v1/match/get/:match_id";
+export const GET_ACTIVE_MATCH = "/v1/match/active/:user_id";
 export const CREATE_MATCH = "/v1/match/create";
 export const UPDATE_MATCH_CANCEL_STATUS = "/v1/match/update/cancel-status/:match_id";
 export const UPDATE_MATCH_END = "/v1/match/update/end-match/:match_id";

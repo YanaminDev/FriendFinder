@@ -15,6 +15,21 @@ import { supabase } from '../../../lib/supabase';
 export const matchRouter = () => {
     const router = Router();
 
+    // Get active (non-cancelled, not ended) match for a user
+    router.get("/active/:user_id", authenticateToken, async (req, res) => {
+        try {
+            const user_id = String(req.params.user_id);
+            if (!user_id) {
+                return res.status(400).json({ message: "User ID is required" });
+            }
+            const data = await matchRepository.getActiveByUser(user_id);
+            res.status(200).json(data);
+        }
+        catch(err) {
+            return res.status(500).json({ message: "Failed to fetch active match" });
+        }
+    });
+
     // Get match by ID
     router.get("/get/:match_id", authenticateToken, async (req, res) => {
         try {

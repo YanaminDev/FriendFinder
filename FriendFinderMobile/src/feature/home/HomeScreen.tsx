@@ -1,6 +1,6 @@
 // ─── HomeScreen ────────────────────────────────────────────────────────────────
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppHeader from '../../components/common/AppHeader';
@@ -16,7 +16,7 @@ import { useAppSelector, useAppDispatch } from '../../redux/hooks';
 import { setIsFinding, setPositionId, clearFindMatch, setUserLocation } from '../../redux/findMatchSlice';
 import { createFindMatch, deleteFindMatch } from '../../service/find_match.service';
 import { getPendingNotifications, respondNotification, NotificationData } from '../../service/notification.service';
-import { createMatch } from '../../service/match.service';
+import { createMatch, getActiveMatchByUser } from '../../service/match.service';
 import AlertModal from '../../components/common/AlertModal';
 
 
@@ -31,8 +31,11 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [findMatchLoading, setFindMatchLoading] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [activeMatchId, setActiveMatchId] = useState<string | null>(null);
   const [alert, setAlert] = useState<{ visible: boolean; type: 'success' | 'error' | 'warning' | 'info'; title: string; message: string }>({ visible: false, type: 'info', title: '', message: '' });
   const { userLocation, loading: locationLoading } = useUserLocation();
+  const matchAcceptedHandled = useRef(false);
+  const matchCancelledAlertShown = useRef<string | null>(null); // Track which matchId already showed alert
 
   // บันทึก GPS ลง Redux เมื่อได้ตำแหน่งใหม่
   useEffect(() => {
@@ -56,7 +59,18 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       }
     };
 
+    const fetchActiveMatch = async () => {
+      try {
+        const match = await getActiveMatchByUser(userId);
+        setActiveMatchId(match?.id || null);
+      } catch {
+        setActiveMatchId(null);
+      }
+    };
+
+    matchAcceptedHandled.current = false; // Reset flag when home screen mounts
     fetchPositions();
+    fetchActiveMatch();
   }, []);
 
   // ดึง notifications จริง
@@ -64,18 +78,22 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     try {
       const data = await getPendingNotifications();
 
-      // ตรวจสอบว่ามี match_accepted notification ใหม่ไหม → แสดง modal ทันที
+      // ตรวจสอบว่ามี match_accepted notification ใหม่ไหม → ไปหน้าเลือกสถานที่ทันที
       const matchAccepted = data.find((n: NotificationData) => n.type === 'match_accepted');
-      if (matchAccepted) {
+      if (matchAccepted && !matchAcceptedHandled.current) {
+        matchAcceptedHandled.current = true;
         // เปลี่ยนสถานะเป็น accepted เพื่อไม่ให้ poll เจออีก
         await respondNotification(matchAccepted.id, 'accepted');
         dispatch(clearFindMatch());
-        setAlert({
-          visible: true,
-          type: 'success',
-          title: 'Match สำเร็จ!',
-          message: `คุณได้ Match กับ ${matchAccepted.sender?.user_show_name || 'ผู้ใช้'} แล้ว`,
-        });
+        try {
+          const activeMatch = await getActiveMatchByUser(userId);
+          if (activeMatch?.id) {
+            navigation.navigate('MatchSuccess', { matchId: activeMatch.id });
+            return;
+          }
+        } catch (e) {
+          console.error('Fetch active match failed:', e);
+        }
       }
 
       const mapped = data
@@ -105,24 +123,69 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
+  // ─── Poll active match status ─────────────────────────────────────────────
+  useEffect(() => {
+    const pollActiveMatch = async () => {
+      try {
+        const match = await getActiveMatchByUser(userId);
+        if (match && match.cancel_status) {
+          // Match ถูก cancel ให้ clear activeMatchId และแจ้งเตือน (เพียงครั้งเดียวต่อ matchId)
+          if (matchCancelledAlertShown.current !== match.id) {
+            matchCancelledAlertShown.current = match.id;
+            setAlert({
+              visible: true,
+              type: 'warning',
+              title: 'การนัดหมายถูกยกเลิก',
+              message: 'ผู้ใช้อีกฝ่ายได้ยกเลิกการนัดหมาย',
+            });
+          }
+          setActiveMatchId(null);
+        } else {
+          setActiveMatchId(match?.id || null);
+          // Reset flag ถ้า activeMatch เปลี่ยน
+          if (!match?.id) {
+            matchCancelledAlertShown.current = null;
+          }
+        }
+      } catch {
+        setActiveMatchId(null);
+      }
+    };
+
+    pollActiveMatch();
+    const interval = setInterval(pollActiveMatch, 10000); // Check every 10 seconds
+    return () => clearInterval(interval);
+  }, [userId]);
+
   // กดยอมรับ match request
   const handleAcceptNotification = async (notification: any) => {
+    let createdMatchId: string | null = null;
     try {
       await respondNotification(notification.id, 'accepted');
-      await createMatch({
+      const match = await createMatch({
         user1_id: notification.senderId,
         user2_id: userId,
         activity_id: notification.activityId || selectedActivities[0]?.id || '',
         position_id: notification.positionId || positionId || '',
       });
+      createdMatchId = match?.id || null;
     } catch (error: any) {
       console.error('Accept notification error:', error);
     } finally {
-      // ยกเลิก findMatch session และไปหน้า MatchSuccess เสมอ
       dispatch(clearFindMatch());
       setShowNotifications(false);
       fetchNotifications();
-      navigation.navigate('MatchSuccess');
+      if (createdMatchId) {
+        navigation.navigate('MatchSuccess', { matchId: createdMatchId });
+      } else {
+        try {
+          const active = await getActiveMatchByUser(userId);
+          if (active?.id) {
+            navigation.navigate('MatchSuccess', { matchId: active.id });
+            return;
+          }
+        } catch {}
+      }
     }
   };
 
@@ -158,6 +221,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   // กด Find Match
   const handleFindMatch = async () => {
+    dispatch(clearFindMatch());
     const nearest = findNearestPosition();
     if (!nearest) {
       setAlert({ visible: true, type: 'warning', title: 'ไม่พบสถานที่', message: 'ไม่พบสถานที่ใกล้เคียง กรุณาเปิด GPS' });
@@ -275,6 +339,12 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   text={findMatchLoading ? 'ยกเลิก...' : 'ยกเลิกการค้นหา'}
                 />
               </View>
+            ) : activeMatchId ? (
+              <PrimaryButton
+                onPress={() => navigation.navigate('MatchUp', { matchId: activeMatchId })}
+                size="md"
+                text="กลับไป Match "
+              />
             ) : selectedActivities.length > 0 ? (
               <PrimaryButton
                 onPress={handleFindMatch}

@@ -24,6 +24,7 @@ import { addSeenUserId } from '../../redux/findMatchSlice';
 import { useResponsive } from '../../hooks/useResponsive';
 import { searchFindMatch, getFindMatch, FindMatch } from '../../service/find_match.service';
 import { createNotification } from '../../service/notification.service';
+import { getActiveMatchByUser } from '../../service/match.service';
 import { getPublicUserImages } from '../../service/user_image.service';
 import { getUserInformation, UserInformation } from '../../service/user_information.service';
 import { getUserLifeStyle, UserLifeStyle } from '../../service/user_life_style.service';
@@ -166,7 +167,7 @@ const MatchScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { maxContentWidth } = useResponsive();
   const dispatch = useAppDispatch();
-  const { selectedActivities, positionId, seenUserIds } = useAppSelector((state) => state.findMatch);
+  const { selectedActivities, positionId, seenUserIds, isFinding } = useAppSelector((state) => state.findMatch);
   const userId = useAppSelector((state) => state.user.user_id);
 
   const [matches, setMatches] = useState<FindMatch[]>([]);
@@ -228,15 +229,24 @@ const MatchScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       } catch (err) {
         if (matchDetectedRef.current) return;
         matchDetectedRef.current = true;
-        navigation.navigate('MatchSuccess');
+        try {
+          const activeMatch = await getActiveMatchByUser(userId);
+          if (activeMatch?.id) {
+            navigation.navigate('MatchSuccess', { matchId: activeMatch.id });
+            return;
+          }
+        } catch (e) {
+          console.error('Fetch active match failed:', e);
+        }
+        navigation.navigate('Home');
       }
     };
 
-    if (positionId && userId) {
+    if (positionId && userId && isFinding) {
       const interval = setInterval(checkFindMatchExists, 5000);
       return () => clearInterval(interval);
     }
-  }, [positionId, userId]);
+  }, [positionId, userId, isFinding, navigation]);
 
   // ดึงรูปทั้งหมดเมื่อ match แรกเปลี่ยน
   useEffect(() => {

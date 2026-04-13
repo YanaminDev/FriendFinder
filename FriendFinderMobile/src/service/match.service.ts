@@ -1,5 +1,6 @@
 import {
     GET_MATCH_BY_ID,
+    GET_ACTIVE_MATCH,
     CREATE_MATCH,
     UPDATE_MATCH_CANCEL_STATUS,
     UPDATE_MATCH_END,
@@ -33,6 +34,16 @@ export interface Match {
     user1?: any;
     user2?: any;
 }
+
+export const getActiveMatchByUser = async (user_id: string): Promise<Match | null> => {
+    try {
+        const endpoint = GET_ACTIVE_MATCH.replace(":user_id", user_id);
+        return await mainApi.get<Match | null>(endpoint);
+    } catch (error) {
+        console.error("Error getting active match:", error);
+        throw error;
+    }
+};
 
 export const getMatchById = async (match_id: string): Promise<Match> => {
     try {
