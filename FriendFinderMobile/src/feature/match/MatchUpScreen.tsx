@@ -37,6 +37,7 @@ import {
   respondLocationProposal,
   LocationProposal,
 } from '../../service/location_proposal.service';
+import { getChatsByUser } from '../../service/chat.service';
 
 interface Props {
   navigation: any;
@@ -91,6 +92,7 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
   const [otherImage, setOtherImage] = useState<string | undefined>();
   const [proposing, setProposing] = useState(false);
   const [waitingResponse, setWaitingResponse] = useState(false);
+  const [chatId, setChatId] = useState<string | null>(null);
 
   const [respondLoading, setRespondLoading] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -161,6 +163,20 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
               setOtherImage(img1?.[0]?.imageUrl);
             }
           } catch {}
+
+          // ดึง chat ID
+          try {
+            const chats = await getChatsByUser(userId);
+            const chat = chats?.find(c =>
+              (c.user1_id === m.user1_id && c.user2_id === m.user2_id) ||
+              (c.user1_id === m.user2_id && c.user2_id === m.user1_id)
+            );
+            if (chat) {
+              setChatId(chat.id);
+            }
+          } catch (err) {
+            console.error('Error fetching chat:', err);
+          }
         }
       } catch (err) {
         console.error('Load match/locations failed:', err);
@@ -465,7 +481,27 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <AppHeader title="เลือกสถานที่นัด" showBack onBackPress={() => navigation.navigate('Home')} />
+      <AppHeader
+        title="เลือกสถานที่นัด"
+        showBack
+        onBackPress={() => navigation.navigate('Home')}
+        rightElement={
+          chatId && (
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('ChatDetail', {
+                  conversationId: chatId,
+                  otherUsername: otherUser?.user_show_name || 'Chat',
+                  otherAvatar: otherImage,
+                });
+              }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="chatbubble-ellipses" size={24} color={colors.primary} />
+            </TouchableOpacity>
+          )
+        }
+      />
 
       <ScrollView
         contentContainerStyle={{ paddingVertical: 16, paddingBottom: 140, alignItems: 'center' }}

@@ -68,7 +68,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, otherAvatar, oth
         />
       ) : (
         <View className="bg-primary-light rounded-[18px] rounded-bl-[4px] px-3.5 py-2.5 max-w-[72%]">
-          <Text className="text-base text-gray-900 leading-5">{message.text}</Text>
+          <Text className="text-base text-gray-900 leading-5" numberOfLines={0}>{message.text}</Text>
         </View>
       )}
     </View>

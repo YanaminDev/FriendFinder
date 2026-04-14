@@ -101,11 +101,16 @@ export const setupSocket = (io: Server) => {
             }
         );
 
-        // อ่านข้อความแล้ว → mark isRead + แจ้ง room
-        socket.on("mark_read", async (chat_id: string) => {
+        // อ่านข้อความแล้ว → mark isRead ของข้อความจากอีกฝั่ง + แจ้ง room
+        socket.on("mark_read", async (data: { chat_id: string; user_id: string }) => {
             try {
+                const { chat_id, user_id } = data;
                 const result = await prisma.chat_Message.updateMany({
-                    where: { chat_id, isRead: false },
+                    where: {
+                        chat_id,
+                        isRead: false,
+                        sender_id: { not: user_id }  // Mark only messages from the other user
+                    },
                     data: { isRead: true, status: "read" },
                 });
                 if (result.count > 0) {

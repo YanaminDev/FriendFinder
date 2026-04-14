@@ -17,6 +17,7 @@ export const useSocket = (chat_id: string | null) => {
     const dispatch = useAppDispatch();
     const socketRef = useRef<Socket | null>(null);
     const currentUserId = useAppSelector(state => state.user.user_id);
+    const currentMessages = useAppSelector(state => state.chat.currentMessages);
 
     useEffect(() => {
         // ถ้า user เปลี่ยน (logout/login คนใหม่) ให้ disconnect socket เก่า
@@ -96,35 +97,50 @@ export const useSocket = (chat_id: string | null) => {
         // ถ้า socket connected อยู่แล้ว join room ทันที
         if (socket.connected) {
             socket.emit('join_room', chat_id);
-            socket.emit('mark_read', chat_id);
+            // Emit mark_read จาก useAppSelector currentMessages ที่ fetch มา
         } else {
             // ถ้ายังไม่ connected รอ connect event
-            socket.on('connect', () => {
+            socket.once('connect', () => {
                 socket.emit('join_room', chat_id);
-                socket.emit('mark_read', chat_id);
             });
         }
 
         // รับข้อความใหม่ real-time
-        socket.on('new_message', (message: ChatMessage) => {
+        const handleNewMessage = (message: ChatMessage) => {
             dispatch(addMessage(message));
             // mark_read เฉพาะข้อความจากคนอื่น (ไม่ใช่ของตัวเอง)
             if (message.sender_id !== currentUserId) {
-                socket.emit('mark_read', chat_id);
+                socket.emit('mark_read', { chat_id, user_id: currentUserId });
             }
-        });
+        };
+        socket.on('new_message', handleNewMessage);
 
-        // อีกฝั่งอ่านข้อความแล้ว → อัปเดต isRead ใน Redux
-        socket.on('messages_read', () => {
-            dispatch(markAllMessagesRead());
-        });
+        // อีกฝั่งอ่านข้อความแล้ว → อัปเดต isRead ใน Redux (เฉพาะของอีกฝั่ง)
+        const handleMessagesRead = () => {
+            console.log('[useSocket] messages_read event received, marking messages as read');
+            dispatch(markAllMessagesRead(currentUserId));
+        };
+        socket.on('messages_read', handleMessagesRead);
 
         return () => {
             socket.emit('leave_room', chat_id);
-            socket.off('new_message');
-            socket.off('messages_read');
+            socket.off('new_message', handleNewMessage);
+            socket.off('messages_read', handleMessagesRead);
         };
-    }, [chat_id, dispatch]);
+    }, [chat_id, currentUserId, dispatch]);
+
+    // Emit mark_read เมื่อมี unread messages จากอีกฝั่ง
+    useEffect(() => {
+        if (!chat_id || !socketRef.current) return;
+
+        const hasUnreadFromOther = currentMessages.some(
+            m => !m.isRead && m.sender_id !== currentUserId
+        );
+
+        if (hasUnreadFromOther && socketRef.current.connected) {
+            socketRef.current.emit('mark_read', { chat_id, user_id: currentUserId });
+        }
+    }, [chat_id, currentMessages, currentUserId]);
 
     const sendMessage = (data: {
         chat_id: string;

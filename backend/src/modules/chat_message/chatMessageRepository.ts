@@ -66,12 +66,13 @@ export const chatMessageRepository = {
         }
     },
 
-    markMessagesAsRead: async (chat_id: string) => {
+    markMessagesAsRead: async (chat_id: string, currentUserId: string) => {
         try {
             return await prisma.chat_Message.updateMany({
                 where: {
                     chat_id: chat_id,
-                    isRead: false
+                    isRead: false,
+                    sender_id: { not: currentUserId }  // Mark only messages from the other user
                 },
                 data: {
                     isRead: true,

@@ -59,11 +59,13 @@ const chatSlice = createSlice({
     clearMessages: (state) => {
       state.currentMessages = [];
     },
-    markAllMessagesRead: (state) => {
+    markAllMessagesRead: (state, action: PayloadAction<string | undefined>) => {
+      const currentUserId = action.payload;
       state.currentMessages = state.currentMessages.map(m => ({
         ...m,
-        isRead: true,
-        status: 'read',
+        // mark ข้อความที่ตัวเองส่งว่าถูกอ่านแล้ว (อีกฝั่งอ่านแล้ว)
+        isRead: currentUserId ? (m.sender_id === currentUserId ? true : m.isRead) : true,
+        status: currentUserId ? (m.sender_id === currentUserId ? 'read' : m.status) : 'read',
       }));
     },
     updateConversationLastMessage: (state, action: PayloadAction<{

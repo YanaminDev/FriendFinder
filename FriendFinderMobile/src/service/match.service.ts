@@ -36,13 +36,8 @@ export interface Match {
 }
 
 export const getActiveMatchByUser = async (user_id: string): Promise<Match | null> => {
-    try {
-        const endpoint = GET_ACTIVE_MATCH.replace(":user_id", user_id);
-        return await mainApi.get<Match | null>(endpoint);
-    } catch (error) {
-        console.error("Error getting active match:", error);
-        throw error;
-    }
+    const endpoint = GET_ACTIVE_MATCH.replace(":user_id", user_id);
+    return await mainApi.get<Match | null>(endpoint);
 };
 
 export const getMatchById = async (match_id: string): Promise<Match> => {
