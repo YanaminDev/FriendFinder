@@ -177,15 +177,26 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
     if (!matchId) return;
     try {
       const p = await getLocationProposalByMatch(matchId);
+      console.log('Poll proposal:', p);
 
-      // ถ้าไม่มี proposal แต่เรากำลังรอ → อาจถูก reject แล้ว
-      if (!p && sentProposalIdRef.current) {
-        setWaitingResponse(false);
-        sentProposalIdRef.current = null;
+      // ถ้าไม่มี pending proposal แล้ว ให้ check match.location_id (อาจ accept แล้ว)
+      if (!p) {
+        console.log('No pending proposal, checking match...');
+        try {
+          const refreshed = await getMatchById(matchId);
+          console.log('Refreshed match:', refreshed);
+          if (refreshed?.location_id) {
+            console.log('Match has location_id, updating UI');
+            setMatch(refreshed);
+            setWaitingResponse(false);
+            sentProposalIdRef.current = null;
+            return;
+          }
+        } catch (err) {
+          console.error('Error checking match:', err);
+        }
         return;
       }
-
-      if (!p) return;
 
       if (p.proposer_id === userId) {
         // เราเป็นคนเสนอ — เช็คว่าถูกยอมรับหรือปฎิเสธ
@@ -195,15 +206,18 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
           sentProposalIdRef.current = null;
           return;
         }
-        try {
-          const refreshed = await getMatchById(matchId);
-          if (refreshed?.location_id) {
-            setMatch(refreshed);
-            setWaitingResponse(false);
-            sentProposalIdRef.current = null;
-            return;
-          }
-        } catch {}
+        if (p.status === 'accepted') {
+          // Proposal ถูก accept
+          try {
+            const refreshed = await getMatchById(matchId);
+            if (refreshed?.location_id) {
+              setMatch(refreshed);
+              setWaitingResponse(false);
+              sentProposalIdRef.current = null;
+              return;
+            }
+          } catch {}
+        }
         return;
       }
 
@@ -300,24 +314,25 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleAcceptProposal = async () => {
     if (!incomingProposal) return;
-    const locationId = incomingProposal.location_id;
-    console.log('Accepting proposal with location_id:', locationId);
+    console.log('Accepting proposal:', incomingProposal);
     setRespondLoading(true);
     try {
       await respondLocationProposal(incomingProposal.id, 'accepted');
+      console.log('Accept response successful, refreshing match...');
+
+      // Refresh match from backend to confirm location_id is set
+      const refreshed = await getMatchById(matchId);
+      console.log('Refreshed match after accept:', refreshed);
+
+      if (refreshed?.location_id) {
+        setMatch(refreshed);
+      }
+
       dispatch(clearIncomingProposal());
       currentIncomingProposalIdRef.current = null;
       sentProposalIdRef.current = null;
-
-      // Update match state โดยตรงด้วย location_id จาก proposal
-      console.log('Setting match location_id to:', locationId);
-      setMatch(prev => {
-        console.log('Prev match:', prev);
-        const updated = prev ? { ...prev, location_id: locationId } : prev;
-        console.log('Updated match:', updated);
-        return updated;
-      });
     } catch (err: any) {
+      console.error('Error accepting proposal:', err);
       setAlert({ visible: true, type: 'error', title: 'ผิดพลาด', message: err?.message || 'ตอบรับไม่สำเร็จ' });
     } finally {
       setRespondLoading(false);
