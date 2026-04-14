@@ -41,7 +41,7 @@ export const locationProposalRepository = {
       include: { location: true },
     });
 
-    if (data.status === "accepted") {
+    if (data.status === "accepted" && proposal.location_id) {
       await prisma.match.update({
         where: { id: proposal.match_id },
         data: { location_id: proposal.location_id },

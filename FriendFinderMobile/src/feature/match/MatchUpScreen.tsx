@@ -177,16 +177,12 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
     if (!matchId) return;
     try {
       const p = await getLocationProposalByMatch(matchId);
-      console.log('Poll proposal:', p);
 
       // ถ้าไม่มี pending proposal แล้ว ให้ check match.location_id (อาจ accept แล้ว)
       if (!p) {
-        console.log('No pending proposal, checking match...');
         try {
           const refreshed = await getMatchById(matchId);
-          console.log('Refreshed match:', refreshed);
           if (refreshed?.location_id) {
-            console.log('Match has location_id, updating UI');
             setMatch(refreshed);
             setWaitingResponse(false);
             sentProposalIdRef.current = null;
@@ -314,15 +310,12 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleAcceptProposal = async () => {
     if (!incomingProposal) return;
-    console.log('Accepting proposal:', incomingProposal);
     setRespondLoading(true);
     try {
       await respondLocationProposal(incomingProposal.id, 'accepted');
-      console.log('Accept response successful, refreshing match...');
 
       // Refresh match from backend to confirm location_id is set
       const refreshed = await getMatchById(matchId);
-      console.log('Refreshed match after accept:', refreshed);
 
       if (refreshed?.location_id) {
         setMatch(refreshed);
@@ -388,7 +381,7 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
     );
   }
 
-  const renderLocationCard = (loc: Location, recommended = false) => {
+  const renderLocationCard = (loc: Location, recommended = false, showSelectButton = true) => {
     const isSelected = selectedLocationId === loc.id;
     return (
       <TouchableOpacity
@@ -434,25 +427,27 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
 
           {/* Action Buttons */}
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
-            <TouchableOpacity
-              onPress={() => setSelectedLocationId(isSelected ? null : loc.id)}
-              style={{
-                flex: 1,
-                paddingVertical: 8,
-                paddingHorizontal: 10,
-                backgroundColor: isSelected ? colors.primary : '#f3f4f6',
-                borderRadius: 8,
-                alignItems: 'center',
-              }}
-            >
-              <Text style={{ fontSize: 12, fontWeight: '600', color: isSelected ? 'white' : colors.primary }}>
-                {isSelected ? 'เลือก' : 'เลือก'}
-              </Text>
-            </TouchableOpacity>
+            {showSelectButton && (
+              <TouchableOpacity
+                onPress={() => setSelectedLocationId(isSelected ? null : loc.id)}
+                style={{
+                  flex: 1,
+                  paddingVertical: 8,
+                  paddingHorizontal: 10,
+                  backgroundColor: isSelected ? colors.primary : '#f3f4f6',
+                  borderRadius: 8,
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '600', color: isSelected ? 'white' : colors.primary }}>
+                  {isSelected ? 'เลือก' : 'เลือก'}
+                </Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               onPress={() => navigation.navigate('VenueDetail', { venueId: loc.id })}
               style={{
-                flex: 1,
+                flex: showSelectButton ? 1 : undefined,
                 paddingVertical: 8,
                 paddingHorizontal: 10,
                 backgroundColor: '#f3f4f6',
@@ -520,10 +515,10 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
           {/* Confirmed location - show when location_id is set */}
           {match?.location_id && (
             <>
-              <View style={{ backgroundColor: '#ECFDF5', borderRadius: 16, padding: 16, borderLeftWidth: 4, borderLeftColor: colors.primary }}>
+              <View style={{ backgroundColor: '#EBFFEE', borderRadius: 16, padding: 16, borderLeftWidth: 4, borderLeftColor: colors.primary, borderColor: '#FFC2C2' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                   <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.primary }}>สถานที่ที่คุณเลือก</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.primary }}>สถานที่นัดพบ</Text>
                 </View>
                 <Text style={{ fontSize: 12, color: '#059669', fontWeight: '500' }}>
                   พวกคุณได้ตกลงกันแล้ว มาเจอกันที่นี่กันเถอะ 😊
@@ -532,7 +527,7 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
 
               {(() => {
                 const confirmedLocation = locations.find((l) => l.id === match.location_id);
-                return confirmedLocation ? renderLocationCard(confirmedLocation, false) : null;
+                return confirmedLocation ? renderLocationCard(confirmedLocation, false, false) : null;
               })()}
             </>
           )}
