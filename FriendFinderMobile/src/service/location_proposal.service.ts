@@ -18,6 +18,10 @@ export interface LocationProposal {
     description?: string;
     activity_id: string;
     position_id: string;
+    phone?: string;
+    open_date?: string;
+    open_time?: string;
+    close_time?: string;
   };
   proposer?: { user_id: string; user_show_name: string };
 }

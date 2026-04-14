@@ -14,17 +14,19 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Modal,
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AppHeader from '../../components/common/AppHeader';
 import Button from '../../components/common/Button';
 import AlertModal from '../../components/common/AlertModal';
 import { useResponsive } from '../../hooks/useResponsive';
 import { colors } from '../../constants/theme';
-import { useAppSelector } from '../../redux/hooks';
+import { useAppSelector, useAppDispatch } from '../../redux/hooks';
+import { setIncomingProposal, setIncomingProposalImage, clearIncomingProposal } from '../../redux/locationProposalSlice';
+import { setReviewMatchId } from '../../redux/reviewSlice';
 import { getMatchById, Match, updateMatchCancelStatus } from '../../service/match.service';
 import { getLocationsByPosition, Location } from '../../service/location.service';
 import { getPublicUserImages } from '../../service/user_image.service';
@@ -72,8 +74,12 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ name, imageUrl, isSelf }) => (
 );
 
 const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
+  const router = useRouter();
   const { matchId } = route.params;
+  const dispatch = useAppDispatch();
   const userId = useAppSelector((state) => state.user.user_id);
+  const { incomingProposal, incomingProposalImage } = useAppSelector((state) => state.locationProposal);
+  const reviewMatchId = useAppSelector((state) => state.review.reviewMatchId);
   const { maxContentWidth, horizontalPadding, bottomPadding } = useResponsive();
 
   const [match, setMatch] = useState<Match | null>(null);
@@ -86,10 +92,12 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
   const [proposing, setProposing] = useState(false);
   const [waitingResponse, setWaitingResponse] = useState(false);
 
-  const [incomingProposal, setIncomingProposal] = useState<LocationProposal | null>(null);
   const [respondLoading, setRespondLoading] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const seenProposalIds = useRef<Set<string>>(new Set());
   const cancelledAlertShown = useRef(false);
+  const sentProposalIdRef = useRef<string | null>(null);
+  const currentIncomingProposalIdRef = useRef<string | null>(null);
 
   const [alert, setAlert] = useState<{
     visible: boolean;
@@ -97,6 +105,16 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
     title: string;
     message: string;
   }>({ visible: false, type: 'info', title: '', message: '' });
+
+  // ─── Navigate to ReviewExperience when reviewMatchId is set ─────────────
+  useEffect(() => {
+    if (reviewMatchId) {
+      router.replace({
+        pathname: '/page/review-experience',
+        params: { matchId: reviewMatchId }
+      });
+    }
+  }, [reviewMatchId, router]);
 
   // ─── Load match + locations + reset cancellation flag ───────────────────
   useEffect(() => {
@@ -107,8 +125,8 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
         const m = await getMatchById(matchId);
         setMatch(m);
         if (m?.location_id) {
-          navigation.navigate('Home');
-          return;
+          // ถ้ามี location_id แล้ว ให้แสดง confirmed location แทน
+          // ไม่ navigate ทันที ให้ user เห็นสถานที่ที่เลือก
         }
         if (m?.position_id) {
           const locs = await getLocationsByPosition(m.position_id);
@@ -159,10 +177,24 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
     if (!matchId) return;
     try {
       const p = await getLocationProposalByMatch(matchId);
+
+      // ถ้าไม่มี proposal แต่เรากำลังรอ → อาจถูก reject แล้ว
+      if (!p && sentProposalIdRef.current) {
+        setWaitingResponse(false);
+        sentProposalIdRef.current = null;
+        return;
+      }
+
       if (!p) return;
 
       if (p.proposer_id === userId) {
-        // เราเป็นคนเสนอ — เช็คว่าถูกยอมรับหรือยัง
+        // เราเป็นคนเสนอ — เช็คว่าถูกยอมรับหรือปฎิเสธ
+        if (p.status === 'rejected') {
+          // อีกฝ่ายปฎิเสธการเสนอของเรา
+          setWaitingResponse(false);
+          sentProposalIdRef.current = null;
+          return;
+        }
         try {
           const refreshed = await getMatchById(matchId);
           if (refreshed?.location_id) {
@@ -173,10 +205,23 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
         return;
       }
 
-      // proposal จากอีกฝั่ง + ยังไม่เคยเห็น
-      if (p.status === 'pending' && !seenProposalIds.current.has(p.id)) {
+      // proposal จากอีกฝั่ง + ยังไม่เคยเห็น + ไม่ใช่ proposal ที่กำลังแสดงอยู่
+      if (p.status === 'pending' && !seenProposalIds.current.has(p.id) && currentIncomingProposalIdRef.current !== p.id) {
         seenProposalIds.current.add(p.id);
-        setIncomingProposal(p);
+        currentIncomingProposalIdRef.current = p.id;
+        dispatch(setIncomingProposal(p));
+
+        // ดึงรูปภาพของสถานที่
+        if (p.location_id) {
+          try {
+            const imgs = await getLocationImages(p.location_id);
+            if (imgs?.[0]?.imageUrl) {
+              dispatch(setIncomingProposalImage(imgs[0].imageUrl));
+            }
+          } catch (err) {
+            console.error('Error fetching proposal location image:', err);
+          }
+        }
       }
     } catch {}
   }, [matchId, userId, navigation]);
@@ -231,7 +276,8 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
     if (!selectedLocationId || !matchId) return;
     setProposing(true);
     try {
-      await createLocationProposal({ match_id: matchId, location_id: selectedLocationId });
+      const proposal = await createLocationProposal({ match_id: matchId, location_id: selectedLocationId });
+      sentProposalIdRef.current = proposal.id;
       setWaitingResponse(true);
       setAlert({ visible: true, type: 'info', title: 'ส่งคำเสนอแล้ว', message: 'รอให้อีกฝั่งตอบรับ...' });
     } catch (err: any) {
@@ -243,11 +289,23 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleAcceptProposal = async () => {
     if (!incomingProposal) return;
+    const locationId = incomingProposal.location_id;
+    console.log('Accepting proposal with location_id:', locationId);
     setRespondLoading(true);
     try {
       await respondLocationProposal(incomingProposal.id, 'accepted');
-      setIncomingProposal(null);
-      navigation.navigate('Home');
+      dispatch(clearIncomingProposal());
+      currentIncomingProposalIdRef.current = null;
+      sentProposalIdRef.current = null;
+
+      // Update match state โดยตรงด้วย location_id จาก proposal
+      console.log('Setting match location_id to:', locationId);
+      setMatch(prev => {
+        console.log('Prev match:', prev);
+        const updated = prev ? { ...prev, location_id: locationId } : prev;
+        console.log('Updated match:', updated);
+        return updated;
+      });
     } catch (err: any) {
       setAlert({ visible: true, type: 'error', title: 'ผิดพลาด', message: err?.message || 'ตอบรับไม่สำเร็จ' });
     } finally {
@@ -257,11 +315,17 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleRejectProposal = async () => {
     if (!incomingProposal) return;
+
+    const proposalId = incomingProposal.id;
+    // ปิด modal ทันทีเพื่อไม่ให้กดซ้ำ
+    dispatch(clearIncomingProposal());
+    currentIncomingProposalIdRef.current = null;
     setRespondLoading(true);
+
     try {
-      await respondLocationProposal(incomingProposal.id, 'rejected');
-      setIncomingProposal(null);
+      await respondLocationProposal(proposalId, 'rejected');
       setWaitingResponse(false);
+      sentProposalIdRef.current = null;
     } catch (err: any) {
       setAlert({ visible: true, type: 'error', title: 'ผิดพลาด', message: err?.message || 'ปฏิเสธไม่สำเร็จ' });
     } finally {
@@ -427,8 +491,28 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
           )}
 
-          {/* Recommended locations only */}
-          {recommendedLocations.length > 0 && (
+          {/* Confirmed location - show when location_id is set */}
+          {match?.location_id && (
+            <>
+              <View style={{ backgroundColor: '#ECFDF5', borderRadius: 16, padding: 16, borderLeftWidth: 4, borderLeftColor: colors.primary }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.primary }}>สถานที่ที่คุณเลือก</Text>
+                </View>
+                <Text style={{ fontSize: 12, color: '#059669', fontWeight: '500' }}>
+                  พวกคุณได้ตกลงกันแล้ว มาเจอกันที่นี่กันเถอะ 😊
+                </Text>
+              </View>
+
+              {(() => {
+                const confirmedLocation = locations.find((l) => l.id === match.location_id);
+                return confirmedLocation ? renderLocationCard(confirmedLocation, false) : null;
+              })()}
+            </>
+          )}
+
+          {/* Recommended locations only - show when no location_id yet */}
+          {!match?.location_id && recommendedLocations.length > 0 && (
             <>
               <Text className="text-sm font-bold text-gray-900 mt-2">
                 สถานที่สำหรับ {match.activity?.name || 'กิจกรรม'}
@@ -437,7 +521,7 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
             </>
           )}
 
-          {recommendedLocations.length === 0 && (
+          {!match?.location_id && recommendedLocations.length === 0 && (
             <View style={{ alignItems: 'center', paddingVertical: 40 }}>
               <Ionicons name="storefront-outline" size={48} color={colors.gray300} />
               <Text className="text-gray-400 mt-3">ยังไม่มีสถานที่สำหรับกิจกรรมนี้ในบริเวณนี้</Text>
@@ -449,54 +533,41 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
       {/* Bottom buttons */}
       <View className="bg-white border-t border-gray-100" style={{ alignItems: 'center', paddingTop: 12 }}>
         <View style={{ width: '100%', maxWidth: maxContentWidth, paddingHorizontal: horizontalPadding, paddingBottom: bottomPadding , gap: 10 }}>
-          <Button
-            label={proposing ? 'กำลังส่ง...' : 'เสนอสถานที่นี้'}
-            onPress={handlePropose}
-            disabled={!selectedLocationId || proposing}
-          />
-          <Button
-            label="ยกเลิกการนัด"
-            variant="outline"
-            color="gray"
-            onPress={handleCancel}
-          />
+          {match?.location_id ? (
+            <>
+              <Button
+                label="จบการ match"
+                onPress={() => {
+                  dispatch(setReviewMatchId(matchId));
+                  // ให้ HomeScreen detect และ navigate แทน
+                }}
+              />
+              <Button
+                label="ยกเลิกการนัด"
+                variant="outline"
+                color="gray"
+                onPress={handleCancel}
+              />
+            </>
+          ) : (
+            <>
+              <Button
+                label={proposing ? 'กำลังส่ง...' : 'เสนอสถานที่นี้'}
+                onPress={handlePropose}
+                disabled={!selectedLocationId || proposing}
+              />
+              <Button
+                label="ยกเลิกการนัด"
+                variant="outline"
+                color="gray"
+                onPress={handleCancel}
+              />
+            </>
+          )}
         </View>
       </View>
 
-      {/* Incoming proposal modal */}
-      <Modal visible={!!incomingProposal} transparent animationType="fade">
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <View style={{ backgroundColor: 'white', borderRadius: 20, padding: 24, width: '100%', maxWidth: 360 }}>
-            <View style={{ alignItems: 'center', marginBottom: 12 }}>
-              <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEE2E2', alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="location" size={32} color={colors.primary} />
-              </View>
-            </View>
-            <Text className="text-lg font-bold text-gray-900 text-center mb-1">
-              {incomingProposal?.proposer?.user_show_name || 'เพื่อน'} เสนอสถานที่
-            </Text>
-            <Text className="text-sm text-gray-500 text-center mb-4">คุณต้องการไปที่นี่ไหม?</Text>
-            <View style={{ backgroundColor: '#F9FAFB', borderRadius: 12, padding: 14, marginBottom: 16 }}>
-              <Text className="text-base font-bold text-gray-900 mb-1">
-                {incomingProposal?.location?.name || '-'}
-              </Text>
-              {incomingProposal?.location?.description ? (
-                <Text className="text-xs text-gray-500" numberOfLines={3}>
-                  {incomingProposal.location.description}
-                </Text>
-              ) : null}
-            </View>
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-              <View style={{ flex: 1 }}>
-                <Button label="ปฏิเสธ" variant="outline" color="gray" onPress={handleRejectProposal} disabled={respondLoading} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Button label={respondLoading ? '...' : 'ยินยอม'} onPress={handleAcceptProposal} disabled={respondLoading} />
-              </View>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      {/* Incoming proposal modal - MOVED TO GlobalProposalModal */}
 
       <AlertModal
         visible={alert.visible}

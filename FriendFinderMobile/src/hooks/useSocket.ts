@@ -2,7 +2,10 @@ import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { addMessage, markAllMessagesRead, updateConversationLastMessage } from '../redux/chatSlice';
+import { setIncomingProposal, setIncomingProposalImage } from '../redux/locationProposalSlice';
+import { getLocationImages } from '../service/location_image.service';
 import type { ChatMessage } from '../service/chat_message.service';
+import { LocationProposal } from '../service/location_proposal.service';
 
 const SOCKET_URL = 'http://192.168.1.100:3000';
 
@@ -61,6 +64,23 @@ export const useSocket = (chat_id: string | null) => {
                     ...data,
                     isFromOtherUser: data.sender_id !== currentUserId,
                 }));
+            });
+
+            // รับ location proposal real-time
+            globalSocket.on('location_proposal_received', async (proposal: LocationProposal) => {
+                dispatch(setIncomingProposal(proposal));
+
+                // ดึงรูปภาพของสถานที่
+                if (proposal.location_id) {
+                    try {
+                        const imgs = await getLocationImages(proposal.location_id);
+                        if (imgs?.[0]?.imageUrl) {
+                            dispatch(setIncomingProposalImage(imgs[0].imageUrl));
+                        }
+                    } catch (err) {
+                        console.error('Error fetching proposal location image:', err);
+                    }
+                }
             });
 
         }

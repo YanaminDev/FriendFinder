@@ -3,27 +3,35 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import AppHeader from '../../components/common/AppHeader';
 import NotificationButton from '../../components/common/NotificationButton';
 import NotificationCard from '../../components/common/NotificationCard';
 import LocationDetailCard from '../../components/map/LocationDetailCard';
 import PrimaryButton from '../../components/common/PrimaryButton';
 import MapComponentWeb from '../../components/map/MapComponentWeb';
+import GlobalProposalModal from '../../components/common/GlobalProposalModal';
 import { getAllPositions, Position } from '../../service/position.service';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useSocket } from '../../hooks/useSocket';
 import { useAppSelector, useAppDispatch } from '../../redux/hooks';
+import { setIncomingProposal, setIncomingProposalImage } from '../../redux/locationProposalSlice';
 import { setIsFinding, setPositionId, clearFindMatch, setUserLocation } from '../../redux/findMatchSlice';
+import { clearReviewMatchId } from '../../redux/reviewSlice';
 import { createFindMatch, deleteFindMatch } from '../../service/find_match.service';
 import { getPendingNotifications, respondNotification, NotificationData } from '../../service/notification.service';
 import { createMatch, getActiveMatchByUser } from '../../service/match.service';
+import { getLocationProposalByMatch } from '../../service/location_proposal.service';
+import { getLocationImages } from '../../service/location_image.service';
 import AlertModal from '../../components/common/AlertModal';
 
 
 const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const { selectedActivities, isFinding, userLatitude, userLongitude, positionId } = useAppSelector((state) => state.findMatch);
   const userId = useAppSelector((state) => state.user.user_id);
+  const reviewMatchId = useAppSelector((state) => state.review.reviewMatchId);
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
@@ -36,6 +44,8 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { userLocation, loading: locationLoading } = useUserLocation();
   const matchAcceptedHandled = useRef(false);
   const matchCancelledAlertShown = useRef<string | null>(null); // Track which matchId already showed alert
+  const seenProposalIds = useRef<Set<string>>(new Set());
+  const currentIncomingProposalIdRef = useRef<string | null>(null);
 
   // บันทึก GPS ลง Redux เมื่อได้ตำแหน่งใหม่
   useEffect(() => {
@@ -43,6 +53,17 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       dispatch(setUserLocation({ latitude: userLocation.latitude, longitude: userLocation.longitude }));
     }
   }, [userLocation]);
+
+  // ─── Auto navigate to ReviewExperienceScreen when reviewMatchId is set ─────
+  useEffect(() => {
+    if (reviewMatchId) {
+      router.replace({
+        pathname: '/page/review-experience',
+        params: { matchId: reviewMatchId }
+      });
+      dispatch(clearReviewMatchId());
+    }
+  }, [reviewMatchId, router, dispatch]);
 
   // Initialize Socket.IO connection when home screen loads
   useSocket(null);
@@ -123,7 +144,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
-  // ─── Poll active match status ─────────────────────────────────────────────
+  // ─── Poll active match status + incoming proposals ─────────────────────────
   useEffect(() => {
     const pollActiveMatch = async () => {
       try {
@@ -152,10 +173,51 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       }
     };
 
+    // Poll for incoming proposals
+    const pollProposals = async () => {
+      try {
+        const match = await getActiveMatchByUser(userId);
+        if (!match) return;
+
+        const proposal = await getLocationProposalByMatch(match.id);
+        if (!proposal) return;
+
+        // Only show if not our proposal and not already seen
+        if (
+          proposal.proposer_id !== userId &&
+          proposal.status === 'pending' &&
+          !seenProposalIds.current.has(proposal.id) &&
+          currentIncomingProposalIdRef.current !== proposal.id
+        ) {
+          seenProposalIds.current.add(proposal.id);
+          currentIncomingProposalIdRef.current = proposal.id;
+          dispatch(setIncomingProposal(proposal));
+
+          // ดึงรูปภาพของสถานที่
+          if (proposal.location_id) {
+            try {
+              const imgs = await getLocationImages(proposal.location_id);
+              if (imgs?.[0]?.imageUrl) {
+                dispatch(setIncomingProposalImage(imgs[0].imageUrl));
+              }
+            } catch (err) {
+              console.error('Error fetching proposal location image:', err);
+            }
+          }
+        }
+      } catch {
+        // Silently fail
+      }
+    };
+
     pollActiveMatch();
-    const interval = setInterval(pollActiveMatch, 10000); // Check every 10 seconds
+    pollProposals();
+    const interval = setInterval(() => {
+      pollActiveMatch();
+      pollProposals();
+    }, 5000); // Check every 5 seconds
     return () => clearInterval(interval);
-  }, [userId]);
+  }, [userId, dispatch]);
 
   // กดยอมรับ match request
   const handleAcceptNotification = async (notification: any) => {
@@ -386,6 +448,8 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       buttonLabel="ตกลง"
       onPress={() => setAlert({ visible: false, type: 'info', title: '', message: '' })}
     />
+
+    <GlobalProposalModal />
   </View>
   );
 };

@@ -1,18 +1,16 @@
 // ─── MatchSuccessScreen ────────────────────────────────────────────────────────
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import Button from '../../components/common/Button';
 import { useResponsive } from '../../hooks/useResponsive';
 
-interface Props {
-  navigation: any;
-  route?: { params?: { matchId?: string } };
-}
-
-const MatchSuccessScreen: React.FC<Props> = ({ navigation, route }) => {
-  const matchId = route?.params?.matchId || '';
+const MatchSuccessScreen: React.FC = () => {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const matchId = (params.matchId as string) || '';
   const { maxContentWidth, horizontalPadding } = useResponsive();
 
   return (
@@ -27,14 +25,17 @@ const MatchSuccessScreen: React.FC<Props> = ({ navigation, route }) => {
           {matchId ? (
             <Button
               label="เลือกสถานที่นัดพบ"
-              onPress={() => navigation.navigate('MatchUp', { matchId })}
+              onPress={() => router.replace({
+                pathname: '/page/match-up',
+                params: { matchId }
+              })}
             />
           ) : null}
           <Button
             variant="outline"
             color="gray"
             label="กลับหน้าหลัก"
-            onPress={() => navigation.navigate('Home')}
+            onPress={() => router.replace('/(tabs)/home')}
           />
         </View>
       </View>

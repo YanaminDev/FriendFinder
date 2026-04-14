@@ -28,6 +28,8 @@ model User {
   experiencesAsReviewer  Experience[]      @relation("ReviewerExperience")
   find_match             Find_Match?
   location_review        Location_review[]
+  user_review_given      User_Review[]     @relation("ReviewerReview")
+  user_review_received   User_Review[]     @relation("ReviewedUserReview")
   matchesAsUser1         Match[]           @relation("User1Match")
   matchesAsUser2         Match[]           @relation("User2Match")
   receivedNotifications  Notification[]    @relation("ReceiverNotification")
@@ -189,6 +191,21 @@ model Location_review {
   @@index([location_id, user_id, match_id, status])
 }
 
+model User_Review {
+  id                String   @id @default(uuid())
+  user_id           String
+  reviewed_user_id  String
+  status            Int
+  createdAt         DateTime @default(now())
+  match_id          String
+  review_text       String?  @default("")
+  user              User     @relation("ReviewerReview", fields: [user_id], references: [user_id])
+  reviewed_user     User     @relation("ReviewedUserReview", fields: [reviewed_user_id], references: [user_id])
+  match             Match    @relation(fields: [match_id], references: [id])
+
+  @@index([user_id, reviewed_user_id, match_id, status])
+}
+
 model Activity {
   id          String       @id @default(uuid())
   name        String       @unique @db.VarChar(50)
@@ -215,6 +232,7 @@ model Match {
   cancellation       Cancellation[]
   experience         Experience[]
   location_review    Location_review[]
+  user_review        User_Review[]
   activity           Activity            @relation(fields: [activity_id], references: [id])
   location           Location?           @relation(fields: [location_id], references: [id])
   position           Position            @relation(fields: [position_id], references: [id])

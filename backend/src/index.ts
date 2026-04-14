@@ -32,6 +32,7 @@ import { languageRouter } from "./modules/language/languageRouter"
 import { adminRouter } from "./modules/admin/adminRouter"
 import { notificationRouter } from "./modules/notification/notificationRouter"
 import { locationProposalRouter } from "./modules/location_proposal/locationProposalRouter"
+import { userReviewRouter } from "./modules/user_review/userReviewRouter"
 
 // import { aiRouter } from "./modules/ai/aiRouter"
 
@@ -66,6 +67,7 @@ app.use("/v1/life-style/pet" , petRouter())
 app.use("/v1/location" , locationRouter())
 app.use("/v1/location-image" , locationImageRouter())
 app.use("/v1/location-review" , locationReviewRouter())
+app.use("/v1/user-review" , userReviewRouter())
 app.use("/v1/select-cancel" , selectCancelRouter())
 app.use("/v1/user-information" , userInformationRouter())
 app.use("/v1/user-life-style" , userLifeStyleRouter())

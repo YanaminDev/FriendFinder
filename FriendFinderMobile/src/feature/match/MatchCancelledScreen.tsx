@@ -136,7 +136,7 @@ const MatchCancelledScreen: React.FC<Props> = ({ navigation, route }) => {
           <View className="w-full">
             <Button
               label="กลับไปหาเพื่อนใหม่"
-              onPress={() => navigation.navigate('Home')}
+              onPress={() => navigation.replace('Home')}
             />
           </View>
         </View>

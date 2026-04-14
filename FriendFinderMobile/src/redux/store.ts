@@ -6,6 +6,8 @@ import userInformationReducer from './userInformationSlice';
 import userLifeStyleReducer from './userLifeStyleSlice';
 import chatReducer from './chatSlice';
 import findMatchReducer from './findMatchSlice';
+import locationProposalReducer from './locationProposalSlice';
+import reviewReducer from './reviewSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +18,8 @@ export const store = configureStore({
     userLifeStyle: userLifeStyleReducer,
     chat: chatReducer,
     findMatch: findMatchReducer,
+    locationProposal: locationProposalReducer,
+    review: reviewReducer,
   },
 });
 
