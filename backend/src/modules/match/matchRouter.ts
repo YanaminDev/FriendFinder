@@ -30,6 +30,21 @@ export const matchRouter = () => {
         }
     });
 
+    // Get ended matches for a user
+    router.get("/ended/:user_id", authenticateToken, async (req, res) => {
+        try {
+            const user_id = String(req.params.user_id);
+            if (!user_id) {
+                return res.status(400).json({ message: "User ID is required" });
+            }
+            const data = await matchRepository.getEndedByUser(user_id);
+            res.status(200).json(data);
+        }
+        catch(err) {
+            return res.status(500).json({ message: "Failed to fetch ended matches" });
+        }
+    });
+
     // Get match by ID
     router.get("/get/:match_id", authenticateToken, async (req, res) => {
         try {

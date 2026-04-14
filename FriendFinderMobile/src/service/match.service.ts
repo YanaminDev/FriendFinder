@@ -6,8 +6,11 @@ import {
     UPDATE_MATCH_END,
     UPDATE_MATCH_LOCATION,
     DELETE_MATCH,
+    GET_ENDED_MATCHES
 } from "../api/endpoint";
 import mainApi from "../api/main.api";
+
+
 
 export interface CreateMatchRequest {
     user1_id: string;
@@ -38,6 +41,16 @@ export interface Match {
 export const getActiveMatchByUser = async (user_id: string): Promise<Match | null> => {
     const endpoint = GET_ACTIVE_MATCH.replace(":user_id", user_id);
     return await mainApi.get<Match | null>(endpoint);
+};
+
+export const getEndedMatchesByUser = async (user_id: string): Promise<Match[]> => {
+    try {
+        const endpoint = GET_ENDED_MATCHES.replace(":user_id", user_id);
+        return await mainApi.get<Match[]>(endpoint);
+    } catch (error) {
+        console.error("Error getting ended matches:", error);
+        return [];
+    }
 };
 
 export const getMatchById = async (match_id: string): Promise<Match> => {

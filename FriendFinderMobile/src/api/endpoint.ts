@@ -127,6 +127,7 @@ export const UPDATE_MATCH_CANCEL_STATUS = "/v1/match/update/cancel-status/:match
 export const UPDATE_MATCH_END = "/v1/match/update/end-match/:match_id";
 export const UPDATE_MATCH_LOCATION = "/v1/match/update/location/:match_id";
 export const DELETE_MATCH = "/v1/match/delete";
+export const GET_ENDED_MATCHES = "/v1/match/ended/:user_id";
 
 // ==================== Find Match ====================
 export const GET_FIND_MATCH = "/v1/find-match/get/:user_id";

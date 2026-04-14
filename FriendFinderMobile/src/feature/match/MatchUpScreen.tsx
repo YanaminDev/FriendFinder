@@ -359,8 +359,12 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
 
     try {
       await respondLocationProposal(proposalId, 'rejected');
-      setWaitingResponse(false);
-      sentProposalIdRef.current = null;
+
+      // ถ้าเราเสนอสถานที่และรอตอบ ให้ยกเลิกการรอ
+      if (sentProposalIdRef.current) {
+        setWaitingResponse(false);
+        sentProposalIdRef.current = null;
+      }
     } catch (err: any) {
       setAlert({ visible: true, type: 'error', title: 'ผิดพลาด', message: err?.message || 'ปฏิเสธไม่สำเร็จ' });
     } finally {
