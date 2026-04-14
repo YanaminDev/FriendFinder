@@ -85,6 +85,13 @@ export const GET_LOCATION_REVIEWS_BY_MATCH = "/v1/location-review/match/:match_i
 export const CREATE_LOCATION_REVIEW = "/v1/location-review/create";
 export const DELETE_LOCATION_REVIEW = "/v1/location-review/delete";
 
+// ==================== User Review ====================
+export const CREATE_USER_REVIEW = "/v1/user-review/create";
+export const GET_USER_REVIEW_BY_ID = "/v1/user-review/get/:review_id";
+export const GET_USER_REVIEWS_BY_REVIEWER = "/v1/user-review/reviewer/:user_id";
+export const GET_USER_REVIEWS_BY_REVIEWEE = "/v1/user-review/reviewee/:user_id";
+export const DELETE_USER_REVIEW = "/v1/user-review/delete";
+
 // ==================== Select Cancel ====================
 export const GET_SELECT_CANCEL = "/v1/select-cancel/select-cancel";
 export const GET_SELECT_CANCEL_BY_ID = "/v1/select-cancel/select-cancel/:id";

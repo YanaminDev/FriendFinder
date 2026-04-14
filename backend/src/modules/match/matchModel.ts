@@ -23,7 +23,7 @@ export const UpdateMatchCancelStatusSchema = z.object({
 });
 
 export const UpdateMatchEndSchema = z.object({
-    end_date: z.string().date().default(() => new Date().toISOString().split('T')[0])
+    end_date: z.string().datetime().or(z.string().date())
 });
 
  

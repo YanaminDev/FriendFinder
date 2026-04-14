@@ -30,11 +30,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     </View>
 
     {/* Center */}
-    <View className="flex-1 items-center">
+    <View className="flex-1 items-center px-2">
       {showBack ? (
-        <Text className="text-lg font-semibold text-gray-900">{title}</Text>
+        <Text className="text-lg font-semibold text-gray-900" numberOfLines={1} ellipsizeMode="tail">{title}</Text>
       ) : (
-        <Text className="text-lg font-bold">
+        <Text className="text-lg font-bold" numberOfLines={1} ellipsizeMode="tail">
           <Text className="text-primary">FriendFinder </Text>
           <Text className="text-gray-900">{title}</Text>
         </Text>

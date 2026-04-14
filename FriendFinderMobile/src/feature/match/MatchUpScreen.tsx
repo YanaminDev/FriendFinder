@@ -27,7 +27,7 @@ import { colors } from '../../constants/theme';
 import { useAppSelector, useAppDispatch } from '../../redux/hooks';
 import { setIncomingProposal, setIncomingProposalImage, clearIncomingProposal } from '../../redux/locationProposalSlice';
 import { setReviewMatchId } from '../../redux/reviewSlice';
-import { getMatchById, Match, updateMatchCancelStatus } from '../../service/match.service';
+import { getMatchById, Match, updateMatchCancelStatus, updateMatchEndDate } from '../../service/match.service';
 import { getLocationsByPosition, Location } from '../../service/location.service';
 import { getPublicUserImages } from '../../service/user_image.service';
 import { getLocationImages, LocationImage } from '../../service/location_image.service';
@@ -198,7 +198,9 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
         try {
           const refreshed = await getMatchById(matchId);
           if (refreshed?.location_id) {
-            navigation.navigate('Home');
+            setMatch(refreshed);
+            setWaitingResponse(false);
+            sentProposalIdRef.current = null;
             return;
           }
         } catch {}
@@ -252,15 +254,24 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
             navigation.navigate('Home');
           }, 1500);
         }
+        // ถ้าอีกฝั่งกดจบการ match (end_date ถูก set) → ไปหน้ารีวิว
+        if (m?.end_date && !cancelledAlertShown.current) {
+          cancelledAlertShown.current = true;
+          dispatch(setReviewMatchId(matchId));
+          router.replace({
+            pathname: '/page/review-experience',
+            params: { matchId },
+          });
+        }
       } catch (err) {
         console.error('Error checking match cancellation:', err);
       }
     };
 
     pollCancellation();
-    const interval = setInterval(pollCancellation, 10000); // Check every 10 seconds
+    const interval = setInterval(pollCancellation, 3000); // Check every 3 seconds
     return () => clearInterval(interval);
-  }, [matchId, navigation]);
+  }, [matchId, navigation, dispatch, router]);
 
   // ─── Helpers ──────────────────────────────────────────────────────────────
   const matchActivityId = match?.activity_id;
@@ -537,9 +548,17 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
             <>
               <Button
                 label="จบการ match"
-                onPress={() => {
+                onPress={async () => {
+                  try {
+                    await updateMatchEndDate(matchId, new Date().toISOString());
+                  } catch (err) {
+                    console.error('Error ending match:', err);
+                  }
                   dispatch(setReviewMatchId(matchId));
-                  // ให้ HomeScreen detect และ navigate แทน
+                  router.replace({
+                    pathname: '/page/review-experience',
+                    params: { matchId },
+                  });
                 }}
               />
               <Button
@@ -567,7 +586,7 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
       </View>
 
-      {/* Incoming proposal modal - MOVED TO GlobalProposalModal */}
+      {/* Incoming proposal modal - MOVED TO GlobalProposalModal in HomeScreen */}
 
       <AlertModal
         visible={alert.visible}
