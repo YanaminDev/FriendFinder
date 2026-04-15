@@ -101,7 +101,7 @@ const HistoryScreen: React.FC = () => {
                 id: reviewData?.id || '',
                 userId: userId,
                 username: currentUserShowName || 'You',
-                avatar: currentUserImage || 'https://i.pravatar.cc/150?img=default',
+                avatar: '',
                 comment: reviewData?.review_text || reviewData?.content || 'ไม่มีความเห็น',
                 liked: reviewData?.status === 1,
                 reviewedUsername: otherUser?.user_show_name,
@@ -115,7 +115,7 @@ const HistoryScreen: React.FC = () => {
                 id: locReview?.id || '',
                 userId: userId,
                 username: currentUserShowName || 'You',
-                avatar: currentUserImage || 'https://i.pravatar.cc/150?img=default',
+                avatar: '',
                 comment: locReview?.review_text || 'ไม่มีความเห็น',
                 liked: locReview?.status === 1,
               };

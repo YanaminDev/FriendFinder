@@ -28,7 +28,7 @@ import { useAppSelector, useAppDispatch } from '../../redux/hooks';
 import { setIncomingProposal, setIncomingProposalImage, clearIncomingProposal } from '../../redux/locationProposalSlice';
 import { setReviewMatchId } from '../../redux/reviewSlice';
 import { getMatchById, Match, updateMatchCancelStatus, updateMatchEndDate } from '../../service/match.service';
-import { getLocationsByPosition, Location } from '../../service/location.service';
+import { getAIRecommendedLocations, Location } from '../../service/location.service';
 import { getPublicUserImages } from '../../service/user_image.service';
 import { getLocationImages, LocationImage } from '../../service/location_image.service';
 import {
@@ -130,8 +130,13 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
           // ถ้ามี location_id แล้ว ให้แสดง confirmed location แทน
           // ไม่ navigate ทันที ให้ user เห็นสถานที่ที่เลือก
         }
-        if (m?.position_id) {
-          const locs = await getLocationsByPosition(m.position_id);
+        if (m?.position_id && m?.activity_id && m?.user1_id && m?.user2_id) {
+          const locs = await getAIRecommendedLocations(
+            m.position_id,
+            m.user1_id,
+            m.user2_id,
+            m.activity_id
+          );
           setLocations(locs);
 
           // ดึงรูปของแต่ละ location

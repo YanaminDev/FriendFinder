@@ -59,6 +59,7 @@ export const UPDATE_PET = "/v1/life-style/pet/update";
 export const GET_LOCATION = "/v1/location/get";
 export const GET_LOCATION_BY_ID = "/v1/location/get/:id";
 export const GET_LOCATION_BY_POSITION = "/v1/location/get-by-position/:position_id";
+export const GET_LOCATION_AI_RECOMMEND = "/v1/location/get-ai-recommend/:position_id";
 export const CREATE_LOCATION = "/v1/location/create";
 export const UPDATE_LOCATION = "/v1/location/update/:id";
 export const DELETE_LOCATION = "/v1/location/delete/:id";
