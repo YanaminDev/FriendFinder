@@ -3,7 +3,7 @@ import type { Prisma } from "../../../generated/prisma/client";
 import { CreateLocationSchema, UpdateLocationSchema } from "./locationModel";
 import { z } from "zod";
 import { get } from "node:http";
-import { askAIForLocationRecommendation } from "../../../lib/lllm";
+import { askAIForLocationRecommendation } from "../../../lib/llm";
 
 type CreateLocationInput = z.infer<typeof CreateLocationSchema>;
 type UpdateLocationInput = z.infer<typeof UpdateLocationSchema>;
