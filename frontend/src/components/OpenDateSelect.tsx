@@ -1,5 +1,3 @@
-import React from "react"
-
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 type Day = typeof DAYS[number];
 
