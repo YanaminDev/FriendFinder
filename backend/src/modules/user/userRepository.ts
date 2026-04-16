@@ -163,6 +163,10 @@ export const userRepository = {
                 where: { user_id },
                 data: { password: hashedPassword }
             })
+
+            // Set user as offline after changing password so they can re-login with new password
+            await userRepository.setUserOnline(user_id, false)
+
             return { message: "เปลี่ยนรหัสผ่านสำเร็จ" }
         } catch (err: any) {
             throw new Error(err.message || "Failed to change password")
