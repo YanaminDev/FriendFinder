@@ -7,15 +7,18 @@ import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AppHeader from '../../components/common/AppHeader';
 import InfoRow from '../../components/profile/InfoRow';
-import { getUserProfile, UserProfile } from '../../service/user.service';
+import { getUserProfile, UserProfile, logout } from '../../service/user.service';
 import { getUserInformation, UserInformation } from '../../service/user_information.service';
 import { getUserLifeStyle, UserLifeStyle } from '../../service/user_life_style.service';
 import { getUserImages, UserImage } from '../../service/user_image.service';
 import { colors } from '../../constants/theme';
 import { useResponsive } from '../../hooks/useResponsive';
+import { useAppDispatch } from '../../redux/hooks';
+import { clearAuth } from '../../redux/authSlice';
 
 const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { maxContentWidth } = useResponsive();
+  const dispatch = useAppDispatch();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [userInfo, setUserInfo] = useState<UserInformation | null>(null);
   const [userLifeStyle, setUserLifeStyle] = useState<UserLifeStyle | null>(null);
@@ -57,6 +60,25 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       fetchProfileData();
     }, [])
   );
+
+  const handleLogout = async () => {
+    Alert.alert('ยืนยันการออกจากระบบ', 'คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ', [
+      { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
+      {
+        text: 'ออกจากระบบ',
+        onPress: async () => {
+          try {
+            await logout();
+            dispatch(clearAuth());
+          } catch (error) {
+            console.error('Logout error:', error);
+            Alert.alert('ข้อผิดพลาด', 'เกิดข้อผิดพลาดในการออกจากระบบ');
+          }
+        },
+        style: 'destructive',
+      },
+    ]);
+  };
 
   const CardHeader = ({ icon, title }: { icon: string; title: string }) => (
     <View className="flex-row items-center gap-2 mb-4 pb-3 border-b border-gray-100">
@@ -155,6 +177,17 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <InfoRow iconName="smoke" label="การสูบบุหรี่" value={userLifeStyle?.smoke?.name || '-'} />
             <InfoRow iconName="dumbbell" label="การออกกำลังกาย" value={userLifeStyle?.workout?.name || '-'} />
             <InfoRow iconName="paw" label="สัตว์เลี้ยง" value={userLifeStyle?.pet?.name || '-'} />
+          </View>
+
+          {/* Logout Button */}
+          <View className="mx-4 mt-4 mb-6">
+            <TouchableOpacity
+              onPress={handleLogout}
+              className="bg-red-50 border border-red-200 rounded-2xl p-4 flex-row items-center justify-center"
+            >
+              <MaterialCommunityIcons name="logout" size={20} color="#ef4444" />
+              <Text className="text-red-600 font-semibold ml-2">ออกจากระบบ</Text>
+            </TouchableOpacity>
           </View>
 
         </View>
