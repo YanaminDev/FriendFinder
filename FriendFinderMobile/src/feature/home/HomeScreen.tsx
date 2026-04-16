@@ -15,6 +15,7 @@ import { getAllPositions, Position } from '../../service/position.service';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useSocket } from '../../hooks/useSocket';
 import { useAppSelector, useAppDispatch } from '../../redux/hooks';
+import { clearAuth } from '../../redux/authSlice';
 import { setIncomingProposal, setIncomingProposalImage } from '../../redux/locationProposalSlice';
 import { setIsFinding, setPositionId, clearFindMatch, setUserLocation } from '../../redux/findMatchSlice';
 import { clearReviewMatchId } from '../../redux/reviewSlice';
@@ -132,10 +133,16 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           activityId: n.activity_id,
         }));
       setNotifications(mapped);
-    } catch (err) {
+    } catch (err: any) {
+      // ถ้า Not authenticated → ทำการ logout
+      if (err?.message?.includes('Not authenticated')) {
+        console.error('Authentication failed, clearing auth...');
+        dispatch(clearAuth());
+        return;
+      }
       console.error('Failed to fetch notifications:', err);
     }
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     fetchNotifications();

@@ -56,9 +56,9 @@ export const register = async (data: RegisterRequest): Promise<{ message: string
     }
 };
 
-export const login = async (data: LoginRequest): Promise<{ message: string; user_id: string }> => {
+export const login = async (data: LoginRequest): Promise<{ message: string; user_id: string; accessToken: string; refreshToken: string }> => {
     try {
-        return await mainApi.post<{ message: string; user_id: string }>(LOGIN, data);
+        return await mainApi.post<{ message: string; user_id: string; accessToken: string; refreshToken: string }>(LOGIN, data);
     } catch (error) {
         console.error("Error logging in:", error);
         throw error;

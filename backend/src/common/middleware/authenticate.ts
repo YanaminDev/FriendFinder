@@ -9,7 +9,13 @@ const jwt = require('jsonwebtoken')
 
 
 export async function authenticateToken(req : Request , res : Response , next : NextFunction){
-    const accessToken = req.cookies.accessToken
+    // Check Authorization header first, then fall back to cookies
+    let accessToken = req.cookies.accessToken;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        accessToken = authHeader.substring(7); // Remove "Bearer " prefix
+    }
+
     const refrshtoken = req.cookies.refreshToken
 
     try{

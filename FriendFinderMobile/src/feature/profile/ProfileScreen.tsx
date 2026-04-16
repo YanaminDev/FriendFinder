@@ -201,10 +201,10 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       if (!userProfile?.username) {
         throw new Error('ไม่พบชื่อผู้ใช้');
       }
-      await login({ username: userProfile.username, password: newPassword });
+      const loginResponse = await login({ username: userProfile.username, password: newPassword });
 
       // Step 3: Update Redux with new credentials
-      dispatch(setCredentials({ username: userProfile.username, password: newPassword }));
+      dispatch(setCredentials({ username: userProfile.username, password: newPassword, accessToken: loginResponse.accessToken }));
       dispatch(setIsAuthenticated(true));
 
       // Step 4: Close modal and show success with AlertModal
