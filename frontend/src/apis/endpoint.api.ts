@@ -32,7 +32,7 @@ export const POSITION_CREATE = '/v1/position/create';
 export const POSITION_UPDATE = (id: string) => `/v1/position/update/${id}`;
 export const POSITION_DELETE = (id: string) => `/v1/position/delete/${id}`;
 export const POSITION_SEARCH_NEARBY = '/v1/position/search-nearby';
-export const POSITION_UPLOAD_IMAGES = (id: string) => `/v1/position/upload-images/${id}`;
+export const POSITION_UPLOAD_IMAGES = (id: string) => `/v1/position/upload-image/${id}`;
 
 // ============ LOCATION IMAGE ENDPOINTS ============
 export const LOCATION_IMAGE_UPLOAD = '/v1/location-image/upload';

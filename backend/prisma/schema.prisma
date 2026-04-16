@@ -8,35 +8,35 @@ datasource db {
 }
 
 model User {
-  user_id                String            @id @default(uuid())
-  user_show_name         String            @db.VarChar(50)
-  username               String            @unique
+  user_id                String              @id @default(uuid())
+  user_show_name         String              @db.VarChar(50)
+  username               String              @unique
   password               String
   sex                    Sex
   age                    Int
   interested_gender      Sex
   birth_of_date          DateTime
-  role                   Role              @default(user)
-  isOnline               Boolean           @default(false)
-  isBanned               Boolean           @default(false)
-  CancellationAsReviewee Cancellation[]    @relation("RevieweeCancellation")
-  CancellationAsReviewer Cancellation[]    @relation("ReviewerCancellation")
-  chat1                  Chat[]            @relation("User1Chat")
-  chat2                  Chat[]            @relation("User2Chat")
+  role                   Role                @default(user)
+  isOnline               Boolean             @default(false)
+  isBanned               Boolean             @default(false)
+  CancellationAsReviewee Cancellation[]      @relation("RevieweeCancellation")
+  CancellationAsReviewer Cancellation[]      @relation("ReviewerCancellation")
+  chat1                  Chat[]              @relation("User1Chat")
+  chat2                  Chat[]              @relation("User2Chat")
   chat_message           Chat_Message[]
-  experiencesAsReviewee  Experience[]      @relation("RevieweeExperience")
-  experiencesAsReviewer  Experience[]      @relation("ReviewerExperience")
+  experiencesAsReviewee  Experience[]        @relation("RevieweeExperience")
+  experiencesAsReviewer  Experience[]        @relation("ReviewerExperience")
   find_match             Find_Match?
-  location_review        Location_review[]
-  user_review_given      User_Review[]     @relation("ReviewerReview")
-  user_review_received   User_Review[]     @relation("ReviewedUserReview")
-  matchesAsUser1         Match[]           @relation("User1Match")
-  matchesAsUser2         Match[]           @relation("User2Match")
-  receivedNotifications  Notification[]    @relation("ReceiverNotification")
-  sentNotifications      Notification[]    @relation("SenderNotification")
   locationProposals      Location_Proposal[] @relation("ProposerProposal")
+  location_review        Location_review[]
+  matchesAsUser1         Match[]             @relation("User1Match")
+  matchesAsUser2         Match[]             @relation("User2Match")
+  receivedNotifications  Notification[]      @relation("ReceiverNotification")
+  sentNotifications      Notification[]      @relation("SenderNotification")
   info                   User_Information?
   life_style             User_Life_Style?
+  user_review_received   User_Review[]       @relation("ReviewedUserReview")
+  user_review_given      User_Review[]       @relation("ReviewerReview")
   images                 User_image[]
 
   @@index([username, password, user_show_name, interested_gender])
@@ -147,8 +147,8 @@ model Workout {
 }
 
 model Location {
-  id              String            @id @default(uuid())
-  name            String            @db.VarChar(50)
+  id              String              @id @default(uuid())
+  name            String              @db.VarChar(50)
   description     String?
   phone           String?
   position_id     String
@@ -156,12 +156,12 @@ model Location {
   open_date       String?
   open_time       String?
   close_time      String?
-  activity        Activity          @relation(fields: [activity_id], references: [id])
-  position        Position          @relation(fields: [position_id], references: [id])
+  activity        Activity            @relation(fields: [activity_id], references: [id])
+  position        Position            @relation(fields: [position_id], references: [id])
+  proposals       Location_Proposal[]
   location_image  Location_image[]
   location_review Location_review[]
   match           Match[]
-  proposals       Location_Proposal[]
 
   @@index([name, position_id, activity_id, open_date, open_time])
 }
@@ -192,16 +192,16 @@ model Location_review {
 }
 
 model User_Review {
-  id                String   @id @default(uuid())
-  user_id           String
-  reviewed_user_id  String
-  status            Int
-  createdAt         DateTime @default(now())
-  match_id          String
-  review_text       String?  @default("")
-  user              User     @relation("ReviewerReview", fields: [user_id], references: [user_id])
-  reviewed_user     User     @relation("ReviewedUserReview", fields: [reviewed_user_id], references: [user_id])
-  match             Match    @relation(fields: [match_id], references: [id])
+  id               String   @id @default(uuid())
+  user_id          String
+  reviewed_user_id String
+  status           Int
+  createdAt        DateTime @default(now())
+  match_id         String
+  review_text      String?  @default("")
+  match            Match    @relation(fields: [match_id], references: [id])
+  reviewed_user    User     @relation("ReviewedUserReview", fields: [reviewed_user_id], references: [user_id])
+  user             User     @relation("ReviewerReview", fields: [user_id], references: [user_id])
 
   @@index([user_id, reviewed_user_id, match_id, status])
 }
@@ -231,14 +231,14 @@ model Match {
   position_id        String
   cancellation       Cancellation[]
   experience         Experience[]
+  location_proposals Location_Proposal[]
   location_review    Location_review[]
-  user_review        User_Review[]
   activity           Activity            @relation(fields: [activity_id], references: [id])
   location           Location?           @relation(fields: [location_id], references: [id])
   position           Position            @relation(fields: [position_id], references: [id])
   user1              User                @relation("User1Match", fields: [user1_id], references: [user_id])
   user2              User                @relation("User2Match", fields: [user2_id], references: [user_id])
-  location_proposals Location_Proposal[]
+  user_review        User_Review[]
 
   @@index([user1_id, user2_id, location_id, activity_id, position_id])
 }
@@ -250,17 +250,11 @@ model Location_Proposal {
   location_id String
   status      Location_Proposal_Status @default(pending)
   createdAt   DateTime                 @default(now())
+  location    Location                 @relation(fields: [location_id], references: [id])
   match       Match                    @relation(fields: [match_id], references: [id])
   proposer    User                     @relation("ProposerProposal", fields: [proposer_id], references: [user_id])
-  location    Location                 @relation(fields: [location_id], references: [id])
 
   @@index([match_id, status])
-}
-
-enum Location_Proposal_Status {
-  pending
-  accepted
-  rejected
 }
 
 model Find_Match {
@@ -381,6 +375,12 @@ model Notification {
 
   @@index([receiver_id, status])
   @@index([sender_id])
+}
+
+enum Location_Proposal_Status {
+  pending
+  accepted
+  rejected
 }
 
 enum Notification_Type {

@@ -6,9 +6,6 @@ import MatchCard from "./components/MatchCard"
 import { feedbackService, adminService } from "../../services"
 import type {
   MatchWithReviews,
-  MatchExperience,
-  MatchLocationReview,
-  MatchCancellation,
 } from "../../types/responses"
 
 type TabType = "experience" | "cancellation" | "location_review"
@@ -36,7 +33,7 @@ export default function Feedback() {
   // Filter by tab
   const filtered =
     activeTab === "experience"
-      ? matches.filter((m) => m.experience.length > 0)
+      ? matches.filter((m) => m.user_review.length > 0)
       : activeTab === "cancellation"
         ? matches.filter((m) => m.cancellation.length > 0)
         : matches.filter((m) => m.location_review.length > 0)

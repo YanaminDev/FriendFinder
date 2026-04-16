@@ -250,6 +250,12 @@ export const matchRepository = {
                             reviewee: { select: { user_id: true, username: true } },
                             quick_select: true
                         }
+                    },
+                    user_review: {
+                        include: {
+                            user: { select: { user_id: true, username: true } },
+                            reviewed_user: { select: { user_id: true, username: true } }
+                        }
                     }
                 }
             })

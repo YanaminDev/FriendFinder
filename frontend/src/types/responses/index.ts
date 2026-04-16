@@ -126,6 +126,18 @@ export interface MatchCancellation {
   quick_select?: { id: string; name: string } | null;
 }
 
+export interface MatchUserReview {
+  id: string;
+  user_id: string;
+  reviewed_user_id: string;
+  status: number;
+  review_text?: string;
+  match_id: string;
+  createdAt: string;
+  user: { user_id: string; username: string };
+  reviewed_user: { user_id: string; username: string };
+}
+
 export interface MatchWithReviews {
   id: string;
   user1_id: string;
@@ -144,4 +156,5 @@ export interface MatchWithReviews {
   experience: MatchExperience[];
   location_review: MatchLocationReview[];
   cancellation: MatchCancellation[];
+  user_review: MatchUserReview[];
 }

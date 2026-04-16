@@ -84,7 +84,7 @@ export const positionService = {
   async uploadImages(positionId: string, files: File[]): Promise<PositionResponse> {
     try {
       const formData = new FormData();
-      files.forEach(file => formData.append('images', file));
+      formData.append('image', files[0]);
       const response = await axiosInstance.post<PositionResponse>(
         POSITION_UPLOAD_IMAGES(positionId),
         formData,

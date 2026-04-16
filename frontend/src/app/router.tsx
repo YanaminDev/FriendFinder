@@ -7,7 +7,7 @@ import FeedbackPage from "../pages/FeedbackPage"
 import AddDataPage from "../pages/AddDataPage"
 import RegisterPage from "../pages/RegisterPage"
 import ForgotPasswordPage from "../pages/ForgotPasswordPage"
-import { ProtectedRoute } from "../components/common/ProtectedRoute"
+import { AdminRoute } from "../components/common/AdminRoute"
 
 export default function Router() {
   return (
@@ -20,11 +20,11 @@ export default function Router() {
             <Route path="/register" element={<RegisterPage /> } />
             <Route path="/forgot-password" element={<ForgotPasswordPage /> } />
 
-            {/* Protected routes */}
-            <Route path="/user" element={<ProtectedRoute><UserPage /></ProtectedRoute>} />
-            <Route path="/feedback" element={<ProtectedRoute><FeedbackPage /></ProtectedRoute>} />
-            <Route path="/adddata" element={<ProtectedRoute><AddDataPage /></ProtectedRoute>} />
-            <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+            {/* Admin-only routes */}
+            <Route path="/user" element={<AdminRoute><UserPage /></AdminRoute>} />
+            <Route path="/feedback" element={<AdminRoute><FeedbackPage /></AdminRoute>} />
+            <Route path="/adddata" element={<AdminRoute><AddDataPage /></AdminRoute>} />
+            <Route path="/home" element={<AdminRoute><HomePage /></AdminRoute>} />
 
             <Route path="*" element={<div className="text-center p-10 font-black"> 404 Page not found</div>} />
           </Route>

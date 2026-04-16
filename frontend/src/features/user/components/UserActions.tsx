@@ -28,7 +28,7 @@ export default function UserActions({
           fullWidth
           onClick={() => onRemoveAdmin(userId)}
         >
-          ถอด ADMIN
+          Revoke Admin
         </Button>
       ) : (
         <Button
@@ -37,7 +37,7 @@ export default function UserActions({
           fullWidth
           onClick={() => onAddAdmin(userId)}
         >
-          แต่งตั้ง ADMIN
+          Grant Admin
         </Button>
       )}
       {isBanned ? (
@@ -47,7 +47,7 @@ export default function UserActions({
           fullWidth
           onClick={() => onUnbanUser(userId)}
         >
-          ปลดแบน
+          Unban
         </Button>
       ) : (
         <Button
@@ -56,7 +56,7 @@ export default function UserActions({
           fullWidth
           onClick={() => onBanUser(userId)}
         >
-          แบน
+          Ban User
         </Button>
       )}
     </div>

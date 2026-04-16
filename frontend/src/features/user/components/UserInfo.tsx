@@ -30,14 +30,14 @@ interface UserInfoProps {
 
 export default function UserInfo({ user }: UserInfoProps) {
   const infoItems = [
-    { label: "Education", value: user.info?.education?.name || "-", icon: "🎓" },
-    { label: "Height", value: user.info?.user_height ? `${user.info.user_height} cm` : "-", icon: "📏" },
-    { label: "Language", value: user.info?.language?.name || "-", icon: "🌐" },
-    { label: "Looking For", value: user.life_style?.looking_for?.name || "-", icon: "🔍" },
-    { label: "Smoking", value: user.life_style?.smoke?.name || "-", icon: "🚬" },
-    { label: "Drinking", value: user.life_style?.drinking?.name || "-", icon: "🍷" },
-    { label: "Workout", value: user.life_style?.workout?.name || "-", icon: "💪" },
-    { label: "Pet", value: user.life_style?.pet?.name || "-", icon: "🐾" },
+    { label: "Education", value: user.info?.education?.name || "-" },
+    { label: "Height", value: user.info?.user_height ? `${user.info.user_height} cm` : "-" },
+    { label: "Language", value: user.info?.language?.name || "-" },
+    { label: "Looking For", value: user.life_style?.looking_for?.name || "-" },
+    { label: "Smoking", value: user.life_style?.smoke?.name || "-" },
+    { label: "Drinking", value: user.life_style?.drinking?.name || "-" },
+    { label: "Workout", value: user.life_style?.workout?.name || "-" },
+    { label: "Pet", value: user.life_style?.pet?.name || "-" },
   ]
 
   const getSexBadge = () => {
@@ -72,7 +72,6 @@ export default function UserInfo({ user }: UserInfoProps) {
             key={idx}
             className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2"
           >
-            <span className="text-sm">{item.icon}</span>
             <div>
               <p className="text-[10px] font-medium uppercase tracking-wide text-gray-400">
                 {item.label}

@@ -100,9 +100,9 @@ export default function CategoryCard({
                 className="w-9 h-9 text-center text-xl bg-white/20 rounded-lg border border-white/30 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/40 backdrop-blur-sm"
                 placeholder="🏷️"
               />
-            ) : (
+            ) : icon ? (
               <span className="text-xl">{icon}</span>
-            )}
+            ) : null}
             {isCreating ? (
               <input
                 type="text"
