@@ -7,11 +7,6 @@ const getHeaders = () => {
     const state = store.getState();
     const accessToken = state.auth?.accessToken;
 
-    console.log('🔍 DEBUG getHeaders:', {
-        authState: state.auth,
-        token: accessToken ? '✅ Found: ' + accessToken.substring(0, 20) + '...' : '❌ Not found'
-    });
-
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (accessToken) {
         headers.Authorization = `Bearer ${accessToken}`;
@@ -21,9 +16,7 @@ const getHeaders = () => {
 
 async function request<T>(method: string, endpoint: string, body?: unknown): Promise<T> {
     try {
-        console.log(`📤 [${method}] Calling: ${BASE_URL}${endpoint}`);
         const headers = getHeaders();
-        console.log('📋 Headers:', headers);
 
         const response = await fetch(`${BASE_URL}${endpoint}`, {
             method,
@@ -31,7 +24,6 @@ async function request<T>(method: string, endpoint: string, body?: unknown): Pro
             headers,
             body: body !== undefined ? JSON.stringify(body) : undefined,
         });
-        console.log(`📥 Response Status: ${response.status}`);
 
         if (!response.ok) {
             const error = await response.json().catch(() => ({ message: response.statusText }));
