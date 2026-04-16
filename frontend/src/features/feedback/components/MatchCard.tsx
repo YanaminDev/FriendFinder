@@ -1,9 +1,9 @@
 import type {
   MatchWithReviews,
-  MatchExperience,
   MatchLocationReview,
   MatchCancellation,
   MatchReviewUser,
+  MatchUserReview,
 } from "../../../types/responses"
 
 interface Props {
@@ -57,6 +57,11 @@ function formatDate(dateStr: string) {
   })
 }
 
+function formatReviewDate(dateStr: string) {
+  const d = new Date(dateStr)
+  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
+}
+
 function getAvatar(user: MatchReviewUser) {
   return user.images?.[0]?.imageUrl || ""
 }
@@ -65,14 +70,14 @@ function getAvatar(user: MatchReviewUser) {
 
 function ExperienceUserColumn({
   user,
-  experience,
+  userReview,
   locationReview,
   locationName,
   side,
   onBan,
 }: {
   user: MatchReviewUser
-  experience?: MatchExperience
+  userReview?: MatchUserReview
   locationReview?: MatchLocationReview
   locationName: string
   side: "left" | "right"
@@ -94,11 +99,11 @@ function ExperienceUserColumn({
         <p className="text-sm font-bold text-gray-800">{user.username}</p>
       </div>
 
-      {experience && (
+      {userReview && (
         <ReviewBlock
           label={`${user.username}'s review on matcher`}
-          isPositive={experience.status === 1}
-          text={experience.content || "(no comment)"}
+          isPositive={userReview.status === 1}
+          text={userReview.review_text || "(no comment)"}
         />
       )}
 
@@ -161,7 +166,7 @@ function CancellationUserColumn({
             Cancellation reason
           </p>
           {cancellation.quick_select && (
-            <span className="inline-block rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-semibold text-orange-500">
+            <span className="inline-block rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-red-100">
               {cancellation.quick_select.name}
             </span>
           )}
@@ -258,7 +263,7 @@ function LocationReviewCard({
                     {review!.review_text || "(no comment)"}
                   </p>
                   <p className="mt-1 text-[10px] text-gray-300">
-                    {formatDate(review!.createdAt)}
+                    {formatReviewDate(review!.createdAt)}
                   </p>
                 </div>
 
@@ -285,8 +290,8 @@ export default function MatchCard({ match, tab, onBan }: Props) {
   const locationImage = match.location?.location_image?.[0]?.imageUrl
 
   // Find reviews per user
-  const user1Exp = match.experience.find((e) => e.reviewer_id === match.user1_id)
-  const user2Exp = match.experience.find((e) => e.reviewer_id === match.user2_id)
+  const user1Review = match.user_review.find((r) => r.user_id === match.user1_id)
+  const user2Review = match.user_review.find((r) => r.user_id === match.user2_id)
   const user1LocReview = match.location_review.find((r) => r.user_id === match.user1_id)
   const user2LocReview = match.location_review.find((r) => r.user_id === match.user2_id)
 
@@ -325,7 +330,7 @@ export default function MatchCard({ match, tab, onBan }: Props) {
           {tab === "experience" ? (
             <ExperienceUserColumn
               user={match.user1}
-              experience={user1Exp}
+              userReview={user1Review}
               locationReview={user1LocReview}
               locationName={locationName}
               side="left"
@@ -351,7 +356,7 @@ export default function MatchCard({ match, tab, onBan }: Props) {
           {tab === "experience" ? (
             <ExperienceUserColumn
               user={match.user2}
-              experience={user2Exp}
+              userReview={user2Review}
               locationReview={user2LocReview}
               locationName={locationName}
               side="right"

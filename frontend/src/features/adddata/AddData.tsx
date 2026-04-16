@@ -8,13 +8,13 @@ import { activityService, type ActivityItem } from '../../services/activity.serv
 type Tab = 'categories' | 'activity'
 
 const CATEGORIES = [
-  { key: 'looking_for', title: 'Looking For', icon: '🔍' },
-  { key: 'drinking', title: 'Drinking', icon: '🍷' },
-  { key: 'smoke', title: 'Smoke', icon: '🚬' },
-  { key: 'workout', title: 'Workout', icon: '💪' },
-  { key: 'pet', title: 'Pet', icon: '🐾' },
-  { key: 'education', title: 'Education', icon: '🎓' },
-  { key: 'language', title: 'Language', icon: '🌐' },
+  { key: 'looking_for', title: 'Looking For' },
+  { key: 'drinking', title: 'Drinking' },
+  { key: 'smoke', title: 'Smoke' },
+  { key: 'workout', title: 'Workout' },
+  { key: 'pet', title: 'Pet' },
+  { key: 'education', title: 'Education' },
+  { key: 'language', title: 'Language' },
 ] as const
 
 type CategoryKey = typeof CATEGORIES[number]['key']
@@ -170,7 +170,6 @@ export default function AddData() {
             <CategoryCard
               key={cat.key}
               id={cat.key}
-              icon={cat.icon}
               title={cat.title}
               enableIconPicker
               options={(data[cat.key] || []).map(item => ({ id: item.id, name: item.name, icon: item.icon }))}
@@ -182,7 +181,6 @@ export default function AddData() {
         ) : (
           <CategoryCard
             id="activity"
-            icon="🎯"
             title="Activity"
             enableIconPicker
             options={activities.map(a => ({ id: a.id, name: a.name, icon: a.icon }))}
