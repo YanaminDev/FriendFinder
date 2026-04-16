@@ -3,9 +3,12 @@ export const AUTH_LOGIN = '/v1/api/auth/login';
 export const AUTH_REGISTER = '/v1/api/auth/register';
 export const AUTH_LOGOUT = '/v1/api/auth/logout';
 export const AUTH_FORGOT_PASSWORD = '/v1/api/auth/forgot-password';
+export const ADMIN_VERIFY = '/v1/api/admin/verify';
+export const USER_SET_OFFLINE = '/v1/api/auth/set-offline';
 
 // ============ ACTIVITY ENDPOINTS ============
 export const ACTIVITY_GET_ALL = '/v1/activity/activity';
+export const ACTIVITY_ADMIN_GET_ALL = '/v1/activity/admin/activity';
 export const ACTIVITY_GET_BY_ID = (id: string) => `/v1/activity/activity/${id}`;
 export const ACTIVITY_CREATE = '/v1/activity/create/activity';
 export const ACTIVITY_UPDATE = '/v1/activity/update/activity';

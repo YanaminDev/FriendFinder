@@ -17,6 +17,16 @@ export const activityRouter = () => {
         }
     })
 
+    router.get("/admin/activity", authenticateToken, authorize("admin"), async (req, res) => {
+        try {
+            const data = await activityRepository.getActivityWithLocationCount();
+            res.status(200).json(data)
+        }
+        catch (err) {
+            return res.status(500).json({ message: "Failed to fetch activity data" })
+        }
+    })
+
     router.get("/activity/:id", authenticateToken, async (req, res) => {
         try {
             const idParam = req.params.id;
@@ -44,10 +54,21 @@ export const activityRouter = () => {
     router.delete("/delete/activity", authenticateToken, authorize("admin"), async (req, res) => {
         try {
             const validateData = DeleteActivitySchema.parse(req.body)
+            // Guard: check if any location uses this activity
+            const { prisma } = await import('../../../lib/prisma')
+            const locationCount = await prisma.location.count({
+                where: { activity_id: validateData.id }
+            })
+            if (locationCount > 0) {
+                return res.status(409).json({
+                    message: `ไม่สามารถลบได้ มีสถานที่ใช้ activity นี้อยู่ ${locationCount} แห่ง`
+                })
+            }
             const data = await activityRepository.deleteActivity(validateData)
             res.status(200).json(`delete activity success`)
         }
-        catch (err) {
+        catch (err: any) {
+            if (err.status === 409) return res.status(409).json({ message: err.message })
             return res.status(500).json({ message: "Failed to delete activity data" })
         }
     })

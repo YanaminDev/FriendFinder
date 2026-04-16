@@ -88,7 +88,7 @@ export default function AddData() {
   // ========== Activity ==========
   const fetchActivities = async () => {
     try {
-      const items = await activityService.getAll()
+      const items = await activityService.getAllAdmin()
       setActivities(items)
     } catch (err) {
       console.error('Failed to fetch activities:', err)
@@ -191,7 +191,7 @@ export default function AddData() {
               id="activity"
               title="Activity"
               enableIconPicker
-              options={activities.map(a => ({ id: a.id, name: a.name, icon: a.icon }))}
+              options={activities.map(a => ({ id: a.id, name: a.name, icon: a.icon, canDelete: (a.locationCount ?? 0) === 0 }))}
               onAddOption={handleAddActivity}
               onEditOption={handleEditActivity}
               onDeleteOption={handleDeleteActivity}

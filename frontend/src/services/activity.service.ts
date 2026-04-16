@@ -1,6 +1,7 @@
 import axiosInstance from '../apis/main.api';
 import {
   ACTIVITY_GET_ALL,
+  ACTIVITY_ADMIN_GET_ALL,
   ACTIVITY_GET_BY_ID,
   ACTIVITY_CREATE,
   ACTIVITY_UPDATE,
@@ -11,11 +12,17 @@ export interface ActivityItem {
   id: string;
   name: string;
   icon: string;
+  locationCount?: number;
 }
 
 export const activityService = {
   async getAll(): Promise<ActivityItem[]> {
     const response = await axiosInstance.get<ActivityItem[]>(ACTIVITY_GET_ALL);
+    return response.data || [];
+  },
+
+  async getAllAdmin(): Promise<ActivityItem[]> {
+    const response = await axiosInstance.get<ActivityItem[]>(ACTIVITY_ADMIN_GET_ALL);
     return response.data || [];
   },
 

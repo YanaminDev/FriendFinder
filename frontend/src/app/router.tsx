@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-import { useEffect, useState } from "react"
 import PageWrapper from "../layout/PageWrapper"
 import LoginPage from "../pages/LoginPage"
 import HomePage from "../pages/HomePage"
@@ -11,14 +10,6 @@ import ForgotPasswordPage from "../pages/ForgotPasswordPage"
 import { AdminRoute } from "../components/common/AdminRoute"
 
 export default function Router() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
   return (
     <BrowserRouter>
         <Routes>

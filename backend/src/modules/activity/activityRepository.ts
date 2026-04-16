@@ -11,6 +11,26 @@ export const activityRepository = {
         }
     },
 
+    getActivityWithLocationCount: async () => {
+        try {
+            const activities = await prisma.activity.findMany({
+                include: {
+                    _count: { select: { location: true } }
+                }
+            })
+            return activities.map(a => ({
+                id: a.id,
+                name: a.name,
+                icon: a.icon,
+                locationCount: a._count.location
+            }))
+        }
+        catch (err) {
+            console.error(err)
+            throw new Error("Failed to fetch activity data with location count")
+        }
+    },
+
     getActivityById: async (id: string) => {
         try {
             return await prisma.activity.findUnique({
