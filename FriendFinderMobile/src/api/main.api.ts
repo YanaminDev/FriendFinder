@@ -1,13 +1,25 @@
 const BASE_URL = "http://192.168.1.100:3000";
 
-const headers = { "Content-Type": "application/json" };
+const getHeaders = () => {
+    // Lazy load store to avoid circular dependency
+    const storeModule = require('../redux/store');
+    const store = storeModule.store;
+    const state = store.getState();
+    const accessToken = state.auth?.accessToken;
+
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (accessToken) {
+        headers.Authorization = `Bearer ${accessToken}`;
+    }
+    return headers;
+};
 
 async function request<T>(method: string, endpoint: string, body?: unknown): Promise<T> {
     try {
         const response = await fetch(`${BASE_URL}${endpoint}`, {
             method,
             credentials: "include",
-            headers,
+            headers: getHeaders(),
             body: body !== undefined ? JSON.stringify(body) : undefined,
         });
         if (!response.ok) {
@@ -29,9 +41,21 @@ async function request<T>(method: string, endpoint: string, body?: unknown): Pro
 }
 
 async function upload<T>(endpoint: string, formData: FormData, method: "POST" | "PUT" = "POST"): Promise<T> {
+    // Lazy load store to avoid circular dependency
+    const storeModule = require('../redux/store');
+    const store = storeModule.store;
+    const state = store.getState();
+    const accessToken = state.auth?.accessToken;
+
+    const headers: Record<string, string> = {};
+    if (accessToken) {
+        headers.Authorization = `Bearer ${accessToken}`;
+    }
+
     const response = await fetch(`${BASE_URL}${endpoint}`, {
         method,
         credentials: "include",
+        headers,
         body: formData,
     });
     if (!response.ok) {
