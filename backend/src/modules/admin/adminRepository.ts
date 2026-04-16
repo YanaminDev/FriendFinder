@@ -28,6 +28,11 @@ export const adminRepository = {
                         workout: { select: { id: true, name: true } },
                     }
                 },
+                images: {
+                    take: 1,
+                    orderBy: { createdAt: 'asc' },
+                    select: { imageUrl: true }
+                },
             },
             orderBy: { user_show_name: 'asc' }
         });

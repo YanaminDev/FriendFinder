@@ -26,6 +26,7 @@ interface User {
     smoke: LookupValue | null
     workout: LookupValue | null
   } | null
+  images?: { imageUrl: string }[]
 }
 
 interface UserCardProps {
@@ -48,9 +49,17 @@ export default function UserCard({
       {/* Header */}
       <div className={`px-5 py-4 ${user.isBanned ? 'bg-gradient-to-r from-gray-400 to-gray-500' : 'bg-gradient-to-r from-[#FD7979] to-[#ff9a9a]'}`}>
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-lg font-bold text-white ring-2 ring-white/30 backdrop-blur-sm">
-            {user.user_show_name.charAt(0).toUpperCase()}
-          </div>
+          {user.images?.[0]?.imageUrl ? (
+            <img
+              src={user.images[0].imageUrl}
+              alt={user.user_show_name}
+              className="h-12 w-12 rounded-full object-cover ring-2 ring-white/30"
+            />
+          ) : (
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-lg font-bold text-white ring-2 ring-white/30 backdrop-blur-sm">
+              {user.user_show_name.charAt(0).toUpperCase()}
+            </div>
+          )}
           <div className="flex-1">
             <p className="text-base font-bold text-white">{user.user_show_name}</p>
             <p className="text-xs text-white/70">@{user.username}</p>

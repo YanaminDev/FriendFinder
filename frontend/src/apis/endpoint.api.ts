@@ -93,3 +93,9 @@ export const LANGUAGE_GET_ALL = '/v1/language/language';
 export const LANGUAGE_CREATE = '/v1/language/create/language';
 export const LANGUAGE_UPDATE = '/v1/language/update/language';
 export const LANGUAGE_DELETE = '/v1/language/delete/language';
+
+// ============ USER INFORMATION ENDPOINTS ============
+export const USER_INFORMATION_GET = (userId: string) => `/v1/user-information/get/${userId}`;
+
+// ============ USER LIFE STYLE ENDPOINTS ============
+export const USER_LIFE_STYLE_GET = (userId: string) => `/v1/user-life-style/get/${userId}`;

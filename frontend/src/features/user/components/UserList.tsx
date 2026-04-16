@@ -25,6 +25,7 @@ interface User {
     smoke: LookupValue | null
     workout: LookupValue | null
   } | null
+  images?: { imageUrl: string }[]
 }
 
 interface UserListProps {

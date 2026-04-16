@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import BottomNav from "../../components/BottomNav"
 import TopBar from "../../components/TopBar"
+import SearchBar from "../../components/SearchBar"
 import UserList from "./components/UserList"
 import ConfirmDialog from "../../components/ConfirmDialog"
 import { adminService } from "../../services"
@@ -30,6 +31,7 @@ interface UserData {
     smoke: LookupValue | null
     workout: LookupValue | null
   } | null
+  images?: { imageUrl: string }[]
 }
 
 type Tab = "all" | "user" | "admin" | "banned"
@@ -200,12 +202,10 @@ export default function User() {
 
         {/* Search Bar */}
         <div className="mt-4 mb-4">
-          <input
-            type="text"
-            placeholder="ค้นหาชื่อผู้ใช้..."
+          <SearchBar
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm transition-shadow placeholder:text-gray-400 focus:border-[#FD7979] focus:outline-none focus:ring-2 focus:ring-[#FD7979]/20"
+            onChange={setSearchQuery}
+            placeholder="ค้นหาชื่อผู้ใช้..."
           />
         </div>
 
