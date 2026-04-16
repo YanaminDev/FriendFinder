@@ -4,7 +4,6 @@
     "module": "commonjs",
     "target": "es2018",
     "lib" : ["es2018"],
-    "types": ["node"],
     "rootDir": ".",
     "outDir": "./dist",
     "strict": true,
