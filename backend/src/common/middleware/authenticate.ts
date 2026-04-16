@@ -30,7 +30,7 @@ export async function authenticateToken(req : Request , res : Response , next : 
                     
             res.cookie('accessToken', newAccessToken , {
                 httpOnly : true,
-                secure : process.env.NODE_ENV === 'development',
+                secure : process.env.NODE_ENV === 'production',
                 sameSite : 'strict',
                 maxAge : 15 * 60 * 1000
             });

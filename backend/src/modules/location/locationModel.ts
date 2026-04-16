@@ -6,9 +6,7 @@ export const CreateLocationSchema = z.object({
     description : z.string().trim().max(500).optional(),
     phone : z.string().trim().max(10).optional(),
     activity_id : z.string().trim(),
-    latitude : z.number().min(-90).max(90),
-    longitude : z.number().min(-180).max(180),
-    position_id : z.string().trim().optional(),
+    position_id : z.string().trim(),
     open_date : z.string().trim().max(100).optional(),
     open_time : z.string().trim().max(5).optional(),
     close_time : z.string().trim().max(5).optional()
