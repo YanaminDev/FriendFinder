@@ -120,25 +120,7 @@ export const positionRouter = () => {
         }
     });
 
-    // Upload multiple position images (up to 4) — stores only the first URL
-    router.post("/upload-images/:position_id", authenticateToken, authorize("admin"), upload.array("images", 1), async (req, res) => {
-        try {
-            const positionId = String(req.params.position_id);
-            if (!positionId) {
-                return res.status(400).json({ message: "Position ID not found" });
-            }
-            const files = req.files as Express.Multer.File[];
-            if (!files || files.length === 0) {
-                return res.status(400).json({ message: "No files uploaded" });
-            }
-
-            const result = await uploadFile(files[0], "positionImage", "position-images");
-            const position = await positionRepository.updatePositionImage(positionId, result.imageUrl);
-            return res.status(201).json(position);
-        } catch (err) {
-            return res.status(500).json({ message: `Failed to upload position images: ${err}` });
-        }
-    });
+    
 
     return router;
 };

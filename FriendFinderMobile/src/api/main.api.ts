@@ -19,7 +19,11 @@ async function request<T>(method: string, endpoint: string, body?: unknown): Pro
         }
         return response.json();
     } catch (error) {
-        console.error(`API Error [${method} ${BASE_URL}${endpoint}]:`, error);
+        // ถ้าเป็น 404 หรือ error ที่คาดหวัง ก็ไม่ต้อง log
+        const status = (error as any)?.status;
+        if (status !== 404 && !endpoint.includes('active')) {
+            console.error(`API Error [${method} ${BASE_URL}${endpoint}]:`, error);
+        }
         throw error;
     }
 }

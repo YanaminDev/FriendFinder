@@ -46,6 +46,19 @@ export const notificationRouter = () => {
         try {
             const validateData = UpdateNotificationStatusSchema.parse(req.body);
             const data = await notificationRepository.updateStatus(validateData);
+
+            // ถ้ายอมรับ match_request เท่านั้น ให้ส่ง match_accepted กลับไปหา User A (sender)
+            if (validateData.status === "accepted" && data.sender_id && data.type === "match_request") {
+                const responderId = (req as any).user.sub;
+                await notificationRepository.create({
+                    sender_id: responderId,
+                    receiver_id: data.sender_id,
+                    type: "match_accepted",
+                    position_id: data.position_id ?? undefined,
+                    activity_id: data.activity_id ?? undefined,
+                });
+            }
+
             res.status(200).json(data);
         } catch (err: any) {
             console.error("Respond notification error:", err);

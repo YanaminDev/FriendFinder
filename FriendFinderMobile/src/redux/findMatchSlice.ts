@@ -12,6 +12,7 @@ interface FindMatchState {
   positionId: string;
   userLatitude: number | null;
   userLongitude: number | null;
+  seenUserIds: string[];
 }
 
 const initialState: FindMatchState = {
@@ -20,6 +21,7 @@ const initialState: FindMatchState = {
   positionId: '',
   userLatitude: null,
   userLongitude: null,
+  seenUserIds: [],
 };
 
 export const findMatchSlice = createSlice({
@@ -39,6 +41,11 @@ export const findMatchSlice = createSlice({
       state.userLatitude = action.payload.latitude;
       state.userLongitude = action.payload.longitude;
     },
+    addSeenUserId: (state, action: PayloadAction<string>) => {
+      if (!state.seenUserIds.includes(action.payload)) {
+        state.seenUserIds.push(action.payload);
+      }
+    },
     clearFindMatch: () => initialState,
   },
 });
@@ -48,6 +55,7 @@ export const {
   setIsFinding,
   setPositionId,
   setUserLocation,
+  addSeenUserId,
   clearFindMatch,
 } = findMatchSlice.actions;
 

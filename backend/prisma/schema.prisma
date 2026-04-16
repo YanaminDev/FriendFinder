@@ -28,10 +28,13 @@ model User {
   experiencesAsReviewer  Experience[]      @relation("ReviewerExperience")
   find_match             Find_Match?
   location_review        Location_review[]
+  user_review_given      User_Review[]     @relation("ReviewerReview")
+  user_review_received   User_Review[]     @relation("ReviewedUserReview")
   matchesAsUser1         Match[]           @relation("User1Match")
   matchesAsUser2         Match[]           @relation("User2Match")
   receivedNotifications  Notification[]    @relation("ReceiverNotification")
   sentNotifications      Notification[]    @relation("SenderNotification")
+  locationProposals      Location_Proposal[] @relation("ProposerProposal")
   info                   User_Information?
   life_style             User_Life_Style?
   images                 User_image[]
@@ -158,6 +161,7 @@ model Location {
   location_image  Location_image[]
   location_review Location_review[]
   match           Match[]
+  proposals       Location_Proposal[]
 
   @@index([name, position_id, activity_id, open_date, open_time])
 }
@@ -187,6 +191,21 @@ model Location_review {
   @@index([location_id, user_id, match_id, status])
 }
 
+model User_Review {
+  id                String   @id @default(uuid())
+  user_id           String
+  reviewed_user_id  String
+  status            Int
+  createdAt         DateTime @default(now())
+  match_id          String
+  review_text       String?  @default("")
+  user              User     @relation("ReviewerReview", fields: [user_id], references: [user_id])
+  reviewed_user     User     @relation("ReviewedUserReview", fields: [reviewed_user_id], references: [user_id])
+  match             Match    @relation(fields: [match_id], references: [id])
+
+  @@index([user_id, reviewed_user_id, match_id, status])
+}
+
 model Activity {
   id          String       @id @default(uuid())
   name        String       @unique @db.VarChar(50)
@@ -201,25 +220,47 @@ model Activity {
 }
 
 model Match {
-  id              String            @id @default(uuid())
-  user1_id        String
-  user2_id        String
-  location_id     String?
-  activity_id     String
-  cancel_status   Boolean           @default(false)
-  end_date        DateTime?
-  createdAt       DateTime          @default(now())
-  position_id     String
-  cancellation    Cancellation[]
-  experience      Experience[]
-  location_review Location_review[]
-  activity        Activity          @relation(fields: [activity_id], references: [id])
-  location        Location?         @relation(fields: [location_id], references: [id])
-  position        Position          @relation(fields: [position_id], references: [id])
-  user1           User              @relation("User1Match", fields: [user1_id], references: [user_id])
-  user2           User              @relation("User2Match", fields: [user2_id], references: [user_id])
+  id                 String              @id @default(uuid())
+  user1_id           String
+  user2_id           String
+  location_id        String?
+  activity_id        String
+  cancel_status      Boolean             @default(false)
+  end_date           DateTime?
+  createdAt          DateTime            @default(now())
+  position_id        String
+  cancellation       Cancellation[]
+  experience         Experience[]
+  location_review    Location_review[]
+  user_review        User_Review[]
+  activity           Activity            @relation(fields: [activity_id], references: [id])
+  location           Location?           @relation(fields: [location_id], references: [id])
+  position           Position            @relation(fields: [position_id], references: [id])
+  user1              User                @relation("User1Match", fields: [user1_id], references: [user_id])
+  user2              User                @relation("User2Match", fields: [user2_id], references: [user_id])
+  location_proposals Location_Proposal[]
 
   @@index([user1_id, user2_id, location_id, activity_id, position_id])
+}
+
+model Location_Proposal {
+  id          String                   @id @default(uuid())
+  match_id    String
+  proposer_id String
+  location_id String
+  status      Location_Proposal_Status @default(pending)
+  createdAt   DateTime                 @default(now())
+  match       Match                    @relation(fields: [match_id], references: [id])
+  proposer    User                     @relation("ProposerProposal", fields: [proposer_id], references: [user_id])
+  location    Location                 @relation(fields: [location_id], references: [id])
+
+  @@index([match_id, status])
+}
+
+enum Location_Proposal_Status {
+  pending
+  accepted
+  rejected
 }
 
 model Find_Match {

@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import AppHeader from '../../components/common/AppHeader';
 import MessageBubble from '../../components/chat/MessageBubble';
+import { useResponsive } from '../../hooks/useResponsive';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { fetchMessages, clearMessages, addMessage } from '../../redux/chatSlice';
 import { useSocket } from '../../hooks/useSocket';
@@ -47,6 +48,7 @@ const ChatDetailScreen: React.FC<{
   const [text, setText] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const { sendMessage } = useSocket(conversationId);
+  const { maxContentWidth } = useResponsive();
 
   useEffect(() => {
     dispatch(fetchMessages(conversationId));
@@ -181,7 +183,8 @@ const ChatDetailScreen: React.FC<{
         )}
 
         {/* Input */}
-        <View className="flex-row items-center px-3 py-3 gap-2 border-t border-gray-100 bg-white">
+        <View className="border-t border-gray-100 bg-white" style={{ alignItems: 'center' }}>
+        <View className="flex-row items-center px-3 py-3 gap-2" style={{ width: '100%', maxWidth: maxContentWidth }}>
           {/* Camera */}
           <TouchableOpacity
             onPress={takePhoto}
@@ -224,6 +227,7 @@ const ChatDetailScreen: React.FC<{
           >
             <Text className="text-white text-lg">➤</Text>
           </TouchableOpacity>
+        </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -84,6 +84,7 @@ export interface VenueReview {
   avatar: string;
   comment: string;
   liked: boolean;
+  reviewedUsername?: string;
 }
 
 export interface Venue {
@@ -105,8 +106,9 @@ export interface HistoryItem {
   id: string;
   date: string;
   venue: Venue;
-  personReview: VenueReview;
-  locationReview: VenueReview;
+  personReview?: VenueReview;
+  locationReview?: VenueReview;
+  isCancelled?: boolean;
 }
 
 export interface Activity {

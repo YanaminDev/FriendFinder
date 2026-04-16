@@ -1,29 +1,37 @@
 // ─── HomeScreen ────────────────────────────────────────────────────────────────
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import AppHeader from '../../components/common/AppHeader';
 import NotificationButton from '../../components/common/NotificationButton';
 import NotificationCard from '../../components/common/NotificationCard';
 import LocationDetailCard from '../../components/map/LocationDetailCard';
 import PrimaryButton from '../../components/common/PrimaryButton';
 import MapComponentWeb from '../../components/map/MapComponentWeb';
+import GlobalProposalModal from '../../components/common/GlobalProposalModal';
 import { getAllPositions, Position } from '../../service/position.service';
 import { useUserLocation } from '../../hooks/useUserLocation';
 import { useSocket } from '../../hooks/useSocket';
 import { useAppSelector, useAppDispatch } from '../../redux/hooks';
+import { setIncomingProposal, setIncomingProposalImage } from '../../redux/locationProposalSlice';
 import { setIsFinding, setPositionId, clearFindMatch, setUserLocation } from '../../redux/findMatchSlice';
+import { clearReviewMatchId } from '../../redux/reviewSlice';
 import { createFindMatch, deleteFindMatch } from '../../service/find_match.service';
 import { getPendingNotifications, respondNotification, NotificationData } from '../../service/notification.service';
-import { createMatch } from '../../service/match.service';
+import { createMatch, getActiveMatchByUser } from '../../service/match.service';
+import { getLocationProposalByMatch } from '../../service/location_proposal.service';
+import { getLocationImages } from '../../service/location_image.service';
 import AlertModal from '../../components/common/AlertModal';
 
 
 const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const router = useRouter();
   const dispatch = useAppDispatch();
-  const { selectedActivities, isFinding, userLatitude, userLongitude } = useAppSelector((state) => state.findMatch);
+  const { selectedActivities, isFinding, userLatitude, userLongitude, positionId } = useAppSelector((state) => state.findMatch);
   const userId = useAppSelector((state) => state.user.user_id);
+  const reviewMatchId = useAppSelector((state) => state.review.reviewMatchId);
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
@@ -31,8 +39,13 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [findMatchLoading, setFindMatchLoading] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [activeMatchId, setActiveMatchId] = useState<string | null>(null);
   const [alert, setAlert] = useState<{ visible: boolean; type: 'success' | 'error' | 'warning' | 'info'; title: string; message: string }>({ visible: false, type: 'info', title: '', message: '' });
   const { userLocation, loading: locationLoading } = useUserLocation();
+  const matchAcceptedHandled = useRef(false);
+  const matchCancelledAlertShown = useRef<string | null>(null); // Track which matchId already showed alert
+  const seenProposalIds = useRef<Set<string>>(new Set());
+  const currentIncomingProposalIdRef = useRef<string | null>(null);
 
   // บันทึก GPS ลง Redux เมื่อได้ตำแหน่งใหม่
   useEffect(() => {
@@ -40,6 +53,17 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       dispatch(setUserLocation({ latitude: userLocation.latitude, longitude: userLocation.longitude }));
     }
   }, [userLocation]);
+
+  // ─── Auto navigate to ReviewExperienceScreen when reviewMatchId is set ─────
+  useEffect(() => {
+    if (reviewMatchId) {
+      router.replace({
+        pathname: '/page/review-experience',
+        params: { matchId: reviewMatchId }
+      });
+      dispatch(clearReviewMatchId());
+    }
+  }, [reviewMatchId, router, dispatch]);
 
   // Initialize Socket.IO connection when home screen loads
   useSocket(null);
@@ -56,27 +80,57 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       }
     };
 
+    const fetchActiveMatch = async () => {
+      try {
+        const match = await getActiveMatchByUser(userId);
+        setActiveMatchId(match?.id || null);
+      } catch {
+        setActiveMatchId(null);
+      }
+    };
+
+    matchAcceptedHandled.current = false; // Reset flag when home screen mounts
     fetchPositions();
+    fetchActiveMatch();
   }, []);
 
   // ดึง notifications จริง
   const fetchNotifications = useCallback(async () => {
     try {
       const data = await getPendingNotifications();
-      const mapped = data.map((n: NotificationData) => ({
-        id: n.id,
-        title: n.type === 'match_request' ? 'คำขอ Match!' : 'Match สำเร็จ!',
-        message: n.type === 'match_request'
-          ? `${n.sender?.user_show_name || 'ผู้ใช้'} อยากเจอคุณ`
-          : `คุณ match กับ ${n.sender?.user_show_name || 'ผู้ใช้'} สำเร็จ`,
-        timestamp: new Date(n.createdAt).toLocaleString('th-TH'),
-        icon: n.type === 'match_request' ? 'heart' : 'checkmark-circle',
-        type: n.type,
-        hasActions: n.type === 'match_request',
-        senderId: n.sender_id,
-        positionId: n.position_id,
-        activityId: n.activity_id,
-      }));
+
+      // ตรวจสอบว่ามี match_accepted notification ใหม่ไหม → ไปหน้าเลือกสถานที่ทันที
+      const matchAccepted = data.find((n: NotificationData) => n.type === 'match_accepted');
+      if (matchAccepted && !matchAcceptedHandled.current) {
+        matchAcceptedHandled.current = true;
+        // เปลี่ยนสถานะเป็น accepted เพื่อไม่ให้ poll เจออีก
+        await respondNotification(matchAccepted.id, 'accepted');
+        dispatch(clearFindMatch());
+        try {
+          const activeMatch = await getActiveMatchByUser(userId);
+          if (activeMatch?.id) {
+            navigation.navigate('MatchSuccess', { matchId: activeMatch.id });
+            return;
+          }
+        } catch (e) {
+          console.error('Fetch active match failed:', e);
+        }
+      }
+
+      const mapped = data
+        .filter((n: NotificationData) => n.type !== 'match_accepted') // match_accepted แสดงเป็น modal ไม่ต้องเอาเข้า list
+        .map((n: NotificationData) => ({
+          id: n.id,
+          title: 'คำขอ Match!',
+          message: `${n.sender?.user_show_name || 'ผู้ใช้'} อยากเจอคุณ`,
+          timestamp: new Date(n.createdAt).toLocaleString('th-TH'),
+          icon: 'heart',
+          type: n.type,
+          hasActions: true,
+          senderId: n.sender_id,
+          positionId: n.position_id,
+          activityId: n.activity_id,
+        }));
       setNotifications(mapped);
     } catch (err) {
       console.error('Failed to fetch notifications:', err);
@@ -85,27 +139,115 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   useEffect(() => {
     fetchNotifications();
-    // Poll every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
+    // Poll every 5 seconds เพื่อให้รวดเร็วขึ้นเมื่อรับ match success notification
+    const interval = setInterval(fetchNotifications, 5000);
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
+  // ─── Poll active match status + incoming proposals ─────────────────────────
+  useEffect(() => {
+    const pollActiveMatch = async () => {
+      try {
+        const match = await getActiveMatchByUser(userId);
+        if (match && match.cancel_status) {
+          // Match ถูก cancel ให้ clear activeMatchId และแจ้งเตือน (เพียงครั้งเดียวต่อ matchId)
+          if (matchCancelledAlertShown.current !== match.id) {
+            matchCancelledAlertShown.current = match.id;
+            setAlert({
+              visible: true,
+              type: 'warning',
+              title: 'การนัดหมายถูกยกเลิก',
+              message: 'ผู้ใช้อีกฝ่ายได้ยกเลิกการนัดหมาย',
+            });
+          }
+          setActiveMatchId(null);
+        } else {
+          setActiveMatchId(match?.id || null);
+          // Reset flag ถ้า activeMatch เปลี่ยน
+          if (!match?.id) {
+            matchCancelledAlertShown.current = null;
+          }
+        }
+      } catch {
+        setActiveMatchId(null);
+      }
+    };
+
+    // Poll for incoming proposals
+    const pollProposals = async () => {
+      try {
+        const match = await getActiveMatchByUser(userId);
+        if (!match) return;
+
+        const proposal = await getLocationProposalByMatch(match.id);
+        if (!proposal) return;
+
+        // Only show if not our proposal and not already seen
+        if (
+          proposal.proposer_id !== userId &&
+          proposal.status === 'pending' &&
+          !seenProposalIds.current.has(proposal.id) &&
+          currentIncomingProposalIdRef.current !== proposal.id
+        ) {
+          seenProposalIds.current.add(proposal.id);
+          currentIncomingProposalIdRef.current = proposal.id;
+          dispatch(setIncomingProposal(proposal));
+
+          // ดึงรูปภาพของสถานที่
+          if (proposal.location_id) {
+            try {
+              const imgs = await getLocationImages(proposal.location_id);
+              if (imgs?.[0]?.imageUrl) {
+                dispatch(setIncomingProposalImage(imgs[0].imageUrl));
+              }
+            } catch (err) {
+              console.error('Error fetching proposal location image:', err);
+            }
+          }
+        }
+      } catch {
+        // Silently fail
+      }
+    };
+
+    pollActiveMatch();
+    pollProposals();
+    const interval = setInterval(() => {
+      pollActiveMatch();
+      pollProposals();
+    }, 5000); // Check every 5 seconds
+    return () => clearInterval(interval);
+  }, [userId, dispatch]);
+
   // กดยอมรับ match request
   const handleAcceptNotification = async (notification: any) => {
+    let createdMatchId: string | null = null;
     try {
       await respondNotification(notification.id, 'accepted');
-      // สร้าง Match
-      await createMatch({
+      const match = await createMatch({
         user1_id: notification.senderId,
         user2_id: userId,
         activity_id: notification.activityId || selectedActivities[0]?.id || '',
         position_id: notification.positionId || positionId || '',
       });
+      createdMatchId = match?.id || null;
+    } catch (error: any) {
+      console.error('Accept notification error:', error);
+    } finally {
+      dispatch(clearFindMatch());
       setShowNotifications(false);
       fetchNotifications();
-      navigation.navigate('MatchSuccess');
-    } catch (error: any) {
-      setAlert({ visible: true, type: 'error', title: 'ข้อผิดพลาด', message: error?.message || 'ไม่สามารถยอมรับได้' });
+      if (createdMatchId) {
+        navigation.navigate('MatchSuccess', { matchId: createdMatchId });
+      } else {
+        try {
+          const active = await getActiveMatchByUser(userId);
+          if (active?.id) {
+            navigation.navigate('MatchSuccess', { matchId: active.id });
+            return;
+          }
+        } catch {}
+      }
     }
   };
 
@@ -141,6 +283,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   // กด Find Match
   const handleFindMatch = async () => {
+    dispatch(clearFindMatch());
     const nearest = findNearestPosition();
     if (!nearest) {
       setAlert({ visible: true, type: 'warning', title: 'ไม่พบสถานที่', message: 'ไม่พบสถานที่ใกล้เคียง กรุณาเปิด GPS' });
@@ -203,11 +346,14 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               onPinPress={(pin: any) => {
                 const position = positions.find(p => p.id === pin.id);
                 if (position) {
+                  console.log('Selected position:', position);
+                  console.log('Position image:', position.image);
                   setSelectedLocation({
                     ...position,
                     name: position.name,
                     description: position.information,
                     phone: position.phone,
+                    image: position.image,
                     openHours: position.open_time && position.close_time
                       ? `${position.open_time} - ${position.close_time}`
                       : position.open_time || position.close_time || 'ไม่ระบุเวลา',
@@ -240,13 +386,26 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             />
           )}
 
-          {/* Find Match / Cancel Button - Bottom Center */}
+          {/* Find Match / Cancel / Resume Button - Bottom Center */}
           <View className="absolute left-0 right-0 items-center" style={{ bottom: 30 }}>
             {isFinding ? (
+              <View style={{ gap: 12, alignItems: 'center' }}>
+                <PrimaryButton
+                  onPress={() => navigation.navigate('Match')}
+                  size="md"
+                  text="กลับไปปัดหาคน"
+                />
+                <PrimaryButton
+                  onPress={handleCancelFindMatch}
+                  size="sm"
+                  text={findMatchLoading ? 'ยกเลิก...' : 'ยกเลิกการค้นหา'}
+                />
+              </View>
+            ) : activeMatchId ? (
               <PrimaryButton
-                onPress={handleCancelFindMatch}
+                onPress={() => navigation.navigate('MatchUp', { matchId: activeMatchId })}
                 size="md"
-                text={findMatchLoading ? 'ยกเลิก...' : 'ยกเลิกการค้นหา'}
+                text="กลับไป Match "
               />
             ) : selectedActivities.length > 0 ? (
               <PrimaryButton
@@ -289,6 +448,8 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       buttonLabel="ตกลง"
       onPress={() => setAlert({ visible: false, type: 'info', title: '', message: '' })}
     />
+
+    <GlobalProposalModal />
   </View>
   );
 };

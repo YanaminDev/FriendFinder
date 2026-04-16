@@ -1,19 +1,22 @@
 // ─── UserInfoScreen ───────────────────────────────────────────────────────────
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, Image, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Image, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import AppLogo from '../../components/common/AppLogo';
 import Button from '../../components/common/Button';
 import { colors } from '../../constants/theme';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
+import { useResponsive } from '../../hooks/useResponsive';
 import { setProfileImage } from '../../redux/userImageSlice';
 import { setShowName } from '../../redux/userSlice';
 
 const UserInfoScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const profileImage = useAppSelector((state) => state.userImage.profileImage);
+  const { maxContentWidth, horizontalPadding, bottomPadding } = useResponsive();
 
   const [name, setName] = useState('');
 
@@ -50,21 +53,22 @@ const UserInfoScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <TouchableOpacity className="px-5 pt-3" onPress={() => navigation.goBack()}>
-          <Text className="text-3xl text-primary font-bold leading-8">‹</Text>
-        </TouchableOpacity>
+        <View style={{ maxWidth: maxContentWidth, width: '100%', alignSelf: 'center', paddingHorizontal: horizontalPadding, paddingTop: 12 }}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text className="text-3xl text-primary font-bold leading-8">‹</Text>
+          </TouchableOpacity>
+        </View>
 
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24, alignItems: 'center' }}>
+        <View style={{ width: '100%', maxWidth: maxContentWidth, paddingHorizontal: horizontalPadding }}>
           <View className="items-center my-6">
             <AppLogo size="md" showText={false} />
           </View>
 
-          <View className="px-7">
-            <Text className="text-xl font-bold text-gray-900 mb-1">ข้อมูลของคุณ</Text>
-            <Text className="text-sm text-gray-500 mb-6">ใส่รูปโปรไฟล์และชื่อของคุณ</Text>
-          </View>
+          <Text className="text-xl font-bold text-gray-900 mb-1">ข้อมูลของคุณ</Text>
+          <Text className="text-sm text-gray-500 mb-6">ใส่รูปโปรไฟล์และชื่อของคุณ</Text>
 
-          <View className="px-7">
+          <View>
             {/* Avatar picker */}
             <View className="items-center mb-8">
               <TouchableOpacity onPress={pickImage} className="w-32 h-32 rounded-full bg-primary-light items-center justify-center border-2 border-dashed overflow-hidden" style={{ borderColor: colors.primary }}>
@@ -95,9 +99,10 @@ const UserInfoScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               <Text className="text-xs text-gray-500 mt-2">ชื่อที่แสดงในแอปจะเป็นชื่อนี้</Text>
             </View>
           </View>
+        </View>
         </ScrollView>
 
-        <View className="px-7 pb-20">
+        <View style={{ maxWidth: maxContentWidth, width: '100%', alignSelf: 'center', paddingHorizontal: horizontalPadding, paddingBottom: bottomPadding }}>
           <Button
             label="ดำเนินการต่อ"
             onPress={() => {

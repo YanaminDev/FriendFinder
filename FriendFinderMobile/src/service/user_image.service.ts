@@ -3,6 +3,7 @@ import {
     GET_USER_IMAGE_SIGNED_URL,
     GET_USER_IMAGE_SIGNED_URL_BY_ID,
     GET_USER_IMAGES,
+    GET_PUBLIC_USER_IMAGES,
     GET_USER_IMAGE_BY_ID,
     DELETE_USER_IMAGE,
     UPDATE_USER_IMAGE,
@@ -71,6 +72,17 @@ export const getUserImages = async (userId: string): Promise<UserImage[]> => {
         return await mainApi.get<UserImage[]>(endpoint);
     } catch (error) {
         console.error("Error getting user images:", error);
+        throw error;
+    }
+};
+
+// ดึงรูปโปรไฟล์ของ user อื่น (ใช้ใน MatchScreen, ดูโปรไฟล์คนอื่น)
+export const getPublicUserImages = async (userId: string): Promise<UserImage[]> => {
+    try {
+        const endpoint = GET_PUBLIC_USER_IMAGES.replace(":userId", userId);
+        return await mainApi.get<UserImage[]>(endpoint);
+    } catch (error) {
+        console.error("Error getting public user images:", error);
         throw error;
     }
 };

@@ -15,6 +15,7 @@ export const UPLOAD_USER_IMAGE = "/v1/user-image/upload";
 export const GET_USER_IMAGE_SIGNED_URL = "/v1/user-image/get-signed-url/:userId";
 export const GET_USER_IMAGE_SIGNED_URL_BY_ID = "/v1/user-image/get-signed-url/:userId/:id";
 export const GET_USER_IMAGES = "/v1/user-image/get/:userId";
+export const GET_PUBLIC_USER_IMAGES = "/v1/user-image/public/:userId";
 export const GET_USER_IMAGE_BY_ID = "/v1/user-image/get/:userId/:id";
 export const DELETE_USER_IMAGE = "/v1/user-image/delete/:imageId";
 export const UPDATE_USER_IMAGE = "/v1/user-image/update/:imageId";
@@ -57,9 +58,16 @@ export const UPDATE_PET = "/v1/life-style/pet/update";
 // ==================== Location ====================
 export const GET_LOCATION = "/v1/location/get";
 export const GET_LOCATION_BY_ID = "/v1/location/get/:id";
+export const GET_LOCATION_BY_POSITION = "/v1/location/get-by-position/:position_id";
+export const GET_LOCATION_AI_RECOMMEND = "/v1/location/get-ai-recommend/:position_id";
 export const CREATE_LOCATION = "/v1/location/create";
 export const UPDATE_LOCATION = "/v1/location/update/:id";
 export const DELETE_LOCATION = "/v1/location/delete/:id";
+
+// ==================== Location Proposal ====================
+export const CREATE_LOCATION_PROPOSAL = "/v1/location-proposal/create";
+export const GET_LOCATION_PROPOSAL_BY_MATCH = "/v1/location-proposal/match/:match_id";
+export const RESPOND_LOCATION_PROPOSAL = "/v1/location-proposal/respond";
 
 // ==================== Location Image ====================
 export const UPLOAD_LOCATION_IMAGE = "/v1/location-image/upload";
@@ -77,6 +85,13 @@ export const GET_LOCATION_REVIEWS_BY_USER = "/v1/location-review/user/:user_id";
 export const GET_LOCATION_REVIEWS_BY_MATCH = "/v1/location-review/match/:match_id";
 export const CREATE_LOCATION_REVIEW = "/v1/location-review/create";
 export const DELETE_LOCATION_REVIEW = "/v1/location-review/delete";
+
+// ==================== User Review ====================
+export const CREATE_USER_REVIEW = "/v1/user-review/create";
+export const GET_USER_REVIEW_BY_ID = "/v1/user-review/get/:review_id";
+export const GET_USER_REVIEWS_BY_REVIEWER = "/v1/user-review/reviewer/:user_id";
+export const GET_USER_REVIEWS_BY_REVIEWEE = "/v1/user-review/reviewee/:user_id";
+export const DELETE_USER_REVIEW = "/v1/user-review/delete";
 
 // ==================== Select Cancel ====================
 export const GET_SELECT_CANCEL = "/v1/select-cancel/select-cancel";
@@ -107,11 +122,13 @@ export const DELETE_USER_LIFE_STYLE = "/v1/user-life-style/delete";
 
 // ==================== Match ====================
 export const GET_MATCH_BY_ID = "/v1/match/get/:match_id";
+export const GET_ACTIVE_MATCH = "/v1/match/active/:user_id";
 export const CREATE_MATCH = "/v1/match/create";
 export const UPDATE_MATCH_CANCEL_STATUS = "/v1/match/update/cancel-status/:match_id";
 export const UPDATE_MATCH_END = "/v1/match/update/end-match/:match_id";
 export const UPDATE_MATCH_LOCATION = "/v1/match/update/location/:match_id";
 export const DELETE_MATCH = "/v1/match/delete";
+export const GET_ENDED_MATCHES = "/v1/match/ended/:user_id";
 
 // ==================== Find Match ====================
 export const GET_FIND_MATCH = "/v1/find-match/get/:user_id";

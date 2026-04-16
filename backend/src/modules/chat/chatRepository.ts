@@ -68,7 +68,7 @@ export const chatRepository = {
                             isOnline: true,
                             images: {
                                 take: 1,
-                                orderBy: { createdAt: 'desc' }
+                                orderBy: { createdAt: 'asc' }
                             }
                         }
                     },
@@ -80,7 +80,7 @@ export const chatRepository = {
                             isOnline: true,
                             images: {
                                 take: 1,
-                                orderBy: { createdAt: 'desc' }
+                                orderBy: { createdAt: 'asc' }
                             }
                         }
                     },

@@ -3,6 +3,7 @@ import type { Prisma } from "../../../generated/prisma/client";
 import { CreateLocationSchema, UpdateLocationSchema } from "./locationModel";
 import { z } from "zod";
 import { get } from "node:http";
+import { askAIForLocationRecommendation } from "../../../lib/llm";
 
 type CreateLocationInput = z.infer<typeof CreateLocationSchema>;
 type UpdateLocationInput = z.infer<typeof UpdateLocationSchema>;
@@ -59,9 +60,49 @@ export const locationRepository = {
         }
     },
 
-    getLocationForMatch : async (user_id_1 : string , user_id_2 : string , activity_id : string , position_id : string) => {
+    getLocationForMatch : async (user_id_1 : string , user_id_2 : string , position_id : string , activity_id : string) => {
         try{
-            
+            const [user1Info, user2Info, allLocations] = await Promise.all([
+                prisma.user_Information.findUnique({
+                    where: { user_id: user_id_1 },
+                    select: { user_bio: true },
+                }),
+                prisma.user_Information.findUnique({
+                    where: { user_id: user_id_2 },
+                    select: { user_bio: true },
+                }),
+                prisma.location.findMany({
+                    where: { position_id, activity_id },
+                    include: {
+                        activity: { select: { name: true } },
+                        location_image: { take: 1, orderBy: { createdAt: 'asc' } },
+                        location_review: {
+                            select: { status: true, review_text: true },
+                        },
+                    },
+                }),
+            ]);
+
+            if (allLocations.length <= 3) return allLocations;
+
+            const activityName = allLocations[0]?.activity?.name;
+            const recommendedIds = await askAIForLocationRecommendation(
+                user1Info?.user_bio,
+                user2Info?.user_bio,
+                allLocations,
+                activityName
+            );
+
+            const ordered = recommendedIds
+                .map(id => allLocations.find(l => l.id === id))
+                .filter((l): l is NonNullable<typeof l> => l !== undefined);
+
+            const remaining = allLocations.filter(l => !recommendedIds.includes(l.id));
+            while (ordered.length < 3 && remaining.length > 0) {
+                ordered.push(remaining.shift()!);
+            }
+
+            return ordered;
         }
         catch(err){
             throw err

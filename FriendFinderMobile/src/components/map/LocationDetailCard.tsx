@@ -86,7 +86,7 @@ const LocationDetailCard: React.FC<LocationDetailCardProps> = ({
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Image */}
-        {imageUrl ? (
+        {imageUrl && imageUrl.trim() ? (
           <Image
             source={{ uri: imageUrl }}
             style={{ width: '100%', height: 120 }}

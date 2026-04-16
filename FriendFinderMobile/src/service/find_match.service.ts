@@ -82,9 +82,12 @@ export const updateFindMatch = async (data: UpdateFindMatchRequest): Promise<Fin
 
 export const deleteFindMatch = async (user_id: string): Promise<{ message: string }> => {
     try {
-        return await mainApi.delete<{ message: string }>(DELETE_FIND_MATCH, { user_id });
-    } catch (error) {
+        return await mainApi.delete<{ message: string }>(DELETE_FIND_MATCH);
+    } catch (error: any) {
         console.error("Error deleting find match:", error);
+        if (error.status === 404) {
+            console.warn("Find match record not found - user may not have an active search");
+        }
         throw error;
     }
 };

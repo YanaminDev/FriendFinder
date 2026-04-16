@@ -1,13 +1,14 @@
 // ─── ChatListScreen ────────────────────────────────────────────────────────────
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, SafeAreaView, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView as SafeAreaViewContext } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AppHeader from '../../components/common/AppHeader';
 import ChatListItem from '../../components/chat/ChatListItem';
 import SearchBar from '../../components/common/SearchBar';
+import { useResponsive } from '../../hooks/useResponsive';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { fetchConversations } from '../../redux/chatSlice';
 import { colors } from '../../constants/theme';
@@ -40,7 +41,7 @@ const mapChatToConversation = (chat: Chat, currentUserId: string): ChatConversat
   const otherUser = isUser1 ? chat.user2 : chat.user1;
   const lastMsg = chat.chatMessage?.[chat.chatMessage.length - 1];
 
-  // ดึงรูปโปรไฟล์จาก user images หรือใช้ default avatar
+  // ดึงรูปโปรไฟล์จาก user images หรือใช้ default avatar (รูปเก่าสุด)
   const userImage = (otherUser as any)?.images?.[0]?.imageUrl;
   const avatar = userImage;
   const initials = getInitials(otherUser?.user_show_name ?? otherUser?.username ?? 'Unknown');
@@ -72,6 +73,7 @@ const mapChatToConversation = (chat: Chat, currentUserId: string): ChatConversat
 
 const ChatListScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
+  const { maxContentWidth } = useResponsive();
   const currentUserId = useAppSelector(state => state.user.user_id);
   const { conversations, loadingConversations } = useAppSelector(state => state.chat);
   const [searchText, setSearchText] = useState('');
@@ -114,63 +116,67 @@ const ChatListScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     <SafeAreaViewContext className="flex-1 bg-gray-50" edges={['top', 'bottom', 'left', 'right']}>
       <AppHeader title="Chat" />
 
-      <View className="px-4 pt-6 pb-3 bg-white">
-        <SearchBar
-          value={searchText}
-          onChangeText={setSearchText}
-          placeholder="ค้นหาการสนทนา..."
-        />
+      <View className="bg-white" style={{ alignItems: 'center' }}>
+        <View style={{ width: '100%', maxWidth: maxContentWidth, paddingHorizontal: 16, paddingTop: 24, paddingBottom: 12 }}>
+          <SearchBar
+            value={searchText}
+            onChangeText={setSearchText}
+            placeholder="ค้นหาการสนทนา..."
+          />
+        </View>
       </View>
 
       <View className="h-px bg-gray-100" />
 
       {/* Online Friends Section */}
       {onlineFriends.length > 0 && (
-        <View className="bg-white py-4 border-b border-gray-100">
-          <Text className="px-4 mb-3 text-sm font-semibold text-gray-900">เพื่อนออนไลน์</Text>
-          <FlatList
-            horizontal
-            data={onlineFriends}
-            keyExtractor={item => item.id}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                className="items-center px-2"
-                onPress={() =>
-                  navigation.navigate('ChatDetail', {
-                    conversationId: item.id,
-                    otherUsername: item.user.name,
-                    otherAvatar: item.user.avatar,
-                  })
-                }
-              >
-                <View className="relative w-16 h-16 mb-2">
-                  {item.user.avatar ? (
-                    <Image
-                      source={{ uri: item.user.avatar }}
-                      className="w-16 h-16 rounded-full bg-gray-200"
-                    />
-                  ) : (
-                    <View
-                      className="w-16 h-16 rounded-full items-center justify-center"
-                      style={{ backgroundColor: (item.user as any).avatarBgColor }}
-                    >
-                      <Text className="text-white text-lg font-bold">
-                        {(item.user as any).initials}
-                      </Text>
-                    </View>
-                  )}
-                  {item.user.isOnline && (
-                    <View className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-online border-2 border-white" />
-                  )}
-                </View>
-                <Text className="text-xs text-gray-900 text-center w-16" numberOfLines={1} ellipsizeMode="tail">
-                  {item.user.name}
-                </Text>
-              </TouchableOpacity>
-            )}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 8 }}
-          />
+        <View className="bg-white py-4 border-b border-gray-100" style={{ alignItems: 'center' }}>
+          <View style={{ width: '100%', maxWidth: maxContentWidth }}>
+            <Text className="px-4 mb-3 text-sm font-semibold text-gray-900">เพื่อนออนไลน์</Text>
+            <FlatList
+              horizontal
+              data={onlineFriends}
+              keyExtractor={item => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  className="items-center px-2"
+                  onPress={() =>
+                    navigation.navigate('ChatDetail', {
+                      conversationId: item.id,
+                      otherUsername: item.user.name,
+                      otherAvatar: item.user.avatar,
+                    })
+                  }
+                >
+                  <View className="relative w-16 h-16 mb-2">
+                    {item.user.avatar ? (
+                      <Image
+                        source={{ uri: item.user.avatar }}
+                        className="w-16 h-16 rounded-full bg-gray-200"
+                      />
+                    ) : (
+                      <View
+                        className="w-16 h-16 rounded-full items-center justify-center"
+                        style={{ backgroundColor: (item.user as any).avatarBgColor }}
+                      >
+                        <Text className="text-white text-lg font-bold">
+                          {(item.user as any).initials}
+                        </Text>
+                      </View>
+                    )}
+                    {item.user.isOnline && (
+                      <View className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-online border-2 border-white" />
+                    )}
+                  </View>
+                  <Text className="text-xs text-gray-900 text-center w-16" numberOfLines={1} ellipsizeMode="tail">
+                    {item.user.name}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 8 }}
+            />
+          </View>
         </View>
       )}
 
@@ -183,18 +189,22 @@ const ChatListScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           data={filteredConversations}
           keyExtractor={item => item.id}
           renderItem={({ item }) => (
-            <ChatListItem
-              conversation={item}
-              onPress={() =>
-                navigation.navigate('ChatDetail', {
-                  conversationId: item.id,
-                  otherUsername: item.user.name,
-                  otherAvatar: item.user.avatar || null,
-                  otherInitials: (item.user as any).initials,
-                  otherAvatarBgColor: (item.user as any).avatarBgColor,
-                })
-              }
-            />
+            <View style={{ alignItems: 'center' }}>
+              <View style={{ width: '100%', maxWidth: maxContentWidth }}>
+                <ChatListItem
+                  conversation={item}
+                  onPress={() =>
+                    navigation.navigate('ChatDetail', {
+                      conversationId: item.id,
+                      otherUsername: item.user.name,
+                      otherAvatar: item.user.avatar || null,
+                      otherInitials: (item.user as any).initials,
+                      otherAvatarBgColor: (item.user as any).avatarBgColor,
+                    })
+                  }
+                />
+              </View>
+            </View>
           )}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={

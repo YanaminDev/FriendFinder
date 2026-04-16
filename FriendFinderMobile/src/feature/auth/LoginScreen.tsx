@@ -2,10 +2,12 @@
 // ─── LoginScreen ──────────────────────────────────────────────────────────────
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AppLogo from '../../components/common/AppLogo';
 import Button from '../../components/common/Button';
+import { useResponsive } from '../../hooks/useResponsive';
 import AlertModal from '../../components/common/AlertModal';
 import { colors } from '../../constants/theme';
 import { login, checkUserOnlineStatus } from '../../service/user.service';
@@ -23,6 +25,7 @@ interface AlertState {
 
 const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
+  const { maxContentWidth, horizontalPadding } = useResponsive();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -69,11 +72,16 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {/* Back */}
-        <TouchableOpacity className="px-5 pt-3" onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={{ paddingHorizontal: horizontalPadding, paddingTop: 12 }} onPress={() => navigation.goBack()}>
           <Text className="text-3xl text-primary font-bold leading-8">‹</Text>
         </TouchableOpacity>
 
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 28, paddingBottom: 24 }}>
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ alignItems: 'center', paddingBottom: 24 }}
+        >
+        <View style={{ width: '100%', maxWidth: maxContentWidth, paddingHorizontal: horizontalPadding }}>
           {/* Logo */}
           <View className="items-center my-6">
             <AppLogo size="md" showText={false} />
@@ -141,6 +149,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               <Text className="text-base text-primary font-semibold">ลงทะเบียน</Text>
             </TouchableOpacity>
           </View>
+        </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -52,47 +52,67 @@ export const locationRouter = () => {
         }
     })
 
-    router.get("/get-by-position-with-images/:position_id" , authenticateToken , async (req, res) => {
+    router.get("/get-ai-recommend/:position_id" , authenticateToken , async (req, res) => {
         try{
             const position_id = String(req.params.position_id);
-            const locations = await locationRepository.getLocationWithImagesByPositionId(position_id);
+            const user_id1 = String(req.query.user_id1 || '');
+            const user_id2 = String(req.query.user_id2 || '');
+            const activity_id = String(req.query.activity_id || '');
 
-            // Collect all image paths
-            const allImages: { locationIdx: number; imageIdx: number; path: string }[] = [];
-            locations.forEach((loc, locIdx) => {
-                loc.location_image.forEach((img, imgIdx) => {
-                    const pathMatch = img.imageUrl.match(/location-images\/(.+)$/);
-                    const fileName = pathMatch ? pathMatch[1] : null;
-                    if (fileName) {
-                        allImages.push({ locationIdx: locIdx, imageIdx: imgIdx, path: `location-images/${fileName}` });
-                    }
-                });
-            });
-
-            // Batch sign all URLs in one call
-            if (allImages.length > 0) {
-                const paths = allImages.map(i => i.path);
-                const { data: signedData, error } = await supabase.storage
-                    .from('locationImage')
-                    .createSignedUrls(paths, 5 * 60);
-
-                if (!error && signedData) {
-                    signedData.forEach((signed, idx) => {
-                        if (signed.signedUrl) {
-                            const { locationIdx, imageIdx } = allImages[idx];
-                            (locations[locationIdx].location_image[imageIdx] as any).imageUrl = signed.signedUrl;
-                        }
-                    });
-                }
+            if (!user_id1 || !user_id2 || !activity_id) {
+                return res.status(400).json({ message: "user_id1, user_id2, and activity_id are required" });
             }
 
-            res.status(200).json(locations)
+            const data = await locationRepository.getLocationForMatch(user_id1, user_id2, position_id, activity_id);
+            res.status(200).json(data)
         }
         catch(err){
-            console.error("Failed to fetch locations with images:", err);
-            return res.status(500).json({message:"Failed to fetch location data with images" })
+            console.error("AI recommend error:", err);
+            return res.status(500).json({message:"Failed to fetch AI recommended locations" })
         }
     })
+
+    // router.get("/get-by-position-with-images/:position_id" , authenticateToken , async (req, res) => {
+    //     try{
+    //         const position_id = String(req.params.position_id);
+    //         const locations = await locationRepository.getLocationWithImagesByPositionId(position_id);
+
+    //         // Collect all image paths
+    //         const allImages: { locationIdx: number; imageIdx: number; path: string }[] = [];
+    //         locations.forEach((loc, locIdx) => {
+    //             loc.location_image.forEach((img, imgIdx) => {
+    //                 const pathMatch = img.imageUrl.match(/location-images\/(.+)$/);
+    //                 const fileName = pathMatch ? pathMatch[1] : null;
+    //                 if (fileName) {
+    //                     allImages.push({ locationIdx: locIdx, imageIdx: imgIdx, path: `location-images/${fileName}` });
+    //                 }
+    //             });
+    //         });
+
+    //         // Batch sign all URLs in one call
+    //         if (allImages.length > 0) {
+    //             const paths = allImages.map(i => i.path);
+    //             const { data: signedData, error } = await supabase.storage
+    //                 .from('locationImage')
+    //                 .createSignedUrls(paths, 5 * 60);
+
+    //             if (!error && signedData) {
+    //                 signedData.forEach((signed, idx) => {
+    //                     if (signed.signedUrl) {
+    //                         const { locationIdx, imageIdx } = allImages[idx];
+    //                         (locations[locationIdx].location_image[imageIdx] as any).imageUrl = signed.signedUrl;
+    //                     }
+    //                 });
+    //             }
+    //         }
+
+    //         res.status(200).json(locations)
+    //     }
+    //     catch(err){
+    //         console.error("Failed to fetch locations with images:", err);
+    //         return res.status(500).json({message:"Failed to fetch location data with images" })
+    //     }
+    // })
 
     router.post("/create" , authenticateToken , async (req, res) => {
         try{

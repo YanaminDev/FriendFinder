@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import Button from '../../components/common/Button';
+import { useResponsive } from '../../hooks/useResponsive';
 import { getUserProfile, UserProfile, updateUserShowName, updateUserInterestedGender } from '../../service/user.service';
 import { getUserInformation, UserInformation, updateUserBio, updateUserHeight, updateUserBloodGroup, updateUserLanguage, updateUserEducation } from '../../service/user_information.service';
 import { getUserLifeStyle, UserLifeStyle, updateUserLookingFor, updateUserDrinking, updateUserSmoke, updateUserWorkout, updateUserPet } from '../../service/user_life_style.service';
@@ -144,6 +145,7 @@ const INTERESTED_GENDER_OPTIONS: SelectOption[] = [
 ];
 
 const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const { maxContentWidth } = useResponsive();
   // ─── Profile state ────────────────────────────────────────────────
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [userInfo, setUserInfo] = useState<UserInformation | null>(null);
@@ -194,6 +196,14 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   // ─── Fetch profile + dropdown data ────────────────────────────────
   useEffect(() => {
+    // Reset images immediately when component mounts
+    setImages([
+      { uri: '', isNew: false },
+      { uri: '', isNew: false },
+      { uri: '', isNew: false },
+      { uri: '', isNew: false },
+    ]);
+
     const fetchAll = async () => {
       try {
         const profile = await getUserProfile();
@@ -270,6 +280,28 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     };
 
     fetchAll();
+
+    // Cleanup: reset ALL state when unmounting (if not saved)
+    return () => {
+      setImages([
+        { uri: '', isNew: false },
+        { uri: '', isNew: false },
+        { uri: '', isNew: false },
+        { uri: '', isNew: false },
+      ]);
+      setName('');
+      setBio('');
+      setHeight('');
+      setSelectedEducationId(null);
+      setSelectedLanguageId(null);
+      setSelectedBloodGroup(null);
+      setSelectedInterestedGender(null);
+      setSelectedLookingForId(null);
+      setSelectedDrinkingId(null);
+      setSelectedSmokeId(null);
+      setSelectedWorkoutId(null);
+      setSelectedPetId(null);
+    };
   }, []);
 
   // ─── Handlers ─────────────────────────────────────────────────────
@@ -281,7 +313,7 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const handlePickImage = useCallback(async (index: number) => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images as any,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -289,7 +321,7 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       if (!result.canceled) {
         setImages(prev => {
           const next = [...prev];
-          next[index] = { id: prev[index].id, uri: result.assets[0].uri, isNew: true };
+          next[index] = { id: prev[index]?.id, uri: result.assets[0].uri, isNew: true };
           return next;
         });
       }
@@ -466,10 +498,11 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
       <ScrollView
         showsVerticalScrollIndicator={true}
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{ paddingBottom: 24, alignItems: 'center' }}
         scrollEnabled={true}
         nestedScrollEnabled={true}
       >
+      <View style={{ width: '100%', maxWidth: maxContentWidth }}>
         {/* Images Grid */}
         <View className="px-2 mt-4">
           <Text className="text-sm font-semibold text-gray-700 mx-2 mb-3">รูปภาพของคุณ (สูงสุด 4 รูป)</Text>
@@ -556,6 +589,7 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             disabled={saving || name.trim().length < 2}
           />
         </View>
+      </View>
       </ScrollView>
 
       {/* ─── Dropdown Modal ──────────────────────────────────────────── */}

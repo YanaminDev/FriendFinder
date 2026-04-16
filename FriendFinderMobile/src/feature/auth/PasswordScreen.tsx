@@ -1,19 +1,20 @@
 // ─── PasswordScreen ───────────────────────────────────────────────────────────
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AppLogo from '../../components/common/AppLogo';
 import Button from '../../components/common/Button';
 import { colors } from '../../constants/theme';
 import { useAppDispatch } from '../../redux/hooks';
+import { useResponsive } from '../../hooks/useResponsive';
 import { setCredentials } from '../../redux/userSlice';
 import { checkUsername } from '../../service/user.service';
 
-const 
-
-PasswordScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+const PasswordScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
+  const { maxContentWidth, horizontalPadding, bottomPadding } = useResponsive();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -89,10 +90,12 @@ PasswordScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <TouchableOpacity className="px-5 pt-3" onPress={() => navigation.navigate('Splash')}>
+        <View style={{ maxWidth: maxContentWidth, width: '100%', alignSelf: 'center' }}>
+        <TouchableOpacity style={{ paddingHorizontal: horizontalPadding, paddingTop: 12 }} onPress={() => navigation.navigate('Splash')}>
           <Text className="text-3xl text-primary font-bold leading-8">‹</Text>
         </TouchableOpacity>
-        <View className="flex-1 px-7">
+        </View>
+        <View className="flex-1" style={{ maxWidth: maxContentWidth, width: '100%', alignSelf: 'center', paddingHorizontal: horizontalPadding }}>
           <View className="items-center my-6">
             <AppLogo size="md" showText={false} />
           </View>
@@ -166,7 +169,7 @@ PasswordScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           )}
         </View>
 
-        <View className="px-7 pb-20">
+        <View style={{ maxWidth: maxContentWidth, width: '100%', alignSelf: 'center', paddingHorizontal: horizontalPadding, paddingBottom: bottomPadding }}>
           <Button
             label="ดำเนินการต่อ"
             onPress={async () => {

@@ -75,10 +75,11 @@ export const chatMessageRouter = () => {
     router.post("/mark-as-read/:chat_id", authenticateToken, async (req, res) => {
         try {
             const chat_id = String(req.params.chat_id);
+            const currentUserId = (req as any).user.sub;
             if (!chat_id) {
                 return res.status(400).json({ message: "Chat ID is required" });
             }
-            const result = await chatMessageRepository.markMessagesAsRead(chat_id);
+            const result = await chatMessageRepository.markMessagesAsRead(chat_id, currentUserId);
             res.status(200).json({
                 message: "Messages marked as read",
                 updatedCount: result.count
