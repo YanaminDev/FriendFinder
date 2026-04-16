@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { userInformationRepository } from "./userInformationRepository";
 import { CreateUserInformationSchema ,  GetUserInformationSchema,UpdateUserInformationBioSchema , UpdateUserInformationHeightSchema ,UpdateUserInformationBloodGroupSchema, UpdateUserInformationLanguageSchema , UpdateUserInformationEducationSchema} from "./userInformationModel"
 import "dotenv/config"
@@ -11,7 +11,7 @@ import { userRepository } from "../user/userRepository";
 export const userInformationRouter = () => {
     const router = Router();
 
-    router.post("/create" , authenticateToken , async (req , res) => {
+    router.post("/create" , authenticateToken , async (req: Request, res: Response) => {
         try{
             const userId = (req as any).user.sub
             if (!userId) {
@@ -27,7 +27,7 @@ export const userInformationRouter = () => {
     })
 
 
-    router.get("/get/:userId" , authenticateToken , async (req , res) => {
+    router.get("/get/:userId" , authenticateToken , async (req: Request, res: Response) => {
         try{
             const userId = (req as any).user.sub
             if (!userId) {
@@ -43,7 +43,7 @@ export const userInformationRouter = () => {
         }
     })
 
-    router.put("/update/bio" , authenticateToken , async (req , res) => {
+    router.put("/update/bio" , authenticateToken , async (req: Request, res: Response) => {
         try{
             const userId = (req as any).user.sub
             if (!userId) {
@@ -62,7 +62,7 @@ export const userInformationRouter = () => {
         }
     }),
 
-    router.put("/update/height" , authenticateToken , async (req , res) => {
+    router.put("/update/height" , authenticateToken , async (req: Request, res: Response) => {
         try{
             const userId = (req as any).user.sub
             if (!userId) {
@@ -81,7 +81,7 @@ export const userInformationRouter = () => {
         }
     }),
 
-    router.put("/update/blood-group" , authenticateToken , async (req , res) => {
+    router.put("/update/blood-group" , authenticateToken , async (req: Request, res: Response) => {
         try{
             const userId = (req as any).user.sub
             if (!userId) {
@@ -100,7 +100,7 @@ export const userInformationRouter = () => {
         }
     }),
 
-    router.put("/update/language" , authenticateToken , async (req , res) => {
+    router.put("/update/language" , authenticateToken , async (req: Request, res: Response) => {
         try{
             const userId = (req as any).user.sub
             if (!userId) {
@@ -119,7 +119,7 @@ export const userInformationRouter = () => {
         }
     }),
 
-    router.put("/update/education" , authenticateToken , async (req , res) => {
+    router.put("/update/education" , authenticateToken , async (req: Request, res: Response) => {
         try{
             const userId = (req as any).user.sub
             if (!userId) {
@@ -138,7 +138,7 @@ export const userInformationRouter = () => {
         }
     })
 
-    router.put("/update/interested-gender", authenticateToken, async (req, res) => {
+    router.put("/update/interested-gender", authenticateToken, async (req: Request, res: Response) => {
         try {
             const userId = (req as any).user.sub;
             if (!userId) {
@@ -155,7 +155,7 @@ export const userInformationRouter = () => {
         }
     })
 
-    router.delete("/delete" , authenticateToken , async (req , res) => {
+    router.delete("/delete" , authenticateToken , async (req: Request, res: Response) => {
         try{
             const userId = (req as any).user.sub
             if (!userId) {

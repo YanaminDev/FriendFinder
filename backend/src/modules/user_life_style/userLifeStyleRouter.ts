@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { userLifeStyleRepository } from './userLifeStyleRepository';
 import {
   CreateUserLifeStyleSchema,
@@ -16,7 +16,7 @@ export const userLifeStyleRouter = () => {
   const router = Router();
 
   // Create user life style
-  router.post('/create', authenticateToken, async (req, res) => {
+  router.post('/create', authenticateToken, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).user.sub
       if (!userId) {
@@ -31,7 +31,7 @@ export const userLifeStyleRouter = () => {
   });
 
   // Get user life style
-  router.get('/get/:userId', authenticateToken, async (req, res) => {
+  router.get('/get/:userId', authenticateToken, async (req: Request, res: Response) => {
     try {
       const {user_id } = GetUserLifeStyleSchema.parse({ user_id: req.params.userId })
       const result = await userLifeStyleRepository.findByUserId(user_id);
@@ -44,7 +44,7 @@ export const userLifeStyleRouter = () => {
 
 
   // Update looking for
-  router.put('/update/looking-for', authenticateToken, async (req, res) => {
+  router.put('/update/looking-for', authenticateToken, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).user.sub
       if (!userId) {
@@ -59,7 +59,7 @@ export const userLifeStyleRouter = () => {
   });
 
   // Update drinking
-  router.put('/update/drinking', authenticateToken, async (req, res) => {
+  router.put('/update/drinking', authenticateToken, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).user.sub
       if (!userId) {
@@ -74,7 +74,7 @@ export const userLifeStyleRouter = () => {
   });
 
   // Update pet
-  router.put('/update/pet', authenticateToken, async (req, res) => {
+  router.put('/update/pet', authenticateToken, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).user.sub
       if (!userId) {
@@ -89,7 +89,7 @@ export const userLifeStyleRouter = () => {
   });
 
   // Update smoke
-  router.put('/update/smoke', authenticateToken, async (req, res) => {
+  router.put('/update/smoke', authenticateToken, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).user.sub
       if (!userId) {
@@ -104,7 +104,7 @@ export const userLifeStyleRouter = () => {
   });
 
   // Update workout
-  router.put('/update/workout', authenticateToken, async (req, res) => {
+  router.put('/update/workout', authenticateToken, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).user.sub
       if (!userId) {
@@ -119,7 +119,7 @@ export const userLifeStyleRouter = () => {
   });
 
   // Delete user life style
-  router.delete('/delete', authenticateToken, async (req, res) => {
+  router.delete('/delete', authenticateToken, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).user.sub
       if (!userId) {

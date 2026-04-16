@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { userReviewRepository } from "./userReviewRepository";
 import {
     CreateUserReviewSchema,
@@ -13,7 +13,7 @@ export const userReviewRouter = () => {
     const router = Router();
 
     // Get review by ID
-    router.get("/get/:review_id", authenticateToken, async (req, res) => {
+    router.get("/get/:review_id", authenticateToken, async (req: Request, res: Response) => {
         try {
             const review_id = String(req.params.review_id);
             if (!review_id) {
@@ -28,7 +28,7 @@ export const userReviewRouter = () => {
     });
 
     // Get all reviews about a user
-    router.get("/user/:reviewed_user_id", authenticateToken, async (req, res) => {
+    router.get("/user/:reviewed_user_id", authenticateToken, async (req: Request, res: Response) => {
         try {
             const reviewed_user_id = String(req.params.reviewed_user_id);
             if (!reviewed_user_id) {
@@ -44,7 +44,7 @@ export const userReviewRouter = () => {
     });
 
     // Get all reviews by match
-    router.get("/match/:match_id", authenticateToken, async (req, res) => {
+    router.get("/match/:match_id", authenticateToken, async (req: Request, res: Response) => {
         try {
             const match_id = String(req.params.match_id);
             if (!match_id) {
@@ -60,7 +60,7 @@ export const userReviewRouter = () => {
     });
 
     // Create review
-    router.post("/create", authenticateToken, async (req, res) => {
+    router.post("/create", authenticateToken, async (req: Request, res: Response) => {
         try {
             const userId = (req as any).user.sub;
             if (!userId) {
@@ -76,7 +76,7 @@ export const userReviewRouter = () => {
     });
 
     // Delete review
-    router.delete("/delete", authenticateToken, async (req, res) => {
+    router.delete("/delete", authenticateToken, async (req: Request, res: Response) => {
         try {
             const userId = (req as any).user.sub;
             if (!userId) {
@@ -92,7 +92,7 @@ export const userReviewRouter = () => {
     });
 
     // Delete review by admin
-    router.delete("/delete", authenticateToken, authorize("admin"), async (req, res) => {
+    router.delete("/delete", authenticateToken, authorize("admin"), async (req: Request, res: Response) => {
         try {
             const validateData = DeleteUserReviewSchema.parse(req.body);
             const data = await userReviewRepository.deleteUserReviewByAdmin(validateData);

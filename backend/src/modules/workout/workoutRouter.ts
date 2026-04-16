@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { workoutRepository } from './workoutRepository'
 import { authenticateToken } from "../../common/middleware/authenticate"
 import { CreateWorkoutSchema, DeleteWorkoutSchema, UpdateWorkoutSchema } from './workoutModel'
@@ -7,7 +7,7 @@ import { authorize } from '../../common/middleware/authorize'
 export const workoutRouter = () => {
     const router = Router();
 
-    router.get("/get",  async (req, res) => {
+    router.get("/get",  async (req: Request, res: Response) => {
         try {
             const data = await workoutRepository.getWorkout();
             res.status(200).json(data)
@@ -17,7 +17,7 @@ export const workoutRouter = () => {
         }
     })
 
-    router.get("/get/:id", authenticateToken, async (req, res) => {
+    router.get("/get/:id", authenticateToken, async (req: Request, res: Response) => {
         try {
             const idParam = req.params.id;
 
@@ -35,7 +35,7 @@ export const workoutRouter = () => {
         }
     })
 
-    router.post("/create", authenticateToken, authorize("admin"), async (req, res) => {
+    router.post("/create", authenticateToken, authorize("admin"), async (req: Request, res: Response) => {
         try {
             const validateData = CreateWorkoutSchema.parse(req.body)
             const data = await workoutRepository.createWorkout(validateData)
@@ -46,7 +46,7 @@ export const workoutRouter = () => {
         }
     })
 
-    router.delete("/delete", authenticateToken, authorize("admin"), async (req, res) => {
+    router.delete("/delete", authenticateToken, authorize("admin"), async (req: Request, res: Response) => {
         try {
             const validateData = DeleteWorkoutSchema.parse(req.body)
             const data = await workoutRepository.deleteWorkout(validateData)
@@ -57,7 +57,7 @@ export const workoutRouter = () => {
         }
     })
 
-    router.put("/update", authenticateToken, authorize("admin"), async (req, res) => {
+    router.put("/update", authenticateToken, authorize("admin"), async (req: Request, res: Response) => {
         try {
             const validateData = UpdateWorkoutSchema.parse(req.body)
             const data = await workoutRepository.updateWorkout(validateData)
