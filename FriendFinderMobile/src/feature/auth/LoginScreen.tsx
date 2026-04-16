@@ -53,6 +53,11 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         navigation.replace('Home');
       });
     } catch (error: any) {
+      // ตรวจสอบหากบัญชีถูก ban (403 Forbidden)
+      if (error?.status === 403) {
+        showAlert('error', 'บัญชีถูก Ban', 'บัญชีของคุณถูก ban และไม่สามารถเข้าสู่ระบบได้');
+        return;
+      }
       // ตรวจสอบหากบัญชีถูก login ที่อื่นอยู่ (409 Conflict)
       if (error?.status === 409 || error?.data?.is_online) {
         showAlert('warning', 'แจ้งเตือน', 'บัญชีนี้กำลังถูกใช้งานอยู่ที่อื่น กรุณาลองใหม่อีกครั้ง', () => {

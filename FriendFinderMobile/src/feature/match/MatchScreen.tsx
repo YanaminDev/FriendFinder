@@ -169,6 +169,7 @@ const MatchScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const { selectedActivities, positionId, seenUserIds, isFinding } = useAppSelector((state) => state.findMatch);
   const userId = useAppSelector((state) => state.user.user_id);
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
   const [matches, setMatches] = useState<FindMatch[]>([]);
   const [loading, setLoading] = useState(true);
@@ -213,9 +214,10 @@ const MatchScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   }, [positionId, selectedActivities, userId, seenUserIds]);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     if (positionId) fetchMatches();
     else setLoading(false);
-  }, [positionId, seenUserIds]);
+  }, [positionId, seenUserIds, isAuthenticated]);
 
   // ตรวจสอบว่า findMatch ของ User A ยังมีอยู่ไหม ถ้าหมดแล้ว (match สร้าง) ให้ไปหน้า MatchSuccess
   const matchDetectedRef = useRef(false);
@@ -242,11 +244,11 @@ const MatchScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       }
     };
 
-    if (positionId && userId && isFinding) {
+    if (positionId && userId && isFinding && isAuthenticated) {
       const interval = setInterval(checkFindMatchExists, 5000);
       return () => clearInterval(interval);
     }
-  }, [positionId, userId, isFinding, navigation]);
+  }, [positionId, userId, isFinding, navigation, isAuthenticated]);
 
   // ดึงรูปทั้งหมดเมื่อ match แรกเปลี่ยน
   useEffect(() => {

@@ -43,6 +43,7 @@ const ChatDetailScreen: React.FC<{
 
   const dispatch = useAppDispatch();
   const currentUserId = useAppSelector(state => state.user.user_id);
+  const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
   const { currentMessages, loadingMessages } = useAppSelector(state => state.chat);
 
   const [text, setText] = useState('');
@@ -51,11 +52,12 @@ const ChatDetailScreen: React.FC<{
   const { maxContentWidth } = useResponsive();
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     dispatch(fetchMessages(conversationId));
     return () => {
       dispatch(clearMessages());
     };
-  }, [conversationId]);
+  }, [conversationId, isAuthenticated]);
 
   const handleSend = () => {
     if (!text.trim()) return;

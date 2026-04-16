@@ -41,9 +41,6 @@ export const userRepository = {
             if (!user) {
                 throw new Error("Invalid Credentials")
             }
-            if (user.isBanned) {
-                throw new Error("Your account has been banned")
-            }
             const isPasswordValid = await verifyPassword(user.password, data.password)
             if (!isPasswordValid) {
                 throw new Error("Invalid Credentials")

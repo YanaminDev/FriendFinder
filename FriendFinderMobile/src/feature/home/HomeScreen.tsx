@@ -33,6 +33,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { selectedActivities, isFinding, userLatitude, userLongitude, positionId } = useAppSelector((state) => state.findMatch);
   const userId = useAppSelector((state) => state.user.user_id);
   const reviewMatchId = useAppSelector((state) => state.review.reviewMatchId);
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
@@ -70,6 +71,11 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   useSocket(null);
 
   useEffect(() => {
+    // Only fetch if authenticated
+    if (!isAuthenticated) {
+      return;
+    }
+
     const fetchPositions = async () => {
       try {
         const data = await getAllPositions();
@@ -93,7 +99,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     matchAcceptedHandled.current = false; // Reset flag when home screen mounts
     fetchPositions();
     fetchActiveMatch();
-  }, []);
+  }, [isAuthenticated, userId]);
 
   // ดึง notifications จริง
   const fetchNotifications = useCallback(async () => {
@@ -145,11 +151,15 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   }, [dispatch]);
 
   useEffect(() => {
+    // Only fetch notifications if authenticated
+    if (!isAuthenticated) {
+      return;
+    }
     fetchNotifications();
     // Poll every 5 seconds เพื่อให้รวดเร็วขึ้นเมื่อรับ match success notification
     const interval = setInterval(fetchNotifications, 5000);
     return () => clearInterval(interval);
-  }, [fetchNotifications]);
+  }, [fetchNotifications, isAuthenticated]);
 
   // ─── Poll active match status + incoming proposals ─────────────────────────
   useEffect(() => {
@@ -217,6 +227,11 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       }
     };
 
+    // Only poll if authenticated
+    if (!isAuthenticated) {
+      return;
+    }
+
     pollActiveMatch();
     pollProposals();
     const interval = setInterval(() => {
@@ -224,7 +239,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       pollProposals();
     }, 5000); // Check every 5 seconds
     return () => clearInterval(interval);
-  }, [userId, dispatch]);
+  }, [userId, dispatch, isAuthenticated]);
 
   // กดยอมรับ match request
   const handleAcceptNotification = async (notification: any) => {

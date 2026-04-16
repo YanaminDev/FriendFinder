@@ -75,22 +75,23 @@ const ChatListScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const { maxContentWidth } = useResponsive();
   const currentUserId = useAppSelector(state => state.user.user_id);
+  const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
   const { conversations, loadingConversations } = useAppSelector(state => state.chat);
   const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
-    if (currentUserId) {
+    if (currentUserId && isAuthenticated) {
       dispatch(fetchConversations(currentUserId));
     }
-  }, [currentUserId]);
+  }, [currentUserId, isAuthenticated]);
 
   // Refetch ทุกครั้งที่กดเข้าหน้านี้
   useFocusEffect(
     useCallback(() => {
-      if (currentUserId) {
+      if (currentUserId && isAuthenticated) {
         dispatch(fetchConversations(currentUserId));
       }
-    }, [currentUserId])
+    }, [currentUserId, isAuthenticated])
   );
 
 

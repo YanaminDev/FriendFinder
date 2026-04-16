@@ -24,6 +24,7 @@ interface HistorySection {
 const HistoryScreen: React.FC = () => {
   const { maxContentWidth } = useResponsive();
   const userId = useAppSelector(state => state.user.user_id);
+  const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [userImage, setUserImage] = useState<string | undefined>();
@@ -175,8 +176,9 @@ const HistoryScreen: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
+      if (!isAuthenticated) return;
       fetchHistory();
-    }, [fetchHistory])
+    }, [fetchHistory, isAuthenticated])
   );
 
   return (
