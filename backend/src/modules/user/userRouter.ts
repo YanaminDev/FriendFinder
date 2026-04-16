@@ -66,6 +66,21 @@ export const userRouter = () => {
             const validateData = UserLoginSchema.parse(req.body);
             const responsedata = await userRepository.login(validateData);
             if (responsedata) {
+                // Check if user is banned
+                if (responsedata.isBanned) {
+                    return res.status(403).json({
+                        message: "Your account has been banned"
+                    });
+                }
+
+                // Check if user is already online
+                if (responsedata.isOnline) {
+                    return res.status(409).json({
+                        message: "User already logged in elsewhere",
+                        is_online: true
+                    });
+                }
+
                 // Set user as online
                 await userRepository.setUserOnline(responsedata.user_id, true);
 
@@ -98,7 +113,8 @@ export const userRouter = () => {
             return res.status(400).json({message:"Failed to login user"})
 
         }
-        catch(err){
+        catch(err: any){
+            console.log('❌ Login error:', err.message);
             return res.status(400).json({message:"Invalid Credentials"})
         }
     })

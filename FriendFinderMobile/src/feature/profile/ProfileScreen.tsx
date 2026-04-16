@@ -21,6 +21,7 @@ import { login } from '../../service/user.service';
 const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { maxContentWidth, horizontalPadding } = useResponsive();
   const dispatch = useAppDispatch();
+  const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [userInfo, setUserInfo] = useState<UserInformation | null>(null);
   const [userLifeStyle, setUserLifeStyle] = useState<UserLifeStyle | null>(null);
@@ -76,6 +77,7 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   useFocusEffect(
     React.useCallback(() => {
+      if (!isAuthenticated) return;
       const fetchProfileData = async () => {
         setLoading(true);
         try {
@@ -107,7 +109,7 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       };
 
       fetchProfileData();
-    }, [])
+    }, [isAuthenticated])
   );
 
   const handleLogout = async () => {

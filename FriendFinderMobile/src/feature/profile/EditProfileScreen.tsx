@@ -19,6 +19,7 @@ import { getSmoke, Smoke } from '../../service/smoke.service';
 import { getWorkout, Workout } from '../../service/workout.service';
 import { getPet, Pet } from '../../service/pet.service';
 import { colors } from '../../constants/theme';
+import { useAppSelector } from '../../redux/hooks';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -146,6 +147,7 @@ const INTERESTED_GENDER_OPTIONS: SelectOption[] = [
 
 const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { maxContentWidth } = useResponsive();
+  const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
   // ─── Profile state ────────────────────────────────────────────────
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [userInfo, setUserInfo] = useState<UserInformation | null>(null);
@@ -196,6 +198,7 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   // ─── Fetch profile + dropdown data ────────────────────────────────
   useEffect(() => {
+    if (!isAuthenticated) return;
     // Reset images immediately when component mounts
     setImages([
       { uri: '', isNew: false },
@@ -302,7 +305,7 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       setSelectedWorkoutId(null);
       setSelectedPetId(null);
     };
-  }, []);
+  }, [isAuthenticated]);
 
   // ─── Handlers ─────────────────────────────────────────────────────
 

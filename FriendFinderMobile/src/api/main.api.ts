@@ -16,12 +16,15 @@ const getHeaders = () => {
 
 async function request<T>(method: string, endpoint: string, body?: unknown): Promise<T> {
     try {
+        const headers = getHeaders();
+
         const response = await fetch(`${BASE_URL}${endpoint}`, {
             method,
             credentials: "include",
-            headers: getHeaders(),
+            headers,
             body: body !== undefined ? JSON.stringify(body) : undefined,
         });
+
         if (!response.ok) {
             const error = await response.json().catch(() => ({ message: response.statusText }));
             const apiError = new Error(error.message ?? response.statusText) as any;
