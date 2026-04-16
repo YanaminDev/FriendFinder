@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Trash2, Edit2, Check, X } from 'lucide-react'
 import ConfirmDialog from './ConfirmDialog'
 import IconPicker from './IconPicker'
+import CardHeader from './CardHeader'
 import { IoniconRender } from '../utils/ionicon'
 
 interface Option {
@@ -87,8 +88,7 @@ export default function CategoryCard({
 
   return (
     <div className="overflow-hidden rounded-2xl bg-white shadow-[0_2px_20px_rgba(0,0,0,0.06)] mb-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[#FD7979] to-[#ff9a9a] px-5 py-3">
+      <CardHeader className="px-5 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {isCreating ? (
@@ -132,7 +132,7 @@ export default function CategoryCard({
             </button>
           ) : null}
         </div>
-      </div>
+      </CardHeader>
 
       {/* Body */}
       <div className="p-5">

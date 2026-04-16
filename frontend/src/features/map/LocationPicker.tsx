@@ -156,7 +156,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
       const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
         <div style="font-weight:bold;margin-bottom:4px">${location.name}</div>
         ${location.information ? `<div style="font-size:12px;color:#666;margin-bottom:4px">${location.information}</div>` : ''}
-        ${location.phone ? `<div style="font-size:12px">📞 ${location.phone}</div>` : ''}
+        ${location.phone ? `<div style="font-size:12px">&#9990; ${location.phone}</div>` : ''}
         <div style="font-size:11px;color:#999;margin-top:4px">
           Lat: ${location.latitude.toFixed(4)}<br/>Lng: ${location.longitude.toFixed(4)}
         </div>

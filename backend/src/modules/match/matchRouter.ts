@@ -138,34 +138,25 @@ export const matchRouter = () => {
         try {
             const data = await matchRepository.getAllMatchesWithReviews();
 
-            // Sign location image URLs
-            const paths: { matchIdx: number; path: string }[] = [];
-            data.forEach((match, idx) => {
-                const img = match.location?.location_image?.[0];
-                if (img?.imageUrl) {
+            // Sign location image URLs individually (more reliable than batch)
+            await Promise.all(
+                data.map(async (match) => {
+                    const img = match.location?.location_image?.[0];
+                    if (!img?.imageUrl) return;
+
                     const pathMatch = img.imageUrl.match(/location-images\/(.+)$/);
-                    if (pathMatch) {
-                        paths.push({ matchIdx: idx, path: `location-images/${pathMatch[1]}` });
+                    if (!pathMatch) return;
+
+                    const filePath = `location-images/${pathMatch[1]}`;
+                    const { data: signed, error } = await supabase.storage
+                        .from('locationImage')
+                        .createSignedUrl(filePath, 60 * 60); // 1 hour
+
+                    if (!error && signed?.signedUrl) {
+                        (img as any).imageUrl = signed.signedUrl;
                     }
-                }
-            });
-
-            if (paths.length > 0) {
-                const { data: signedData, error } = await supabase.storage
-                    .from('locationImage')
-                    .createSignedUrls(paths.map(p => p.path), 5 * 60);
-
-                if (!error && signedData) {
-                    signedData.forEach((signed, idx) => {
-                        if (signed.signedUrl) {
-                            const m = data[paths[idx].matchIdx];
-                            if (m.location?.location_image?.[0]) {
-                                (m.location.location_image[0] as any).imageUrl = signed.signedUrl;
-                            }
-                        }
-                    });
-                }
-            }
+                })
+            );
 
             res.status(200).json(data);
         }

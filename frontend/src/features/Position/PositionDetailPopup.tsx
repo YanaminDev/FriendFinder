@@ -1,4 +1,5 @@
 import React from 'react';
+import { IoClose, IoLocationOutline, IoCallOutline, IoTimeOutline } from 'react-icons/io5';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import ImageCarousel from '../../components/ImageCarousel';
@@ -43,9 +44,9 @@ const PositionDetailPopup: React.FC<PositionDetailPopupProps> = ({
           <h2 className="text-xl font-bold text-gray-800">{position.name}</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-700 transition text-2xl leading-none"
+            className="flex items-center justify-center text-gray-400 hover:text-gray-700 transition"
           >
-            ✕
+            <IoClose className="h-5 w-5" />
           </button>
         </div>
 
@@ -53,19 +54,19 @@ const PositionDetailPopup: React.FC<PositionDetailPopupProps> = ({
         <div className="px-5 py-4 space-y-2 text-sm text-gray-600">
           {position.information && (
             <div className="flex items-start gap-2">
-              <span className="text-red-400 mt-0.5">📍</span>
+              <IoLocationOutline className="h-4 w-4 text-red-400 mt-0.5 shrink-0" />
               <span>{position.information}</span>
             </div>
           )}
           {position.phone && (
             <div className="flex items-center gap-2">
-              <span className="text-green-500">📞</span>
+              <IoCallOutline className="h-4 w-4 text-green-500 shrink-0" />
               <span>{position.phone}</span>
             </div>
           )}
           {(position.open_date || position.open_time || position.close_time) && (
             <div className="flex items-center gap-2">
-              <span className="text-red-400">🕐</span>
+              <IoTimeOutline className="h-4 w-4 text-red-400 shrink-0" />
               <span>
                 {position.open_date && `${position.open_date} `}
                 {position.open_time && position.close_time

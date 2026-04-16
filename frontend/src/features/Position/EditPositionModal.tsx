@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { IoClose } from 'react-icons/io5';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import Card from '../../components/Card';
@@ -212,9 +213,9 @@ const EditPositionModal: React.FC<EditPositionModalProps> = ({ isOpen, onClose, 
           <h2 className="text-xl font-bold">Edit Position</h2>
           <button
             onClick={handleClose}
-            className="text-gray-500 hover:text-gray-800 transition text-2xl"
+            className="flex items-center justify-center text-gray-500 hover:text-gray-800 transition"
           >
-            ✕
+            <IoClose className="h-5 w-5" />
           </button>
         </div>
 
@@ -262,9 +263,9 @@ const EditPositionModal: React.FC<EditPositionModalProps> = ({ isOpen, onClose, 
                     <button
                       type="button"
                       onClick={() => handleExistingImageRemove(i)}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-600"
                     >
-                      ✕
+                      <IoClose className="h-3 w-3" />
                     </button>
                   </div>
                 ))}
@@ -274,9 +275,9 @@ const EditPositionModal: React.FC<EditPositionModalProps> = ({ isOpen, onClose, 
                     <button
                       type="button"
                       onClick={() => handleImageRemove(i)}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-600"
                     >
-                      ✕
+                      <IoClose className="h-3 w-3" />
                     </button>
                   </div>
                 ))}

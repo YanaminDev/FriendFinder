@@ -139,23 +139,26 @@ export default function AddData() {
   const isLoading = activeTab === 'categories' ? loadingCategories : loadingActivities
 
   return (
-    <div className="relative min-h-screen bg-gray-100">
+    <div className="relative min-h-screen bg-[#FAFAFA]">
       <TopBar />
 
-      <div className="max-w-2xl mx-auto px-4 py-6 pb-20">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Manage Data</h1>
-        <p className="text-gray-600 mb-4">Manage user profile categories and activities</p>
+      <div className="mx-auto max-w-2xl px-4 pt-20 pb-24">
+        {/* Header */}
+        <h1 className="text-center text-lg font-bold tracking-tight text-gray-800">
+          Manage Data
+        </h1>
+        <p className="text-center text-sm text-gray-400 mt-1">Manage user profile categories and activities</p>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
+        <div className="mt-5 flex justify-center gap-1 rounded-full bg-gray-100 p-1">
           {tabs.map(tab => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition ${
+              className={`flex-1 rounded-full py-2 text-sm font-semibold transition-all ${
                 activeTab === tab.key
-                  ? 'bg-gradient-to-r from-[#FD7979] to-[#ff9a9a] text-white shadow-md'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                  ? 'bg-white text-[#FD7979] shadow-sm'
+                  : 'text-gray-400 hover:text-gray-600'
               }`}
             >
               {tab.label}
@@ -163,32 +166,38 @@ export default function AddData() {
           ))}
         </div>
 
-        {isLoading ? (
-          <div className="text-center py-10 text-gray-500">Loading...</div>
-        ) : activeTab === 'categories' ? (
-          CATEGORIES.map(cat => (
+        {/* Content */}
+        <div className="mt-6">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <div className="h-10 w-10 rounded-full border-4 border-[#FD7979]/30 border-t-[#FD7979] animate-spin" />
+              <p className="text-sm text-gray-400">กำลังโหลดข้อมูล...</p>
+            </div>
+          ) : activeTab === 'categories' ? (
+            CATEGORIES.map(cat => (
+              <CategoryCard
+                key={cat.key}
+                id={cat.key}
+                title={cat.title}
+                enableIconPicker
+                options={(data[cat.key] || []).map(item => ({ id: item.id, name: item.name, icon: item.icon }))}
+                onAddOption={handleAddOption}
+                onEditOption={handleEditOption}
+                onDeleteOption={handleDeleteOption}
+              />
+            ))
+          ) : (
             <CategoryCard
-              key={cat.key}
-              id={cat.key}
-              title={cat.title}
+              id="activity"
+              title="Activity"
               enableIconPicker
-              options={(data[cat.key] || []).map(item => ({ id: item.id, name: item.name, icon: item.icon }))}
-              onAddOption={handleAddOption}
-              onEditOption={handleEditOption}
-              onDeleteOption={handleDeleteOption}
+              options={activities.map(a => ({ id: a.id, name: a.name, icon: a.icon }))}
+              onAddOption={handleAddActivity}
+              onEditOption={handleEditActivity}
+              onDeleteOption={handleDeleteActivity}
             />
-          ))
-        ) : (
-          <CategoryCard
-            id="activity"
-            title="Activity"
-            enableIconPicker
-            options={activities.map(a => ({ id: a.id, name: a.name, icon: a.icon }))}
-            onAddOption={handleAddActivity}
-            onEditOption={handleEditActivity}
-            onDeleteOption={handleDeleteActivity}
-          />
-        )}
+          )}
+        </div>
       </div>
 
       <BottomNav />

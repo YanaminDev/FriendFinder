@@ -4,7 +4,8 @@ import TopBar from "../../components/TopBar"
 import SearchBar from "../../components/SearchBar"
 import UserList from "./components/UserList"
 import ConfirmDialog from "../../components/ConfirmDialog"
-import { adminService } from "../../services"
+import { adminService, userInformationService } from "../../services"
+import { IoPersonOutline, IoShieldCheckmarkOutline, IoBanOutline, IoPeopleOutline } from "react-icons/io5"
 
 interface LookupValue {
   id: string
@@ -21,6 +22,8 @@ interface UserData {
   isBanned: boolean
   info?: {
     user_height: number | null
+    user_bio: string | null
+    blood_group: string | null
     language: LookupValue | null
     education: LookupValue | null
   } | null
@@ -67,7 +70,19 @@ export default function User() {
     try {
       setLoading(true)
       const data = await adminService.getAllUsers()
-      setUsers(data)
+
+      const usersWithInfo = await Promise.all(
+        data.map(async (user: UserData) => {
+          try {
+            const info = await userInformationService.getUserInformation(user.user_id)
+            return { ...user, info: info ?? user.info }
+          } catch {
+            return user
+          }
+        })
+      )
+
+      setUsers(usersWithInfo)
     } catch (error) {
       console.error("Failed to fetch users:", error)
     } finally {
@@ -196,12 +211,32 @@ export default function User() {
       <TopBar />
 
       <div className="mx-auto max-w-3xl px-4 pt-20">
-        <h1 className="text-xl font-bold tracking-tight text-gray-800">
-          จัดการผู้ใช้
-        </h1>
+
+        {/* Page header banner */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#FD7979] to-[#ff9a9a] px-6 py-5 text-white mb-6 shadow-[0_4px_24px_rgba(253,121,121,0.3)]">
+          <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/10" />
+          <div className="pointer-events-none absolute -left-4 -bottom-6 h-20 w-20 rounded-full bg-white/10" />
+          <p className="relative text-lg font-bold tracking-tight">จัดการผู้ใช้</p>
+          <p className="relative mt-0.5 text-xs text-white/70">ดูและจัดการบัญชีผู้ใช้ทั้งหมดในระบบ</p>
+          {/* Stats row */}
+          <div className="relative mt-4 grid grid-cols-4 gap-2">
+            {[
+              { icon: IoPeopleOutline, label: "ทั้งหมด", count: users.length },
+              { icon: IoPersonOutline, label: "User", count: users.filter((u) => u.role === "user" && !u.isBanned).length },
+              { icon: IoShieldCheckmarkOutline, label: "Admin", count: users.filter((u) => u.role === "admin").length },
+              { icon: IoBanOutline, label: "Banned", count: users.filter((u) => u.isBanned).length },
+            ].map(({ icon: Icon, label, count }) => (
+              <div key={label} className="rounded-xl bg-white/15 backdrop-blur-sm px-3 py-2 text-center">
+                <Icon className="h-4 w-4 mx-auto mb-0.5 text-white/80" />
+                <p className="text-base font-black leading-none">{count}</p>
+                <p className="text-[10px] text-white/70 mt-0.5">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* Search Bar */}
-        <div className="mt-4 mb-4">
+        <div className="mb-4">
           <SearchBar
             value={searchQuery}
             onChange={setSearchQuery}
@@ -218,7 +253,7 @@ export default function User() {
               className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all ${
                 activeTab === tab.key
                   ? "bg-[#FD7979] text-white shadow-md"
-                  : "bg-white text-gray-600 hover:bg-gray-100"
+                  : "bg-white text-gray-600 hover:bg-gray-100 shadow-sm ring-1 ring-black/[0.04]"
               }`}
             >
               {tab.label}
@@ -237,7 +272,10 @@ export default function User() {
 
         {/* User List */}
         {loading ? (
-          <div className="py-8 text-center text-gray-400">กำลังโหลด...</div>
+          <div className="flex flex-col items-center justify-center py-16 gap-3">
+            <div className="h-10 w-10 rounded-full border-4 border-[#FD7979]/30 border-t-[#FD7979] animate-spin" />
+            <p className="text-sm text-gray-400">กำลังโหลดข้อมูล...</p>
+          </div>
         ) : (
           <UserList
             users={filteredUsers}

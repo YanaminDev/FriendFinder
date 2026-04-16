@@ -2,6 +2,8 @@ import { useEffect, useState } from "react"
 import BottomNav from "../../components/BottomNav"
 import TopBar from "../../components/TopBar"
 import ConfirmDialog from "../../components/ConfirmDialog"
+import SearchBar from "../../components/SearchBar"
+import DateRangePicker from "../../components/DateRangePicker"
 import MatchCard from "./components/MatchCard"
 import { feedbackService, adminService } from "../../services"
 import type {
@@ -15,6 +17,9 @@ export default function Feedback() {
   const [matches, setMatches] = useState<MatchWithReviews[]>([])
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [dateFrom, setDateFrom] = useState("")
+  const [dateTo, setDateTo] = useState("")
   const [banDialog, setBanDialog] = useState<{
     isOpen: boolean
     userId: string
@@ -30,13 +35,31 @@ export default function Feedback() {
       .finally(() => setLoading(false))
   }, [])
 
-  // Filter by tab
-  const filtered =
+  // Filter by tab, search, and date — sorted newest first
+  const byTab =
     activeTab === "experience"
       ? matches.filter((m) => m.user_review.length > 0)
       : activeTab === "cancellation"
         ? matches.filter((m) => m.cancellation.length > 0)
         : matches.filter((m) => m.location_review.length > 0)
+
+  const filtered = byTab
+    .filter((m) => {
+      if (!searchQuery) return true
+      const q = searchQuery.toLowerCase()
+      return (
+        m.user1.user_show_name.toLowerCase().includes(q) ||
+        m.user2.user_show_name.toLowerCase().includes(q) ||
+        (m.location?.name || "").toLowerCase().includes(q)
+      )
+    })
+    .filter((m) => {
+      const d = new Date(m.createdAt)
+      if (dateFrom && d < new Date(dateFrom)) return false
+      if (dateTo && d > new Date(dateTo + "T23:59:59")) return false
+      return true
+    })
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
   const handleBan = async () => {
     try {
@@ -76,6 +99,20 @@ export default function Feedback() {
               {tab === "location_review" ? "Location Review" : tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
+        </div>
+
+        {/* Search & Date Filter */}
+        <div className="mt-4 space-y-3">
+          <SearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="ค้นหาชื่อผู้ใช้ หรือสถานที่..."
+          />
+          <DateRangePicker
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            onChange={(from, to) => { setDateFrom(from); setDateTo(to) }}
+          />
         </div>
 
         {/* Label */}

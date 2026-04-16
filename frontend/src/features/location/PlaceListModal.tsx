@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { IoClose, IoCallOutline, IoTimeOutline } from 'react-icons/io5';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import ImageCarousel from '../../components/ImageCarousel';
@@ -62,9 +63,9 @@ const PlaceListModal: React.FC<PlaceListModalProps> = ({
             </Button>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-700 transition text-2xl"
+              className="flex items-center justify-center text-gray-400 hover:text-gray-700 transition"
             >
-              ✕
+              <IoClose className="h-5 w-5" />
             </button>
           </div>
         </div>
@@ -120,13 +121,13 @@ const PlaceListModal: React.FC<PlaceListModalProps> = ({
                     <div className="mt-2 space-y-1 text-sm text-gray-600">
                       {loc.phone && (
                         <div className="flex items-center gap-2">
-                          <span className="text-green-500">📞</span>
+                          <IoCallOutline className="h-4 w-4 text-green-500 shrink-0" />
                           {loc.phone}
                         </div>
                       )}
                       {(loc.open_date || loc.open_time || loc.close_time) && (
                         <div className="flex items-center gap-2">
-                          <span className="text-red-400">🕐</span>
+                          <IoTimeOutline className="h-4 w-4 text-red-400 shrink-0" />
                           {loc.open_date && `${loc.open_date} `}
                           {loc.open_time && loc.close_time
                             ? `${loc.open_time} - ${loc.close_time}`
