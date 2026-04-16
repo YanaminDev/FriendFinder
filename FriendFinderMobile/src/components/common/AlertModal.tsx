@@ -10,6 +10,8 @@ interface AlertModalProps {
   message: string;
   buttonLabel?: string;
   onPress?: () => void;
+  secondaryButtonLabel?: string;
+  onSecondaryPress?: () => void;
 }
 
 const AlertModal: React.FC<AlertModalProps> = ({
@@ -19,6 +21,8 @@ const AlertModal: React.FC<AlertModalProps> = ({
   message,
   buttonLabel = 'ตกลง',
   onPress,
+  secondaryButtonLabel,
+  onSecondaryPress,
 }) => {
   const getTypeConfig = (t: string) => {
     switch (t) {
@@ -53,14 +57,24 @@ const AlertModal: React.FC<AlertModalProps> = ({
           {/* Message */}
           <Text className="text-sm text-gray-600 text-center mb-6 leading-5">{message}</Text>
 
-          {/* Button */}
-          <TouchableOpacity
-            className="rounded-lg py-3 items-center"
-            style={{ backgroundColor: config.color }}
-            onPress={onPress}
-          >
-            <Text className="text-white font-semibold text-base">{buttonLabel}</Text>
-          </TouchableOpacity>
+          {/* Buttons */}
+          <View className={secondaryButtonLabel ? 'flex-row gap-3' : ''}>
+            {secondaryButtonLabel && (
+              <TouchableOpacity
+                className="flex-1 rounded-lg py-3 items-center bg-gray-200"
+                onPress={onSecondaryPress}
+              >
+                <Text className="text-gray-800 font-semibold text-base">{secondaryButtonLabel}</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              className={`${secondaryButtonLabel ? 'flex-1' : ''} rounded-lg py-3 items-center`}
+              style={{ backgroundColor: config.color }}
+              onPress={onPress}
+            >
+              <Text className="text-white font-semibold text-base">{buttonLabel}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>

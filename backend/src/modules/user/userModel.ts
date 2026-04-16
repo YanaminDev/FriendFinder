@@ -22,4 +22,7 @@ export const UserLoginSchema = z.object({
     password: passwordSchema
 })
 
-
+export const ChangePasswordSchema = z.object({
+    oldPassword: z.string(),
+    newPassword: passwordSchema
+})

@@ -145,6 +145,31 @@ export const userRepository = {
         } catch (err) {
             throw new Error("Failed to get user online status")
         }
+    },
+
+    changePassword: async (user_id: string, oldPassword: string, newPassword: string) => {
+        try {
+            const user = await prisma.user.findUnique({
+                where: { user_id }
+            })
+            if (!user) {
+                throw new Error("User not found")
+            }
+
+            const isPasswordValid = await verifyPassword(user.password, oldPassword)
+            if (!isPasswordValid) {
+                throw new Error("รหัสผ่านเดิมไม่ถูกต้อง")
+            }
+
+            const hashedPassword = await hashPassword(newPassword)
+            await prisma.user.update({
+                where: { user_id },
+                data: { password: hashedPassword }
+            })
+            return { message: "เปลี่ยนรหัสผ่านสำเร็จ" }
+        } catch (err: any) {
+            throw new Error(err.message || "Failed to change password")
+        }
     }
 
 }

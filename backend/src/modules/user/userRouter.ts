@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { userRepository } from "./userRepository";
-import { UserSignupSchema , UserLoginSchema} from "./userModel"
+import { UserSignupSchema , UserLoginSchema, ChangePasswordSchema } from "./userModel"
 import {generateAccessToken,generateRefreshToken , verifyRefreshToken} from "../../common/utils/jwt"
 import "dotenv/config"
 import { authenticateToken } from "../../common/middleware/authenticate"
@@ -191,6 +191,21 @@ export const userRouter = () => {
             return res.status(200).json({ is_online: isOnline });
         } catch (err) {
             return res.status(500).json({ message: "Failed to check online status" });
+        }
+    })
+
+    router.put("/change-password", authenticateToken, async (req, res) => {
+        try {
+            const validateData = ChangePasswordSchema.parse(req.body);
+            const user_id = (req as any).user.sub;
+            const result = await userRepository.changePassword(user_id, validateData.oldPassword, validateData.newPassword);
+            return res.status(200).json(result);
+        } catch (err: any) {
+            console.error("Change password error:", err);
+            if (err.errors) {
+                return res.status(400).json({ message: err.errors[0]?.message || "Invalid password format" });
+            }
+            return res.status(400).json({ message: err.message || "Failed to change password" });
         }
     })
 

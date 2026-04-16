@@ -7,6 +7,7 @@ export const DELETE_USER = "/v1/api/auth/delete";
 export const DELETE_USER_BY_ID = "/v1/api/auth/delete/:id";
 export const GET_USER_PROFILE = "/v1/api/auth/profile";
 export const UPDATE_USER_SHOW_NAME = "/v1/api/auth/update/name";
+export const CHANGE_PASSWORD = "/v1/api/auth/change-password";
 export const UPDATE_USER_INTERESTED_GENDER = "/v1/user-information/update/interested-gender";
 export const CHECK_USER_ONLINE_STATUS = "/v1/api/auth/check-online-status/:user_id";
 

@@ -1,29 +1,78 @@
 // ─── ProfileScreen ─────────────────────────────────────────────────────────────
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, TextInput, Modal, KeyboardAvoidingView, Platform, PanResponder, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AppHeader from '../../components/common/AppHeader';
+import AlertModal from '../../components/common/AlertModal';
 import InfoRow from '../../components/profile/InfoRow';
-import { getUserProfile, UserProfile, logout } from '../../service/user.service';
+import { getUserProfile, UserProfile, logout, changePassword } from '../../service/user.service';
 import { getUserInformation, UserInformation } from '../../service/user_information.service';
 import { getUserLifeStyle, UserLifeStyle } from '../../service/user_life_style.service';
 import { getUserImages, UserImage } from '../../service/user_image.service';
 import { colors } from '../../constants/theme';
 import { useResponsive } from '../../hooks/useResponsive';
-import { useAppDispatch } from '../../redux/hooks';
-import { clearAuth } from '../../redux/authSlice';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
+import { clearAuth, setCredentials, setIsAuthenticated } from '../../redux/authSlice';
+import { login } from '../../service/user.service';
 
 const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
-  const { maxContentWidth } = useResponsive();
+  const { maxContentWidth, horizontalPadding } = useResponsive();
   const dispatch = useAppDispatch();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [userInfo, setUserInfo] = useState<UserInformation | null>(null);
   const [userLifeStyle, setUserLifeStyle] = useState<UserLifeStyle | null>(null);
   const [userImages, setUserImages] = useState<UserImage[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Change password modal state
+  const [changePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+
+  // Alert state
+  const [alert, setAlert] = useState<{ visible: boolean; type: 'success' | 'error' | 'warning' | 'info'; title: string; message: string }>({ visible: false, type: 'info', title: '', message: '' });
+
+  // Logout confirmation state
+  const [logoutConfirmation, setLogoutConfirmation] = useState(false);
+
+  // Swipe gesture state
+  const [translateY] = useState(new Animated.Value(0));
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 10,
+    onPanResponderMove: (_, gestureState) => {
+      if (gestureState.dy > 0) {
+        translateY.setValue(gestureState.dy);
+      }
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      if (gestureState.dy > 100) {
+        // Swipe down far → close immediately
+        Animated.timing(translateY, {
+          toValue: 500,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          setChangePasswordModalVisible(false);
+          translateY.setValue(0);
+        });
+      } else {
+        // Swipe not far enough → spring back
+        Animated.spring(translateY, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      }
+    },
+  });
 
   useFocusEffect(
     React.useCallback(() => {
@@ -62,22 +111,125 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   );
 
   const handleLogout = async () => {
-    Alert.alert('ยืนยันการออกจากระบบ', 'คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ', [
-      { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
-      {
-        text: 'ออกจากระบบ',
-        onPress: async () => {
-          try {
-            await logout();
-            dispatch(clearAuth());
-          } catch (error) {
-            console.error('Logout error:', error);
-            Alert.alert('ข้อผิดพลาด', 'เกิดข้อผิดพลาดในการออกจากระบบ');
-          }
-        },
-        style: 'destructive',
-      },
-    ]);
+    setLogoutConfirmation(true);
+  };
+
+  const handleConfirmLogout = async () => {
+    setLogoutConfirmation(false);
+    try {
+      await logout();
+      dispatch(clearAuth());
+    } catch (error) {
+      console.error('Logout error:', error);
+      setAlert({
+        visible: true,
+        type: 'error',
+        title: 'ข้อผิดพลาด',
+        message: 'เกิดข้อผิดพลาดในการออกจากระบบ',
+      });
+    }
+  };
+
+  const validatePasswordRequirements = (password: string): string | null => {
+    if (password.length < 8) {
+      return 'ต้องมีอย่างน้อย 8 ตัวอักษร';
+    }
+    if (!/[A-Z]/.test(password)) {
+      return 'ต้องมีตัวพิมพ์ใหญ่';
+    }
+    if (!/[a-z]/.test(password)) {
+      return 'ต้องมีตัวพิมพ์เล็ก';
+    }
+    if (!/\d/.test(password)) {
+      return 'ต้องมีตัวเลข';
+    }
+    if (!/[@$!%*?&]/.test(password)) {
+      return 'ต้องมีอักษรพิเศษ (@$!%*?&)';
+    }
+    return null;
+  };
+
+  const handleChangePassword = async () => {
+    // Validation
+    if (!oldPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
+      setAlert({
+        visible: true,
+        type: 'error',
+        title: 'ข้อผิดพลาด',
+        message: 'กรุณากรอกข้อมูลให้ครบ',
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setAlert({
+        visible: true,
+        type: 'error',
+        title: 'ข้อผิดพลาด',
+        message: 'รหัสผ่านใหม่ไม่ตรงกัน',
+      });
+      return;
+    }
+
+    if (newPassword === oldPassword) {
+      setAlert({
+        visible: true,
+        type: 'error',
+        title: 'ข้อผิดพลาด',
+        message: 'รหัสผ่านใหม่ต้องแตกต่างจากรหัสผ่านเดิม',
+      });
+      return;
+    }
+
+    const passwordError = validatePasswordRequirements(newPassword);
+    if (passwordError) {
+      setAlert({
+        visible: true,
+        type: 'error',
+        title: 'รหัสผ่านไม่ตรงตามเงื่อนไข',
+        message: passwordError,
+      });
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      // Step 1: Change password on backend
+      await changePassword(oldPassword, newPassword);
+
+      // Step 2: Silent re-login with new password
+      if (!userProfile?.username) {
+        throw new Error('ไม่พบชื่อผู้ใช้');
+      }
+      await login({ username: userProfile.username, password: newPassword });
+
+      // Step 3: Update Redux with new credentials
+      dispatch(setCredentials({ username: userProfile.username, password: newPassword }));
+      dispatch(setIsAuthenticated(true));
+
+      // Step 4: Close modal and show success with AlertModal
+      setChangePasswordModalVisible(false);
+      setAlert({
+        visible: true,
+        type: 'success',
+        title: 'สำเร็จ',
+        message: 'เปลี่ยนรหัสผ่านสำเร็จแล้ว',
+      });
+
+      // Clear form
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error: any) {
+      setAlert({
+        visible: true,
+        type: 'error',
+        title: 'ข้อผิดพลาด',
+        message: error?.message || 'เปลี่ยนรหัสผ่านไม่สำเร็จ',
+      });
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
   const CardHeader = ({ icon, title }: { icon: string; title: string }) => (
@@ -179,6 +331,17 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <InfoRow iconName="paw" label="สัตว์เลี้ยง" value={userLifeStyle?.pet?.name || '-'} />
           </View>
 
+          {/* Change Password Button */}
+          <View className="mx-4 mt-4">
+            <TouchableOpacity
+              onPress={() => setChangePasswordModalVisible(true)}
+              className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex-row items-center justify-center"
+            >
+              <MaterialCommunityIcons name="lock-reset" size={20} color="#3b82f6" />
+              <Text className="text-blue-600 font-semibold ml-2">เปลี่ยนรหัสผ่าน</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Logout Button */}
           <View className="mx-4 mt-4 mb-6">
             <TouchableOpacity
@@ -193,6 +356,162 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         </View>
         </ScrollView>
       )}
+
+      {/* Alert Modal */}
+      <AlertModal
+        visible={alert.visible}
+        type={alert.type}
+        title={alert.title}
+        message={alert.message}
+        buttonLabel="ตกลง"
+        onPress={() => setAlert({ visible: false, type: 'info', title: '', message: '' })}
+      />
+
+      {/* Logout Confirmation Modal */}
+      <AlertModal
+        visible={logoutConfirmation}
+        type="warning"
+        title="ยืนยันการออกจากระบบ"
+        message="คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ"
+        buttonLabel="ออกจากระบบ"
+        onPress={handleConfirmLogout}
+        secondaryButtonLabel="ยกเลิก"
+        onSecondaryPress={() => setLogoutConfirmation(false)}
+      />
+
+      {/* Change Password Modal */}
+      <Modal
+        visible={changePasswordModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setChangePasswordModalVisible(false)}
+      >
+        <SafeAreaView className="flex-1 bg-black/50">
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            className="flex-1 justify-end"
+          >
+            <ScrollView
+              scrollEnabled
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }}
+            >
+              <Animated.View
+                className="bg-white rounded-t-3xl p-6 pb-8"
+                style={{ transform: [{ translateY }] }}
+                {...panResponder.panHandlers}
+              >
+              {/* Drag Handle */}
+              <View className="items-center py-2 mb-2">
+                <View className="w-10 h-1 bg-gray-300 rounded-full" />
+              </View>
+
+              {/* Header */}
+              <View className="flex-row items-center justify-between mb-6">
+                <Text className="text-xl font-bold text-gray-900">เปลี่ยนรหัสผ่าน</Text>
+                <TouchableOpacity onPress={() => setChangePasswordModalVisible(false)}>
+                  <MaterialCommunityIcons name="close" size={24} color="#9ca3af" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Old Password */}
+              <View className="mb-4">
+                <Text className="text-sm font-semibold text-gray-700 mb-2">รหัสผ่านเดิม</Text>
+                <View className="border border-gray-300 rounded-xl px-4 h-12 justify-center flex-row items-center">
+                  <TextInput
+                    value={oldPassword}
+                    onChangeText={setOldPassword}
+                    placeholder="กรอกรหัสผ่านเดิม"
+                    placeholderTextColor="#d1d5db"
+                    secureTextEntry={!showOldPassword}
+                    className="flex-1 text-base text-gray-900 p-0"
+                  />
+                  <TouchableOpacity onPress={() => setShowOldPassword(!showOldPassword)}>
+                    <MaterialCommunityIcons name={showOldPassword ? 'eye' : 'eye-off'} size={20} color="#9ca3af" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* New Password */}
+              <View className="mb-4">
+                <Text className="text-sm font-semibold text-gray-700 mb-2">รหัสผ่านใหม่</Text>
+                <View className="border border-gray-300 rounded-xl px-4 h-12 justify-center flex-row items-center">
+                  <TextInput
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    placeholder="กรอกรหัสผ่านใหม่"
+                    placeholderTextColor="#d1d5db"
+                    secureTextEntry={!showNewPassword}
+                    className="flex-1 text-base text-gray-900 p-0"
+                  />
+                  <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)}>
+                    <MaterialCommunityIcons name={showNewPassword ? 'eye' : 'eye-off'} size={20} color="#9ca3af" />
+                  </TouchableOpacity>
+                </View>
+                {/* Password Requirements */}
+                <View className="mt-3 bg-gray-50 rounded-lg p-3">
+                  <Text className="text-xs font-semibold text-gray-700 mb-2">ต้องมี:</Text>
+                  <View className="gap-1">
+                    <Text className={`text-xs ${newPassword.length >= 8 ? 'text-green-600' : 'text-gray-500'}`}>
+                      ✓ อย่างน้อย 8 ตัวอักษร
+                    </Text>
+                    <Text className={`text-xs ${/[A-Z]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                      ✓ ตัวพิมพ์ใหญ่ (A-Z)
+                    </Text>
+                    <Text className={`text-xs ${/[a-z]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                      ✓ ตัวพิมพ์เล็ก (a-z)
+                    </Text>
+                    <Text className={`text-xs ${/\d/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                      ✓ ตัวเลข (0-9)
+                    </Text>
+                    <Text className={`text-xs ${/[@$!%*?&]/.test(newPassword) ? 'text-green-600' : 'text-gray-500'}`}>
+                      ✓ อักษรพิเศษ (@$!%*?&)
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Confirm Password */}
+              <View className="mb-6">
+                <Text className="text-sm font-semibold text-gray-700 mb-2">ยืนยันรหัสผ่านใหม่</Text>
+                <View className="border border-gray-300 rounded-xl px-4 h-12 justify-center flex-row items-center">
+                  <TextInput
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    placeholder="ยืนยันรหัสผ่านใหม่"
+                    placeholderTextColor="#d1d5db"
+                    secureTextEntry={!showConfirmPassword}
+                    className="flex-1 text-base text-gray-900 p-0"
+                  />
+                  <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                    <MaterialCommunityIcons name={showConfirmPassword ? 'eye' : 'eye-off'} size={20} color="#9ca3af" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Buttons */}
+              <View className="gap-3">
+                <TouchableOpacity
+                  onPress={handleChangePassword}
+                  disabled={changingPassword}
+                  className={`rounded-xl p-4 items-center ${changingPassword ? 'bg-gray-300' : 'bg-blue-600'}`}
+                >
+                  <Text className="text-white font-semibold text-base">
+                    {changingPassword ? 'กำลังเปลี่ยน...' : 'เปลี่ยนรหัสผ่าน'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setChangePasswordModalVisible(false)}
+                  className="rounded-xl p-4 items-center bg-gray-100"
+                >
+                  <Text className="text-gray-800 font-semibold text-base">ยกเลิก</Text>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 };

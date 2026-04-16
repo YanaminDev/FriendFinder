@@ -18,7 +18,7 @@ import { useAppSelector, useAppDispatch } from '../../redux/hooks';
 import { setIncomingProposal, setIncomingProposalImage } from '../../redux/locationProposalSlice';
 import { setIsFinding, setPositionId, clearFindMatch, setUserLocation } from '../../redux/findMatchSlice';
 import { clearReviewMatchId } from '../../redux/reviewSlice';
-import { createFindMatch, deleteFindMatch } from '../../service/find_match.service';
+import { createFindMatch, deleteFindMatch, getFindMatch } from '../../service/find_match.service';
 import { getPendingNotifications, respondNotification, NotificationData } from '../../service/notification.service';
 import { createMatch, getActiveMatchByUser } from '../../service/match.service';
 import { getLocationProposalByMatch } from '../../service/location_proposal.service';
@@ -223,6 +223,26 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const handleAcceptNotification = async (notification: any) => {
     let createdMatchId: string | null = null;
     try {
+      // Check if sender still has active find_match (ยังหาคู่อยู่)
+      try {
+        await getFindMatch(notification.senderId);
+      } catch (error: any) {
+        if (error?.status === 404 || error?.message?.includes('not found')) {
+          // Sender ไม่มี find_match record → ได้จับคู่ไปแล้ว
+          setAlert({
+            visible: true,
+            type: 'warning',
+            title: 'ไม่สามารถยอมรับได้',
+            message: 'ผู้ส่งคำขอได้จับคู่กับคนอื่นแล้ว หรือยกเลิกการค้นหา',
+          });
+          await respondNotification(notification.id, 'rejected');
+          fetchNotifications();
+          return;
+        }
+        // Error อื่น ๆ ไม่ต่อ
+        throw error;
+      }
+
       await respondNotification(notification.id, 'accepted');
       const match = await createMatch({
         user1_id: notification.senderId,

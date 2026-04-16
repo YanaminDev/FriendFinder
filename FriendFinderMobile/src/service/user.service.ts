@@ -1,4 +1,4 @@
-import { CHECK_USERNAME, REGISTER, LOGIN, LOGOUT, DELETE_USER, DELETE_USER_BY_ID, GET_USER_PROFILE, UPDATE_USER_SHOW_NAME, UPDATE_USER_INTERESTED_GENDER, CHECK_USER_ONLINE_STATUS } from "../api/endpoint";
+import { CHECK_USERNAME, REGISTER, LOGIN, LOGOUT, DELETE_USER, DELETE_USER_BY_ID, GET_USER_PROFILE, UPDATE_USER_SHOW_NAME, CHANGE_PASSWORD, UPDATE_USER_INTERESTED_GENDER, CHECK_USER_ONLINE_STATUS } from "../api/endpoint";
 import mainApi from "../api/main.api";
 
 export type Sex = "male" | "female" | "lgbtq";
@@ -70,6 +70,15 @@ export const logout = async (): Promise<{ message: string }> => {
         return await mainApi.post<{ message: string }>(LOGOUT);
     } catch (error) {
         console.error("Error logging out:", error);
+        throw error;
+    }
+};
+
+export const changePassword = async (oldPassword: string, newPassword: string): Promise<{ message: string }> => {
+    try {
+        return await mainApi.put<{ message: string }>(CHANGE_PASSWORD, { oldPassword, newPassword });
+    } catch (error) {
+        console.error("Error changing password:", error);
         throw error;
     }
 };
