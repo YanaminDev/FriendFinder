@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "android": {
+      "package": "com.yanamindev.friendfinder"
+    },
+    "owner": "yanamindev",
+    "extra": {
+      "eas": {
+        "projectId": "e6220558-f588-442d-8846-e117f9e73ab6"
+      }
+    }
+  }
+}
