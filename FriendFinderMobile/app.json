@@ -1,7 +1,13 @@
 {
   "expo": {
+    "name": "FriendFinder",
+    "slug": "friendfinder",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
     "android": {
-      "package": "com.yanamindev.friendfinder"
+      "package": "com.yanamindev.friendfinder",
+      "versionCode": 2
     },
     "owner": "yanamindev",
     "extra": {
