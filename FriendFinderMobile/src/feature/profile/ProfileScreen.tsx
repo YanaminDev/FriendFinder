@@ -120,14 +120,14 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     setLogoutConfirmation(false);
     try {
       await logout();
-      dispatch(clearAuth());
     } catch (error) {
-      console.error('Logout error:', error);
-      setAlert({
-        visible: true,
-        type: 'error',
-        title: 'ข้อผิดพลาด',
-        message: 'เกิดข้อผิดพลาดในการออกจากระบบ',
+      console.error('Logout API error:', error);
+    } finally {
+      // Always clear auth and navigate regardless of API success
+      dispatch(clearAuth());
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
       });
     }
   };

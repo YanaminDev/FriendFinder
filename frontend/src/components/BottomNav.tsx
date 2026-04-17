@@ -1,14 +1,30 @@
-import { NavLink } from "react-router-dom"
+import { NavLink, useNavigate } from "react-router-dom"
 import { FiHome, FiUser, FiLogOut } from "react-icons/fi"
 import { MdFeedback } from "react-icons/md"
 import { BiData } from "react-icons/bi"
+import { useAuth } from "../hooks"
 
 export default function BottomNav() {
+  const navigate = useNavigate()
+  const { logout } = useAuth()
   const baseClass =
     "flex flex-col items-center text-xs transition cursor-pointer"
 
   const activeClass = "text-[#FD7979]"
   const inactiveClass = "text-gray-400 hover:text-[#FD7979]"
+
+  const handleLogout = async () => {
+    console.log(' Logout button clicked')
+    try {
+      await logout()
+      console.log(' Logout completed, navigating to login...')
+      navigate('/login')
+    } catch (err) {
+      console.error(' Logout failed:', err)
+      // Still navigate to login even if logout API fails
+      navigate('/login')
+    }
+  }
 
   return (
     <div className="
@@ -59,15 +75,13 @@ export default function BottomNav() {
         <span>ADD DATA</span>
       </NavLink>
 
-      <NavLink
-        to="/login"
-        className={({ isActive }) =>
-          `${baseClass} ${isActive ? activeClass : inactiveClass}`
-        }
+      <button
+        onClick={handleLogout}
+        className={`${baseClass} ${inactiveClass}`}
       >
         <FiLogOut size={20} />
         <span>LOG OUT</span>
-      </NavLink>
+      </button>
 
     </div>
   )
