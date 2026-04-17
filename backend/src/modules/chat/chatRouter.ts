@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { prisma } from "../../../lib/prisma";
 import { chatRepository } from "./chatRepository";
 import {
     CreateChatSchema,
@@ -59,15 +60,41 @@ export const chatRouter = () => {
     router.delete("/delete/:chat_id", authenticateToken, async (req, res) => {
         try {
             const chat_id = String(req.params.chat_id);
+            const user_id = (req as any).user?.sub;
+
             if (!chat_id) {
                 return res.status(400).json({ message: "Chat ID is required" });
             }
+
+            if (!user_id) {
+                return res.status(401).json({ message: "Unauthorized" });
+            }
+
+            // ✅ ตรวจสอบว่า user เป็นสมาชิกของแชทนี้
+            const chat = await prisma.chat.findUnique({
+                where: { id: chat_id },
+                select: { user1_id: true, user2_id: true }
+            });
+
+            if (!chat) {
+                return res.status(404).json({ message: "Chat not found" });
+            }
+
+            if (chat.user1_id !== user_id && chat.user2_id !== user_id) {
+                return res.status(403).json({ message: "Unauthorized to delete this chat" });
+            }
+
             const validateData = DeleteChatSchema.parse({ chat_id });
-            await chatRepository.deleteChat(validateData);
-            res.status(200).json({ message: "Chat deleted successfully" });
+            const deletedChat = await chatRepository.deleteChat(validateData);
+
+            res.status(200).json({ message: "Chat deleted successfully", chat: deletedChat });
         }
-        catch (err) {
-            return res.status(500).json({ message: "Failed to delete chat" });
+        catch (err: any) {
+            console.error("[Chat] delete error:", err?.message || err);
+            return res.status(500).json({
+                message: "Failed to delete chat",
+                error: err?.message || "Unknown error"
+            });
         }
     });
 

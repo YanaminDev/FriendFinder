@@ -20,9 +20,10 @@ function AuthGuard() {
   const router = useRouter();
 
   useEffect(() => {
-    const isInTabs = segments[0] === '(tabs)';
-    const isPublicPage = segments[0] === 'page' && PUBLIC_PAGE_SEGMENTS.has(segments[1]);
-    const isProtected = isInTabs || (segments[0] === 'page' && !isPublicPage);
+    const segmentsArray = segments as string[];
+    const isInTabs = segmentsArray[0] === '(tabs)';
+    const isPublicPage = segmentsArray[0] === 'page' && segmentsArray.length > 1 && PUBLIC_PAGE_SEGMENTS.has(segmentsArray[1]);
+    const isProtected = isInTabs || (segmentsArray[0] === 'page' && !isPublicPage);
 
     if (!isAuthenticated && isProtected) {
       router.replace('/page/splash');

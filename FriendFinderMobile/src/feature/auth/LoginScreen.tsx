@@ -46,7 +46,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     try {
       const response = await login({ username, password });
 
-      dispatch(setCredentials({ username, password, accessToken: response.accessToken }));
+      dispatch(setCredentials({ username, password, accessToken: response.accessToken, refreshToken: response.refreshToken }));
       dispatch(setUserId(response.user_id));
       dispatch(setIsAuthenticated(true));
       showAlert('success', 'สำเร็จ', response.message || 'เข้าสู่ระบบสำเร็จ', () => {

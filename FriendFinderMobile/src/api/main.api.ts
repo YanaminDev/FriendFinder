@@ -1,7 +1,6 @@
 const BASE_URL = __DEV__ ? "http://192.168.1.100:3000" : "https://api.friendsfinders.uk";
 
 const getHeaders = () => {
-    // Lazy load store to avoid circular dependency
     const storeModule = require('../redux/store');
     const store = storeModule.store;
     const state = store.getState();
@@ -14,16 +13,59 @@ const getHeaders = () => {
     return headers;
 };
 
-async function request<T>(method: string, endpoint: string, body?: unknown): Promise<T> {
+async function refreshAccessToken(): Promise<string | null> {
+    try {
+        const storeModule = require('../redux/store');
+        const { store } = storeModule;
+        const state = store.getState();
+        const refreshToken = state.auth?.refreshToken;
+
+        if (!refreshToken) return null;
+
+        const response = await fetch(`${BASE_URL}/v1/api/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: refreshToken }),
+        });
+
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        if (data.accessToken) {
+            const { setAccessToken } = require('../redux/authSlice');
+            store.dispatch(setAccessToken(data.accessToken));
+            return data.accessToken;
+        }
+        return null;
+    } catch (error) {
+        console.error('Token refresh failed:', error);
+        return null;
+    }
+}
+
+async function request<T>(method: string, endpoint: string, body?: unknown, isRetry: boolean = false): Promise<T> {
     try {
         const headers = getHeaders();
 
-        const response = await fetch(`${BASE_URL}${endpoint}`, {
+        let response = await fetch(`${BASE_URL}${endpoint}`, {
             method,
             credentials: "include",
             headers,
             body: body !== undefined ? JSON.stringify(body) : undefined,
         });
+
+        if (response.status === 401 && !isRetry && endpoint !== '/v1/api/auth/refresh') {
+            const newAccessToken = await refreshAccessToken();
+            if (newAccessToken) {
+                const newHeaders = { ...headers, Authorization: `Bearer ${newAccessToken}` };
+                response = await fetch(`${BASE_URL}${endpoint}`, {
+                    method,
+                    credentials: "include",
+                    headers: newHeaders,
+                    body: body !== undefined ? JSON.stringify(body) : undefined,
+                });
+            }
+        }
 
         if (!response.ok) {
             const error = await response.json().catch(() => ({ message: response.statusText }));
@@ -34,7 +76,6 @@ async function request<T>(method: string, endpoint: string, body?: unknown): Pro
         }
         return response.json();
     } catch (error) {
-        // ถ้าเป็น 404 หรือ error ที่คาดหวัง ก็ไม่ต้อง log
         const status = (error as any)?.status;
         if (status !== 404 && !endpoint.includes('active')) {
             console.error(`API Error [${method} ${BASE_URL}${endpoint}]:`, error);
@@ -43,8 +84,7 @@ async function request<T>(method: string, endpoint: string, body?: unknown): Pro
     }
 }
 
-async function upload<T>(endpoint: string, formData: FormData, method: "POST" | "PUT" = "POST"): Promise<T> {
-    // Lazy load store to avoid circular dependency
+async function upload<T>(endpoint: string, formData: FormData, method: "POST" | "PUT" = "POST", isRetry: boolean = false): Promise<T> {
     const storeModule = require('../redux/store');
     const store = storeModule.store;
     const state = store.getState();
@@ -55,12 +95,26 @@ async function upload<T>(endpoint: string, formData: FormData, method: "POST" | 
         headers.Authorization = `Bearer ${accessToken}`;
     }
 
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
+    let response = await fetch(`${BASE_URL}${endpoint}`, {
         method,
         credentials: "include",
         headers,
         body: formData,
     });
+
+    if (response.status === 401 && !isRetry) {
+        const newAccessToken = await refreshAccessToken();
+        if (newAccessToken) {
+            const newHeaders = { Authorization: `Bearer ${newAccessToken}` };
+            response = await fetch(`${BASE_URL}${endpoint}`, {
+                method,
+                credentials: "include",
+                headers: newHeaders,
+                body: formData,
+            });
+        }
+    }
+
     if (!response.ok) {
         const error = await response.json().catch(() => ({ message: response.statusText }));
         throw new Error(error.message ?? response.statusText);

@@ -10,6 +10,7 @@ import { setPetId } from '../../redux/userLifeStyleSlice';
 import { setUserId } from '../../redux/userSlice';
 import { getPet, Pet } from '../../service/pet.service';
 import { register } from '../../service/user.service';
+import { setCredentials, setIsAuthenticated } from '../../redux/authSlice';
 import { uploadUserImage } from '../../service/user_image.service';
 import { createUserInformation } from '../../service/user_information.service';
 import { createUserLifeStyle } from '../../service/user_life_style.service';
@@ -37,7 +38,9 @@ const PetsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     setSubmitting(true);
     dispatch(setPetId(selected));
     try {
-      const { user_id } = await registerUser();
+      const { user_id, accessToken, refreshToken } = await registerUser();
+      dispatch(setCredentials({ username, password, accessToken, refreshToken }));
+      dispatch(setIsAuthenticated(true));
       dispatch(setUserId(user_id));
       await uploadImage(user_id);
       await createProfile(user_id, selected);
@@ -52,7 +55,7 @@ const PetsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const registerUser = async () => {
     const res = await register({ username, password, user_show_name, sex: sex as any, age: age!, birth_of_date, interested_gender: interested_gender as any });
     if (!res.user_id) throw new Error('ไม่ได้รับ user_id จาก server');
-    return { user_id: res.user_id };
+    return { user_id: res.user_id, accessToken: res.accessToken || '', refreshToken: res.refreshToken || '' };
   };
 
   const uploadImage = async (user_id: string) => {

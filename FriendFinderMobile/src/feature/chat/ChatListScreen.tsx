@@ -1,7 +1,7 @@
 // ─── ChatListScreen ────────────────────────────────────────────────────────────
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Image, TouchableOpacity, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView as SafeAreaViewContext } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -78,6 +78,7 @@ const ChatListScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
   const { conversations, loadingConversations } = useAppSelector(state => state.chat);
   const [searchText, setSearchText] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (currentUserId && isAuthenticated) {
@@ -93,6 +94,18 @@ const ChatListScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       }
     }, [currentUserId, isAuthenticated])
   );
+
+  // Pull-to-refresh handler
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      if (currentUserId && isAuthenticated) {
+        await dispatch(fetchConversations(currentUserId));
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  }, [currentUserId, isAuthenticated, dispatch]);
 
 
   const mappedConversations = conversations.map(chat =>
@@ -189,6 +202,9 @@ const ChatListScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <FlatList
           data={filteredConversations}
           keyExtractor={item => item.id}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
           renderItem={({ item }) => (
             <View style={{ alignItems: 'center' }}>
               <View style={{ width: '100%', maxWidth: maxContentWidth }}>

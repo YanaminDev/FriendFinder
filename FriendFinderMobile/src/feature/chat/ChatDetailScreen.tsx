@@ -16,12 +16,14 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import AppHeader from '../../components/common/AppHeader';
 import MessageBubble from '../../components/chat/MessageBubble';
+import AlertModal from '../../components/common/AlertModal';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { fetchMessages, clearMessages, addMessage } from '../../redux/chatSlice';
 import { useSocket } from '../../hooks/useSocket';
 import { uploadChatImage } from '../../service/chat_message.service';
 import { colors } from '../../constants/theme';
+import { deleteChat } from '../../service/chat.service';
 
 const getInitials = (name: string) =>
   name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -48,6 +50,8 @@ const ChatDetailScreen: React.FC<{
 
   const [text, setText] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [deletingChat, setDeletingChat] = useState(false);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const { sendMessage } = useSocket(conversationId);
   const { maxContentWidth } = useResponsive();
 
@@ -131,12 +135,39 @@ const ChatDetailScreen: React.FC<{
     }
   };
 
+  const handleDeleteChat = () => {
+    setShowDeleteAlert(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setShowDeleteAlert(false);
+    setDeletingChat(true);
+    try {
+      await deleteChat(conversationId);
+      dispatch(clearMessages());
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+    } finally {
+      setDeletingChat(false);
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={['top', 'bottom', 'left', 'right']}>
       <AppHeader
         title={otherUsername}
         showBack
         onBackPress={() => navigation.goBack()}
+        rightElement={
+          <TouchableOpacity
+            onPress={handleDeleteChat}
+            disabled={deletingChat}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="trash-outline" size={24} color="#ef4444" />
+          </TouchableOpacity>
+        }
       />
 
       <KeyboardAvoidingView
@@ -232,6 +263,17 @@ const ChatDetailScreen: React.FC<{
         </View>
         </View>
       </KeyboardAvoidingView>
+
+      <AlertModal
+        visible={showDeleteAlert}
+        type="warning"
+        title="ลบห้องแชท"
+        message="ยืนยันที่จะลบห้องแชท? ไม่สามารถกู้คืนได้"
+        buttonLabel="ลบ"
+        onPress={handleConfirmDelete}
+        secondaryButtonLabel="ยกเลิก"
+        onSecondaryPress={() => setShowDeleteAlert(false)}
+      />
     </SafeAreaView>
   );
 };

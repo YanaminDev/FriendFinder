@@ -1,4 +1,5 @@
 import { prisma } from "../../../lib/prisma";
+import { supabase } from "../../../lib/supabase";
 import {
     CreateChatSchema,
     GetChatSchema,
@@ -119,11 +120,47 @@ export const chatRepository = {
 
     deleteChat: async (data: DeleteChatInput) => {
         try {
-            return await prisma.chat.delete({
+            // ✅ ดึง messages ที่มีรูปทั้งหมด
+            const messagesWithImages = await prisma.chat_Message.findMany({
                 where: {
-                    id: data.chat_id
+                    chat_id: data.chat_id,
+                    chatType: 'image'
                 }
             });
+
+            // ✅ ลบรูปจาก Supabase storage
+            if (messagesWithImages.length > 0) {
+                const filePaths = messagesWithImages
+                    .map(msg => {
+                        const match = msg.message.match(/chat-images\/(.+)$/);
+                        return match ? `chat-images/${match[1]}` : null;
+                    })
+                    .filter((path): path is string => path !== null);
+
+                if (filePaths.length > 0) {
+                    await supabase.storage
+                        .from('chatImage')
+                        .remove(filePaths)
+                        .catch(err => console.error('Image cleanup error:', err?.message));
+                }
+            }
+
+            // ✅ ลบ messages จาก database
+            await prisma.chat_Message.deleteMany({
+                where: { chat_id: data.chat_id }
+            });
+
+            // ✅ ลบ chat
+            const deletedChat = await prisma.chat.delete({
+                where: {
+                    id: data.chat_id
+                },
+                include: {
+                    user1: { select: { user_id: true } },
+                    user2: { select: { user_id: true } }
+                }
+            });
+            return deletedChat;
         }
         catch (err) {
             throw err;

@@ -36,8 +36,8 @@ export function generateRefreshToken(user: userIdpayload): string {
     const payload = {
         sub : user.user_id
     }
-    
-    return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: '7d' })
+
+    return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: '30d' })
 }
 
 

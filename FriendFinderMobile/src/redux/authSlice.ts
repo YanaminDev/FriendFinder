@@ -4,6 +4,7 @@ interface AuthState {
   username: string;
   password: string;
   accessToken: string;
+  refreshToken: string;
   isAuthenticated: boolean;
 }
 
@@ -11,6 +12,7 @@ const initialState: AuthState = {
   username: '',
   password: '',
   accessToken: '',
+  refreshToken: '',
   isAuthenticated: false,
 };
 
@@ -30,12 +32,19 @@ export const authSlice = createSlice({
     setAccessToken: (state, action: PayloadAction<string>) => {
       state.accessToken = action.payload;
     },
+    // Set refresh token
+    setRefreshToken: (state, action: PayloadAction<string>) => {
+      state.refreshToken = action.payload;
+    },
     // Set credentials (both)
-    setCredentials: (state, action: PayloadAction<{ username: string; password: string; accessToken?: string }>) => {
+    setCredentials: (state, action: PayloadAction<{ username: string; password: string; accessToken?: string; refreshToken?: string }>) => {
       state.username = action.payload.username;
       state.password = action.payload.password;
       if (action.payload.accessToken) {
         state.accessToken = action.payload.accessToken;
+      }
+      if (action.payload.refreshToken) {
+        state.refreshToken = action.payload.refreshToken;
       }
     },
     // Set authenticated
@@ -47,10 +56,11 @@ export const authSlice = createSlice({
       state.username = '';
       state.password = '';
       state.accessToken = '';
+      state.refreshToken = '';
       state.isAuthenticated = false;
     },
   },
 });
 
-export const { setUsername, setPassword, setAccessToken, setCredentials, setIsAuthenticated, clearAuth } = authSlice.actions;
+export const { setUsername, setPassword, setAccessToken, setRefreshToken, setCredentials, setIsAuthenticated, clearAuth } = authSlice.actions;
 export default authSlice.reducer;

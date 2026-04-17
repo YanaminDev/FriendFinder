@@ -44,7 +44,7 @@ export const userRouter = () => {
                     httpOnly : true,
                     secure : process.env.NODE_ENV === 'production',
                     sameSite : 'strict',
-                    maxAge : 7 * 24 * 60 * 60 * 1000
+                    maxAge : 30 * 24 * 60 * 60 * 1000
                 })
 
                 return res.status(201).json({ message: "User registered successfully", user_id: responsedata.user_id, accessToken, refreshToken });
@@ -99,7 +99,7 @@ export const userRouter = () => {
                     httpOnly : true,
                     secure : process.env.NODE_ENV === 'production',
                     sameSite : 'strict',
-                    maxAge : 7 * 24 * 60 * 60 * 1000
+                    maxAge : 30 * 24 * 60 * 60 * 1000
                 })
 
                 return res.status(200).json({
@@ -243,6 +243,45 @@ export const userRouter = () => {
                 return res.status(400).json({ message: err.errors[0]?.message || "Invalid password format" });
             }
             return res.status(400).json({ message: err.message || "Failed to change password" });
+        }
+    })
+
+    // ✅ Refresh access token
+    router.post("/refresh", async (req, res) => {
+        try {
+            let refreshToken = req.cookies.refreshToken || req.body.token;
+            if (!refreshToken) {
+                return res.status(401).json({ message: "No refresh token" });
+            }
+
+            const decoded = await verifyRefreshToken(refreshToken);
+            const user_id = decoded.sub;
+
+            const user = await userRepository.getProfile(user_id);
+            if (!user) {
+                return res.status(401).json({ message: "User not found" });
+            }
+
+            const newAccessToken = generateAccessToken({
+                user_id: user.user_id,
+                username: user.username,
+                role: user.role
+            });
+
+            res.cookie('accessToken', newAccessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 15 * 60 * 1000
+            });
+
+            return res.status(200).json({
+                accessToken: newAccessToken,
+                user_id: user.user_id
+            });
+        } catch (err: any) {
+            console.error("Token refresh error:", err);
+            return res.status(401).json({ message: "Failed to refresh token" });
         }
     })
 
