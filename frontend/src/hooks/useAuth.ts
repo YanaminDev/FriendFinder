@@ -61,15 +61,23 @@ export const useAuth = () => {
   };
 
   const logout = async () => {
+    console.log(' Starting logout...');
     setLoading(true);
     try {
+      // Call logout API to set user offline on backend
+      console.log(' Sending logout request to backend...');
       await authService.logout();
+      console.log(' Logout API completed');
+    } catch (err) {
+      console.error(' Logout API error:', err);
+      // Continue with local logout even if API fails
+    } finally {
+      // Always clear local state regardless of API result
+      console.log(' Clearing local state (zustand + context)...');
       zustandLogout();
       contextLogout();
-    } catch (err) {
-      console.error('Logout error:', err);
-    } finally {
       setLoading(false);
+      console.log(' Logout complete');
     }
   };
 

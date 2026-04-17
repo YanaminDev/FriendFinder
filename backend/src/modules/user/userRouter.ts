@@ -169,15 +169,20 @@ export const userRouter = () => {
         try {
             const user_id = (req as any).user.sub;
             // Set user as offline
-            await userRepository.setUserOnline(user_id, false);
+            try {
+                await userRepository.setUserOnline(user_id, false);
+            } catch (offlineErr) {
+                console.error('Failed to set user offline:', offlineErr);
+            }
 
             res.clearCookie("accessToken");
             res.clearCookie("refreshToken");
-            res.status(200).json({message:"User logged out successfully"})
+            return res.status(200).json({message:"User logged out successfully", user_id})
         } catch (err) {
+            console.error('Logout error:', err);
             res.clearCookie("accessToken");
             res.clearCookie("refreshToken");
-            res.status(200).json({message:"User logged out successfully"})
+            return res.status(200).json({message:"User logged out successfully"})
         }
     })
 

@@ -4,6 +4,7 @@ import LocationPicker, { type SelectedLocation } from "../map/PositionPicker"
 import AddPositionModal from "../Position/AddPositionModal"
 import EditPositionModal from "../Position/EditPositionModal"
 import PositionDetailPopup from "../Position/PositionDetailPopup"
+import PositionListPanel from "../Position/PositionListPanel"
 import PlaceListModal from "../location/PlaceListModal"
 import PlaceFormModal from "../location/PlaceFormModal"
 import { useState, useEffect } from "react"
@@ -34,6 +35,7 @@ export default function Home() {
   const [isDetailPopupOpen, setIsDetailPopupOpen] = useState(false)
   const [isPlaceListOpen, setIsPlaceListOpen] = useState(false)
   const [isPlaceFormOpen, setIsPlaceFormOpen] = useState(false)
+  const [isPositionListPanelOpen, setIsPositionListPanelOpen] = useState(false)
 
   const [selectedPickerCoords, setSelectedPickerCoords] = useState<SelectedLocation | null>(null)
   const [editingPlace, setEditingPlace] = useState<LocationResponse | null>(null)
@@ -45,11 +47,12 @@ export default function Home() {
     title: string
     message: string
     confirmLabel: string
+    confirmVariant: 'danger' | 'primary' | 'admin'
     onConfirm: () => void
-  }>({ isOpen: false, title: '', message: '', confirmLabel: '', onConfirm: () => {} })
+  }>({ isOpen: false, title: '', message: '', confirmLabel: '', confirmVariant: 'danger', onConfirm: () => {} })
 
-  const openConfirm = (title: string, message: string, confirmLabel: string, onConfirm: () => void) => {
-    setConfirmDialog({ isOpen: true, title, message, confirmLabel, onConfirm })
+  const openConfirm = (title: string, message: string, confirmLabel: string, onConfirm: () => void, confirmVariant: 'danger' | 'primary' | 'admin' = 'danger') => {
+    setConfirmDialog({ isOpen: true, title, message, confirmLabel, confirmVariant, onConfirm })
   }
 
   const closeConfirm = () => {
@@ -163,6 +166,7 @@ export default function Home() {
         }
         closeConfirm()
       }
+    , 'primary'
     )
   }
 
@@ -303,16 +307,38 @@ export default function Home() {
         'อัปเดตสถานที่',
         'คุณต้องการบันทึกการแก้ไขสถานที่นี้ใช่หรือไม่?',
         'ยืนยันบันทึก',
-        doSave
+        doSave,
+        'primary'
       )
     } else {
       doSave()
     }
   }
 
+  const handleSelectPositionFromPanel = (position: Position) => {
+    setSelectedPosition(position)
+    setIsPlaceListOpen(true)
+  }
+
   return (
     <div className="relative w-full h-screen flex flex-col">
       <TopBar />
+
+      {/* Floating Position List Button */}
+      <div className="fixed top-20 left-1/2 -translate-x-1/2 z-30">
+        <button
+          onClick={() => setIsPositionListPanelOpen(true)}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-gray-550 bg-white text-gray-500 hover:bg-gray-50 hover:text-[#F26B6B] hover:border-[#F26B6B] shadow-md transition-all text-sm font-medium"
+        >
+          <span>Position</span>
+        </button>
+      </div>
+
+      <PositionListPanel
+        isOpen={isPositionListPanelOpen}
+        onClose={() => setIsPositionListPanelOpen(false)}
+        onSelectPosition={handleSelectPositionFromPanel}
+      />
 
       <div className="flex-1 pt-16 relative">
         <LocationPicker
@@ -374,7 +400,7 @@ export default function Home() {
         title={confirmDialog.title}
         message={confirmDialog.message}
         confirmLabel={confirmDialog.confirmLabel}
-        confirmVariant="danger"
+        confirmVariant={confirmDialog.confirmVariant}
         onConfirm={confirmDialog.onConfirm}
         onCancel={closeConfirm}
       />

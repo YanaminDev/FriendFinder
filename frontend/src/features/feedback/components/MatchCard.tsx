@@ -277,7 +277,9 @@ function LocationReviewCard({
         {[
           { user: match.user1, review: user1LocReview },
           { user: match.user2, review: user2LocReview },
-        ].map(({ user, review }) => {
+        ]
+          .filter(({ review }) => review) // Only show users who have a review
+          .map(({ user, review }) => {
           const avatar = getAvatar(user)
           return (
             <div key={user.user_id} className="flex items-start gap-3 py-3.5">

@@ -49,16 +49,23 @@ export const authService = {
 
   async logout(): Promise<void> {
     try {
-      await axiosInstance.post(AUTH_LOGOUT);
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      // Clear storage regardless
+      const response = await axiosInstance.post(AUTH_LOGOUT);
+      console.log('✅ Logout API success:', response.data);
+      // Clear storage after successful logout
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('username');
       localStorage.removeItem('userId');
       localStorage.removeItem('role');
+    } catch (error: any) {
+      console.error('❌ Logout API error:', error.response?.data || error.message);
+      // Clear storage anyway on error
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('username');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('role');
+      throw error;
     }
   },
 

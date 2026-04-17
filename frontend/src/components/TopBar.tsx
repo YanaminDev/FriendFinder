@@ -1,11 +1,10 @@
-// components/layout/TopBar.tsx
 interface TopBarProps {
   title?: string
   onBack?: () => void
 }
 
 export default function TopBar({ 
-  title = "FriendFinder"
+  title = "FriendFinder",
 }: TopBarProps) {
   return (
     <div className="
@@ -17,7 +16,6 @@ export default function TopBar({
       px-4
       z-50
     ">
-
       <div className="flex items-center gap-2 ml-3">
         <span className="text-[#FD7979] text-lg font-semibold">
           {title}

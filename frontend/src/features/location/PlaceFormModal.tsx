@@ -79,7 +79,7 @@ const PlaceFormModal: React.FC<PlaceFormModalProps> = ({
         close_time: editingPlace.close_time || '',
       });
       locationService.getImagesByLocationId(editingPlace.id)
-        .then(imgs => setExistingImages(imgs.sort((a, b) => a.position - b.position)))
+        .then(imgs => setExistingImages(imgs.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())))
         .catch(() => setExistingImages([]));
     } else if (isOpen) {
       setFormData({
