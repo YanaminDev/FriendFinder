@@ -20,6 +20,9 @@ export const locationImageRepository = {
             const locationImages = await prisma.location_image.findMany({
                 where: {
                     location_id: locationId
+                },
+                orderBy: {
+                    createdAt: 'asc'
                 }
             });
             

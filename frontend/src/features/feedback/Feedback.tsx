@@ -106,7 +106,11 @@ export default function Feedback() {
           <SearchBar
             value={searchQuery}
             onChange={setSearchQuery}
-            placeholder="ค้นหาชื่อผู้ใช้ หรือสถานที่..."
+            placeholder={
+              activeTab === "location_review"
+                ? "ค้นหาสถานที่..."
+                : "ค้นหาชื่อผู้ใช้..."
+            }
           />
           <DateRangePicker
             dateFrom={dateFrom}

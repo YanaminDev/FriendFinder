@@ -102,3 +102,14 @@ export const USER_INFORMATION_GET = (userId: string) => `/v1/user-information/ge
 
 // ============ USER LIFE STYLE ENDPOINTS ============
 export const USER_LIFE_STYLE_GET = (userId: string) => `/v1/user-life-style/get/${userId}`;
+
+
+// Chat Endpoints
+export const CHAT_GET_CONVERSATIONS = '/api/chat/conversations';
+export const CHAT_GET_MESSAGES = '/api/chat/messages/:chatId';
+export const CHAT_SEND_MESSAGE = '/api/chat/message/send';
+
+// Match Endpoints
+export const MATCH_GET_ALL = '/api/match/list';
+export const MATCH_CREATE = '/api/match/create';
+export const MATCH_GET_BY_ID = '/api/match/:id';

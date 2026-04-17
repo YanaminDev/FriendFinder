@@ -56,7 +56,7 @@ const PlaceListModal: React.FC<PlaceListModalProps> = ({
       <Card className="w-full max-w-3xl max-h-[85vh] flex flex-col p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-4 pb-4 border-b">
-          <h2 className="text-2xl font-bold text-gray-800">Location List</h2>
+          <h2 className="text-xl font-bold text-gray-800">{positionName}</h2>
           <div className="flex items-center gap-3">
             <Button variant="primary" size="sm" onClick={onAddPlace}>
               ADD LOCATION
@@ -97,7 +97,7 @@ const PlaceListModal: React.FC<PlaceListModalProps> = ({
                 <div className="w-full md:w-48 shrink-0">
                   {loc.location_image && loc.location_image.length > 0 ? (
                     <ImageCarousel
-                      images={loc.location_image.map(img => img.imageUrl)}
+                      images={[...loc.location_image].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()).map(img => img.imageUrl)}
                     />
                   ) : (
                     <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center">
