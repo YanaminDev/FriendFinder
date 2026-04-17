@@ -7,7 +7,7 @@
     "userInterfaceStyle": "automatic",
     "android": {
       "package": "com.yanamindev.friendfinder",
-      "versionCode": 2
+      "versionCode": 3
     },
     "owner": "yanamindev",
     "extra": {
