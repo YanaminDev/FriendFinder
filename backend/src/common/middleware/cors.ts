@@ -12,6 +12,7 @@ export const corsMiddleware = cors({
     // Production
     'https://api.friendsfinders.uk',
     'https://friendsfinders.uk',
+    'https://www.friendsfinders.uk',
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
