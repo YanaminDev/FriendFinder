@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axiosInstance from '../apis/main.api';
+import { ADMIN_VERIFY, USER_SET_OFFLINE } from '../apis/endpoint.api';
 
 export interface AuthContextType {
   isAuthenticated: boolean;
@@ -15,32 +17,50 @@ export interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [role, setRole] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(() => localStorage.getItem('accessToken'));
+  const [username, setUsername] = useState<string | null>(() => localStorage.getItem('username'));
+  const [userId, setUserId] = useState<string | null>(() => localStorage.getItem('userId'));
+  const [role, setRole] = useState<string | null>(() => localStorage.getItem('role'));
 
-  // ตรวจสอบ token จาก localStorage ตอน mount
+  const isAuthenticated = !!(accessToken && username && userId && role);
+
+  // Verify token against backend on mount — clears stale/expired/invalid tokens
   useEffect(() => {
-    checkAuth();
+    if (!accessToken) return;
+    axiosInstance.get(ADMIN_VERIFY).catch(() => {
+      // 401 → axios interceptor handles redirect; 403 → not admin, clear manually
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('username');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('role');
+      setAccessToken(null);
+      setUsername(null);
+      setUserId(null);
+      setRole(null);
+      window.location.replace('/login');
+    });
+  }, []);
+
+  // Set user offline when tab/browser is closed
+  useEffect(() => {
+    const handleUnload = () => {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+      navigator.sendBeacon(
+        `${baseUrl}${USER_SET_OFFLINE}`,
+        new Blob([JSON.stringify({ token })], { type: 'application/json' })
+      );
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    return () => window.removeEventListener('beforeunload', handleUnload);
   }, []);
 
   const checkAuth = () => {
-    const token = localStorage.getItem('accessToken');
-    const storedUsername = localStorage.getItem('username');
-    const storedUserId = localStorage.getItem('userId');
-    const storedRole = localStorage.getItem('role');
-    
-    if (token && storedUsername && storedUserId && storedRole) {
-      setAccessToken(token);
-      setUsername(storedUsername);
-      setUserId(storedUserId);
-      setRole(storedRole);
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-    }
+    setAccessToken(localStorage.getItem('accessToken'));
+    setUsername(localStorage.getItem('username'));
+    setUserId(localStorage.getItem('userId'));
+    setRole(localStorage.getItem('role'));
   };
 
   const login = (token: string, username: string, userId: string, role: string) => {
@@ -53,7 +73,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUsername(username);
     setUserId(userId);
     setRole(role);
-    setIsAuthenticated(true);
   };
 
   const logout = () => {
@@ -66,7 +85,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUsername(null);
     setUserId(null);
     setRole(null);
-    setIsAuthenticated(false);
   };
 
   return (

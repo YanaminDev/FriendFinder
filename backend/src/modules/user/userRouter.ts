@@ -3,7 +3,8 @@ import { userRepository } from "./userRepository";
 import { UserSignupSchema , UserLoginSchema, ChangePasswordSchema } from "./userModel"
 import {generateAccessToken,generateRefreshToken , verifyRefreshToken} from "../../common/utils/jwt"
 import "dotenv/config"
-import { authenticateToken } from "../../common/middleware/authenticate"
+import { authenticateToken } from "../../common/middleware/authenticate";
+import { verifyToken } from "../../common/utils/jwt";
 import {authorize} from '../../common/middleware/authorize'
 
 
@@ -207,6 +208,21 @@ export const userRouter = () => {
             return res.status(200).json({ is_online: isOnline });
         } catch (err) {
             return res.status(500).json({ message: "Failed to check online status" });
+        }
+    })
+
+    // Used by sendBeacon on page unload — token verified in body since headers cannot be set
+    router.post("/set-offline", async (req, res) => {
+        try {
+            const { token } = req.body;
+            if (!token) return res.status(400).json({ message: "Token required" });
+            const decoded = verifyToken(token) as any;
+            const user_id: string = decoded.sub ?? decoded.user_id;
+            if (!user_id) return res.status(400).json({ message: "Invalid token" });
+            await userRepository.setUserOnline(user_id, false);
+            return res.status(200).json({ ok: true });
+        } catch (err) {
+            return res.status(401).json({ message: "Unauthorized" });
         }
     })
 

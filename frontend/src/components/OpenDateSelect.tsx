@@ -1,6 +1,38 @@
-import React from "react"
-
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
+type Day = typeof DAYS[number];
+
+// Expand range-style value ("Mon-Fri") back to individual day array
+function parseDays(value: string): string[] {
+  if (!value || value === 'Everyday') return [];
+  return value.split(',').flatMap(part => {
+    if (part.includes('-')) {
+      const [start, end] = part.split('-');
+      const s = DAYS.indexOf(start as Day);
+      const e = DAYS.indexOf(end as Day);
+      if (s !== -1 && e !== -1 && e >= s) return Array.from(DAYS.slice(s, e + 1));
+    }
+    return [part];
+  }).filter(Boolean);
+}
+
+// Compress sorted day array into range string ("Mon,Tue,Wed,Thu,Fri" → "Mon-Fri")
+function compressDays(days: string[]): string {
+  if (days.length === 0) return '';
+  if (days.length === 7) return 'Everyday';
+  const indices = days
+    .map(d => DAYS.indexOf(d as Day))
+    .filter(i => i !== -1)
+    .sort((a, b) => a - b);
+  const groups: string[] = [];
+  let i = 0;
+  while (i < indices.length) {
+    let j = i;
+    while (j + 1 < indices.length && indices[j + 1] === indices[j] + 1) j++;
+    groups.push(j > i ? `${DAYS[indices[i]]}-${DAYS[indices[j]]}` : DAYS[indices[i]]);
+    i = j + 1;
+  }
+  return groups.join(',');
+}
 
 interface Props {
   value: string;
@@ -11,7 +43,7 @@ interface Props {
 
 export default function OpenDateSelect({ value, onChange, className = "", disabled }: Props) {
   const isEveryday = value === 'Everyday';
-  const selectedDays = isEveryday ? [...DAYS] : value.split(',').filter(Boolean);
+  const selectedDays = isEveryday ? [...DAYS] : parseDays(value);
 
   const toggleDay = (day: string) => {
     if (disabled) return;
@@ -26,9 +58,9 @@ export default function OpenDateSelect({ value, onChange, className = "", disabl
     if (next.length === 7) {
       onChange('Everyday');
     } else {
-      // Sort by DAYS order
+      // Sort by DAYS order then compress consecutive ranges
       next.sort((a, b) => DAYS.indexOf(a as any) - DAYS.indexOf(b as any));
-      onChange(next.join(','));
+      onChange(compressDays(next));
     }
   };
 

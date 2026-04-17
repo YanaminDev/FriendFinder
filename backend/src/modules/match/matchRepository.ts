@@ -218,8 +218,8 @@ export const matchRepository = {
             return await prisma.match.findMany({
                 orderBy: { createdAt: 'desc' },
                 include: {
-                    user1: { select: { user_id: true, username: true, user_show_name: true, images: { take: 1, select: { imageUrl: true } } } },
-                    user2: { select: { user_id: true, username: true, user_show_name: true, images: { take: 1, select: { imageUrl: true } } } },
+                    user1: { select: { user_id: true, username: true, user_show_name: true, images: { take: 1, orderBy: { createdAt: 'asc' }, select: { imageUrl: true } } } },
+                    user2: { select: { user_id: true, username: true, user_show_name: true, images: { take: 1, orderBy: { createdAt: 'asc' }, select: { imageUrl: true } } } },
                     activity: { select: { name: true, icon: true } },
                     location: {
                         select: {

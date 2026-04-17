@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { IoClose } from 'react-icons/io5';
 import Card from '../../components/Card';
 import Input from '../../components/Input';
 import PhoneInput from '../../components/PhoneInput';
@@ -161,9 +162,9 @@ const PlaceFormModal: React.FC<PlaceFormModalProps> = ({
           </h2>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-700 transition text-2xl"
+            className="flex items-center justify-center text-gray-400 hover:text-gray-700 transition"
           >
-            ✕
+            <IoClose className="h-5 w-5" />
           </button>
         </div>
 
@@ -215,9 +216,9 @@ const PlaceFormModal: React.FC<PlaceFormModalProps> = ({
                         <button
                           type="button"
                           onClick={() => handleRemoveExisting(img.id)}
-                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-600"
                         >
-                          ✕
+                          <IoClose className="h-3 w-3" />
                         </button>
                       </div>
                     );
@@ -230,9 +231,9 @@ const PlaceFormModal: React.FC<PlaceFormModalProps> = ({
                         <button
                           type="button"
                           onClick={() => handleRemoveNew(newIndex)}
-                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-600"
                         >
-                          ✕
+                          <IoClose className="h-3 w-3" />
                         </button>
                       </div>
                     );

@@ -55,5 +55,10 @@ export const adminRouter = () => {
         }
     });
 
+    // Verify admin token
+    router.get("/verify", authenticateToken, authorize("admin"), async (_req, res) => {
+        return res.status(200).json({ ok: true });
+    });
+
     return router;
 };

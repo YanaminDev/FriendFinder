@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { Trash2, Edit2, Check, X } from 'lucide-react'
 import ConfirmDialog from './ConfirmDialog'
 import IconPicker from './IconPicker'
+import CardHeader from './CardHeader'
 import { IoniconRender } from '../utils/ionicon'
 
 interface Option {
   id: string
   name: string
   icon?: string
+  canDelete?: boolean
 }
 
 interface CategoryCardProps {
@@ -87,8 +89,7 @@ export default function CategoryCard({
 
   return (
     <div className="overflow-hidden rounded-2xl bg-white shadow-[0_2px_20px_rgba(0,0,0,0.06)] mb-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[#FD7979] to-[#ff9a9a] px-5 py-3">
+      <CardHeader className="px-5 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {isCreating ? (
@@ -132,7 +133,7 @@ export default function CategoryCard({
             </button>
           ) : null}
         </div>
-      </div>
+      </CardHeader>
 
       {/* Body */}
       <div className="p-5">
@@ -175,15 +176,26 @@ export default function CategoryCard({
                 <button onClick={() => { setEditingOptionId(option.id); setEditingOptionValue(option.name); setEditingOptionIcon(option.icon || 'star-outline') }} className="p-2 hover:bg-gray-200 rounded transition">
                   <Edit2 size={16} className="text-gray-600" />
                 </button>
-                <button onClick={() => {
-                  if (isCreating) {
-                    handleDeleteDraft(option.id)
-                  } else {
-                    setDeleteTarget({ optionId: option.id, optionName: option.name })
-                  }
-                }} className="p-2 hover:bg-red-100 rounded transition">
-                  <Trash2 size={16} className="text-red-500" />
-                </button>
+                {option.canDelete === false ? (
+                  <div className="relative group">
+                    <button disabled className="p-2 rounded transition cursor-not-allowed opacity-30">
+                      <Trash2 size={16} className="text-gray-400" />
+                    </button>
+                    <div className="pointer-events-none absolute bottom-full right-0 mb-1 hidden group-hover:flex whitespace-nowrap rounded-lg bg-gray-800 px-2.5 py-1.5 text-[11px] text-white shadow-lg z-10">
+                      มีสถานที่ใช้ activity นี้อยู่
+                    </div>
+                  </div>
+                ) : (
+                  <button onClick={() => {
+                    if (isCreating) {
+                      handleDeleteDraft(option.id)
+                    } else {
+                      setDeleteTarget({ optionId: option.id, optionName: option.name })
+                    }
+                  }} className="p-2 hover:bg-red-100 rounded transition">
+                    <Trash2 size={16} className="text-red-500" />
+                  </button>
+                )}
               </>
             )}
           </div>
