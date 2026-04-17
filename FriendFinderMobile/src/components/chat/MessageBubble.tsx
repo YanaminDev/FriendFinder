@@ -1,7 +1,8 @@
 // ─── MessageBubble ────────────────────────────────────────────────────────────
 
 import React, { useState } from 'react';
-import { View, Text, Image } from 'react-native';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { ChatMessage } from '../../types';
 
 interface MessageBubbleProps {
@@ -10,10 +11,12 @@ interface MessageBubbleProps {
   otherInitials?: string;
   otherAvatarBgColor?: string;
   showAvatar?: boolean;
+  onDelete?: (messageId: string) => void;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, otherAvatar, otherInitials, otherAvatarBgColor = '#9ca3af', showAvatar = false }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ message, otherAvatar, otherInitials, otherAvatarBgColor = '#9ca3af', showAvatar = false, onDelete }) => {
   const [imageError, setImageError] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
 
   const hasValidAvatar = !!(otherAvatar && typeof otherAvatar === 'string' && otherAvatar.length > 0 && otherAvatar !== 'undefined' && otherAvatar !== 'null' && !imageError);
   const displayInitials = otherInitials || '?';
@@ -23,17 +26,35 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, otherAvatar, oth
   if (message.isMine) {
     return (
       <View className="items-end my-1 px-4">
-        {isImageMessage ? (
-          <Image
-            source={{ uri: message.text }}
-            className="rounded-[18px] rounded-br-[4px]"
-            style={{ width: 220, height: 220 }}
-            resizeMode="cover"
-          />
-        ) : (
-          <View className="bg-primary rounded-[18px] rounded-br-[4px] px-3.5 py-2.5 max-w-[72%]">
-            <Text className="text-base text-white leading-5">{message.text}</Text>
-          </View>
+        <TouchableOpacity
+          onLongPress={() => setShowDelete(!showDelete)}
+          delayLongPress={300}
+          activeOpacity={0.7}
+        >
+          {isImageMessage ? (
+            <Image
+              source={{ uri: message.text }}
+              className="rounded-[18px] rounded-br-[4px]"
+              style={{ width: 220, height: 220 }}
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="bg-primary rounded-[18px] rounded-br-[4px] px-3.5 py-2.5 max-w-[72%]">
+              <Text className="text-base text-white leading-5">{message.text}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        {showDelete && (
+          <TouchableOpacity
+            onPress={() => {
+              onDelete?.(message.id);
+              setShowDelete(false);
+            }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            className="mt-1"
+          >
+            <Ionicons name="trash-outline" size={18} color="#ef4444" />
+          </TouchableOpacity>
         )}
         {message.isRead && (
           <Text className="text-xs text-primary mt-0.5">อ่านแล้ว</Text>

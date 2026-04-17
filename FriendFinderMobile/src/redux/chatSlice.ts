@@ -56,6 +56,9 @@ const chatSlice = createSlice({
         if (idx !== -1) state.currentMessages[idx] = p;
       }
     },
+    deleteMessage: (state, action: PayloadAction<string>) => {
+      state.currentMessages = state.currentMessages.filter(m => m.id !== action.payload);
+    },
     clearMessages: (state) => {
       state.currentMessages = [];
     },
@@ -119,5 +122,5 @@ const chatSlice = createSlice({
   },
 });
 
-export const { addMessage, clearMessages, markAllMessagesRead, updateConversationLastMessage } = chatSlice.actions;
+export const { addMessage, deleteMessage, clearMessages, markAllMessagesRead, updateConversationLastMessage } = chatSlice.actions;
 export default chatSlice.reducer;

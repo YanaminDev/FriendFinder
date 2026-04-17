@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import { addMessage, markAllMessagesRead, updateConversationLastMessage } from '../redux/chatSlice';
+import { addMessage, deleteMessage as deleteMessageAction, markAllMessagesRead, updateConversationLastMessage } from '../redux/chatSlice';
 import { setIncomingProposal, setIncomingProposalImage } from '../redux/locationProposalSlice';
 import { getLocationImages } from '../service/location_image.service';
 import type { ChatMessage } from '../service/chat_message.service';
@@ -122,10 +122,17 @@ export const useSocket = (chat_id: string | null) => {
         };
         socket.on('messages_read', handleMessagesRead);
 
+        // ข้อความถูกลบ → ลบออกจาก Redux
+        const handleMessageDeleted = (data: { message_id: string }) => {
+            dispatch(deleteMessageAction(data.message_id));
+        };
+        socket.on('message_deleted', handleMessageDeleted);
+
         return () => {
             socket.emit('leave_room', chat_id);
             socket.off('new_message', handleNewMessage);
             socket.off('messages_read', handleMessagesRead);
+            socket.off('message_deleted', handleMessageDeleted);
         };
     }, [chat_id, currentUserId, dispatch]);
 
@@ -151,5 +158,9 @@ export const useSocket = (chat_id: string | null) => {
         socketRef.current?.emit('send_message', data);
     };
 
-    return { sendMessage };
+    const deleteMessage = (message_id: string, chat_id: string) => {
+        socketRef.current?.emit('delete_message', { message_id, chat_id, user_id: currentUserId });
+    };
+
+    return { sendMessage, deleteMessage };
 };

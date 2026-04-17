@@ -19,7 +19,7 @@ import MessageBubble from '../../components/chat/MessageBubble';
 import AlertModal from '../../components/common/AlertModal';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
-import { fetchMessages, clearMessages, addMessage } from '../../redux/chatSlice';
+import { fetchMessages, clearMessages, addMessage, deleteMessage as deleteMessageAction } from '../../redux/chatSlice';
 import { useSocket } from '../../hooks/useSocket';
 import { uploadChatImage } from '../../service/chat_message.service';
 import { colors } from '../../constants/theme';
@@ -52,7 +52,10 @@ const ChatDetailScreen: React.FC<{
   const [uploadingImage, setUploadingImage] = useState(false);
   const [deletingChat, setDeletingChat] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
-  const { sendMessage } = useSocket(conversationId);
+  const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
+  const [showDeleteMessageAlert, setShowDeleteMessageAlert] = useState(false);
+  const [deleteMessageError, setDeleteMessageError] = useState('');
+  const { sendMessage, deleteMessage: deleteMessageSocket } = useSocket(conversationId);
   const { maxContentWidth } = useResponsive();
 
   useEffect(() => {
@@ -153,6 +156,27 @@ const ChatDetailScreen: React.FC<{
     }
   };
 
+  const handleDeleteMessage = (messageId: string) => {
+    setDeletingMessageId(messageId);
+    setShowDeleteMessageAlert(true);
+  };
+
+  const handleConfirmDeleteMessage = async () => {
+    if (!deletingMessageId) return;
+    setShowDeleteMessageAlert(false);
+    try {
+      // Optimistic update
+      dispatch(deleteMessageAction(deletingMessageId));
+      // Send delete event via socket
+      deleteMessageSocket(deletingMessageId, conversationId);
+    } catch (error) {
+      setDeleteMessageError('ไม่สามารถลบข้อความได้');
+      console.error('Error deleting message:', error);
+    } finally {
+      setDeletingMessageId(null);
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={['top', 'bottom', 'left', 'right']}>
       <AppHeader
@@ -202,6 +226,7 @@ const ChatDetailScreen: React.FC<{
                 otherInitials={otherInitials}
                 otherAvatarBgColor={otherAvatarBgColor}
                 showAvatar
+                onDelete={handleDeleteMessage}
               />
             )}
             contentContainerStyle={{ paddingVertical: 12 }}
@@ -217,7 +242,7 @@ const ChatDetailScreen: React.FC<{
 
         {/* Input */}
         <View className="border-t border-gray-100 bg-white" style={{ alignItems: 'center' }}>
-        <View className="flex-row items-center px-3 py-3 gap-2" style={{ width: '100%', maxWidth: maxContentWidth }}>
+        <View className="flex-row items-center px-3 py-3 gap-2 w-full" style={{ maxWidth: maxContentWidth }}>
           {/* Camera */}
           <TouchableOpacity
             onPress={takePhoto}
@@ -251,6 +276,7 @@ const ChatDetailScreen: React.FC<{
               className="text-base text-gray-900 p-0"
               returnKeyType="send"
               onSubmitEditing={handleSend}
+              numberOfLines={1}
             />
           </View>
           <TouchableOpacity
@@ -273,6 +299,26 @@ const ChatDetailScreen: React.FC<{
         onPress={handleConfirmDelete}
         secondaryButtonLabel="ยกเลิก"
         onSecondaryPress={() => setShowDeleteAlert(false)}
+      />
+
+      <AlertModal
+        visible={showDeleteMessageAlert}
+        type="warning"
+        title="ลบข้อความ"
+        message="ยืนยันที่จะลบข้อความนี้?"
+        buttonLabel="ลบ"
+        onPress={handleConfirmDeleteMessage}
+        secondaryButtonLabel="ยกเลิก"
+        onSecondaryPress={() => setShowDeleteMessageAlert(false)}
+      />
+
+      <AlertModal
+        visible={!!deleteMessageError}
+        type="error"
+        title="เกิดข้อผิดพลาด"
+        message={deleteMessageError}
+        buttonLabel="ตกลง"
+        onPress={() => setDeleteMessageError('')}
       />
     </SafeAreaView>
   );

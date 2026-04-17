@@ -47,9 +47,9 @@ export const checkUsername = async (username: string): Promise<{ exists: boolean
     }
 };
 
-export const register = async (data: RegisterRequest): Promise<{ message: string; user_id?: string }> => {
+export const register = async (data: RegisterRequest): Promise<{ message: string; user_id: string; accessToken: string; refreshToken: string }> => {
     try {
-        return await mainApi.post<{ message: string }>(REGISTER, data);
+        return await mainApi.post<{ message: string; user_id: string; accessToken: string; refreshToken: string }>(REGISTER, data);
     } catch (error) {
         console.error("Error registering user:", error);
         throw error;
