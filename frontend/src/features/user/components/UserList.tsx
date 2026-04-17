@@ -15,6 +15,8 @@ interface User {
   isBanned: boolean
   info?: {
     user_height: number | null
+    user_bio: string | null
+    blood_group: string | null
     language: LookupValue | null
     education: LookupValue | null
   } | null

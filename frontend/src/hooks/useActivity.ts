@@ -20,9 +20,9 @@ export const useActivity = () => {
       setError(message);
       // Return default activities as fallback
       const defaultActivities: ActivityResponse[] = [
-        { id: '1', name: 'Coffee' },
-        { id: '2', name: 'Movie' },
-        { id: '3', name: 'Hiking' },
+        { id: '1', name: 'Coffee', icon: '' },
+        { id: '2', name: 'Movie', icon: '' },
+        { id: '3', name: 'Hiking', icon: '' },
       ];
       setActivities(defaultActivities);
       return defaultActivities;
@@ -91,11 +91,11 @@ export const useActivity = () => {
   };
 
   const findByName = (name: string) => {
-    return activityService.findByName(activities, name);
+    return activities.find(a => a.name.toLowerCase() === name.toLowerCase()) ?? null;
   };
 
   const getSorted = () => {
-    return activityService.sortAlphabetically(activities);
+    return [...activities].sort((a, b) => a.name.localeCompare(b.name));
   };
 
   // Fetch all activities on hook mount
