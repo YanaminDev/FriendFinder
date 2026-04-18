@@ -79,7 +79,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     const fetchPositions = async () => {
       try {
         const data = await getAllPositions();
-        setPositions(data);
+        setPositions(data.filter(p => !p.isHidden));
       } catch (error) {
         console.error('Failed to fetch positions:', error);
       } finally {

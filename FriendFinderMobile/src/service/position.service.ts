@@ -12,6 +12,7 @@ export interface Position {
     image?: string | null;
     latitude: number;
     longitude: number;
+    isHidden?: boolean;
 }
 
 export const getAllPositions = async (): Promise<Position[]> => {
