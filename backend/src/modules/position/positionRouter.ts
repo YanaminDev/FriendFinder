@@ -32,7 +32,8 @@ export const positionRouter = () => {
     // Get all positions
     router.get("/get", authenticateToken, async (req, res) => {
         try {
-            const data = await positionRepository.getAllPositions();
+            const isAdmin = req.user?.role === 'admin';
+            const data = await positionRepository.getAllPositions(isAdmin);
             res.status(200).json(data);
         }
         catch (err) {
@@ -117,6 +118,36 @@ export const positionRouter = () => {
             return res.status(201).json(position);
         } catch (err) {
             return res.status(500).json({ message: `Failed to upload position image: ${err}` });
+        }
+    });
+
+    // Hide position
+    router.patch("/hide/:position_id", authenticateToken, authorize("admin"), async (req, res) => {
+        try {
+            const positionId = String(req.params.position_id);
+            if (!positionId) {
+                return res.status(400).json({ message: "Position ID is required" });
+            }
+            const data = await positionRepository.hidePosition(positionId);
+            res.status(200).json(data);
+        }
+        catch (err) {
+            return res.status(500).json({ message: "Failed to hide position" });
+        }
+    });
+
+    // Unhide position
+    router.patch("/unhide/:position_id", authenticateToken, authorize("admin"), async (req, res) => {
+        try {
+            const positionId = String(req.params.position_id);
+            if (!positionId) {
+                return res.status(400).json({ message: "Position ID is required" });
+            }
+            const data = await positionRepository.unhidePosition(positionId);
+            res.status(200).json(data);
+        }
+        catch (err) {
+            return res.status(500).json({ message: "Failed to unhide position" });
         }
     });
 

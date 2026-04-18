@@ -36,6 +36,8 @@ export const POSITION_UPDATE = (id: string) => `/v1/position/update/${id}`;
 export const POSITION_DELETE = (id: string) => `/v1/position/delete/${id}`;
 export const POSITION_SEARCH_NEARBY = '/v1/position/search-nearby';
 export const POSITION_UPLOAD_IMAGES = (id: string) => `/v1/position/upload-image/${id}`;
+export const POSITION_HIDE = (id: string) => `/v1/position/hide/${id}`;
+export const POSITION_UNHIDE = (id: string) => `/v1/position/unhide/${id}`;
 
 // ============ LOCATION IMAGE ENDPOINTS ============
 export const LOCATION_IMAGE_UPLOAD = '/v1/location-image/upload';

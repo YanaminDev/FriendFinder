@@ -55,6 +55,9 @@ export const findMatchRepository = {
                 where: {
                     ...(data.position_id && { position_id: data.position_id }),
                     ...activityConditions,
+                    position: {
+                        isHidden: false
+                    }
                 },
                 include: {
                     activity1: true,

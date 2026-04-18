@@ -1,4 +1,4 @@
-const BASE_URL = __DEV__ ? "http://192.168.1.100:3000" : "https://api.friendsfinders.uk";
+const BASE_URL = __DEV__ ? "http://192.168.1.46:3000" : "https://api.friendsfinders.uk";
 
 const getHeaders = () => {
     // Lazy load store to avoid circular dependency

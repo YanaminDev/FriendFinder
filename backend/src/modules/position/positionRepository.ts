@@ -96,9 +96,11 @@ export const positionRepository = {
         }
     },
 
-    getAllPositions: async () => {
+    getAllPositions: async (includeHidden: boolean = false) => {
         try {
-            return await prisma.position.findMany();
+            return await prisma.position.findMany({
+                where: includeHidden ? {} : { isHidden: false }
+            });
         }
         catch (err) {
             throw err;
@@ -109,6 +111,7 @@ export const positionRepository = {
         try {
             return await prisma.position.findMany({
                 where: {
+                    isHidden: false,
                     latitude: {
                         gte: data.user_latitude - data.radius,
                         lte: data.user_latitude + data.radius
@@ -130,6 +133,30 @@ export const positionRepository = {
             return await prisma.position.update({
                 where: { id: positionId },
                 data: { image: imageUrl }
+            });
+        }
+        catch (err) {
+            throw err;
+        }
+    },
+
+    hidePosition: async (positionId: string) => {
+        try {
+            return await prisma.position.update({
+                where: { id: positionId },
+                data: { isHidden: true }
+            });
+        }
+        catch (err) {
+            throw err;
+        }
+    },
+
+    unhidePosition: async (positionId: string) => {
+        try {
+            return await prisma.position.update({
+                where: { id: positionId },
+                data: { isHidden: false }
             });
         }
         catch (err) {

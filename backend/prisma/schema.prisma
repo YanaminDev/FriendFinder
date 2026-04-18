@@ -315,6 +315,7 @@ model Position {
   latitude    Float
   longitude   Float
   image       String?
+  isHidden    Boolean      @default(false)
   find_match  Find_Match[]
   location    Location[]
   match       Match[]

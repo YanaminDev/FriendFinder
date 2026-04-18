@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { IoClose, IoChevronForward, IoTimeOutline, IoCallOutline, IoLocationOutline } from 'react-icons/io5';
+import { IoClose, IoChevronForward, IoTimeOutline, IoCallOutline, IoLocationOutline, IoEyeOffOutline, IoEyeOutline } from 'react-icons/io5';
 import { positionService } from '../../services';
 import type { PositionResponse } from '../../types/responses';
 import Card from '../../components/Card';
@@ -8,15 +8,18 @@ interface PositionListPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectPosition: (position: PositionResponse) => void;
+  onPositionVisibilityChange?: (positionId: string, isHidden: boolean) => void;
 }
 
 const PositionListPanel: React.FC<PositionListPanelProps> = ({
   isOpen,
   onClose,
   onSelectPosition,
+  onPositionVisibilityChange,
 }) => {
   const [positions, setPositions] = useState<PositionResponse[]>([]);
   const [loading, setLoading] = useState(false);
+  const [filter, setFilter] = useState<'active' | 'hidden'>('active');
 
   useEffect(() => {
     if (!isOpen) return;
@@ -27,6 +30,27 @@ const PositionListPanel: React.FC<PositionListPanelProps> = ({
       .catch((err) => console.error('Failed to fetch positions:', err))
       .finally(() => setLoading(false));
   }, [isOpen]);
+
+  const filteredPositions = positions.filter((pos) =>
+    filter === 'active' ? !pos.isHidden : pos.isHidden
+  );
+  const activeCount = positions.filter((p) => !p.isHidden).length;
+  const hiddenCount = positions.filter((p) => p.isHidden).length;
+
+  const handleToggleVisibility = async (e: React.MouseEvent, pos: PositionResponse) => {
+    e.stopPropagation();
+    try {
+      const updated = pos.isHidden
+        ? await positionService.unhide(pos.id)
+        : await positionService.hide(pos.id);
+      setPositions((prev) =>
+        prev.map((p) => (p.id === pos.id ? { ...p, isHidden: updated.isHidden } : p))
+      );
+      onPositionVisibilityChange?.(pos.id, !!updated.isHidden);
+    } catch (err) {
+      console.error('Failed to toggle position visibility:', err);
+    }
+  };
 
   const handleSelect = (position: PositionResponse) => {
     onSelectPosition(position);
@@ -63,24 +87,51 @@ const PositionListPanel: React.FC<PositionListPanelProps> = ({
           </button>
         </div>
 
+        {/* Tabs */}
+        <div className="flex border-b bg-gray-50">
+          <button
+            onClick={() => setFilter('active')}
+            className={`flex-1 py-2.5 text-sm font-medium transition ${
+              filter === 'active'
+                ? 'text-[#F26B6B] border-b-2 border-[#F26B6B]'
+                : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            เปิดให้บริการ ({activeCount})
+          </button>
+          <button
+            onClick={() => setFilter('hidden')}
+            className={`flex-1 py-2.5 text-sm font-medium transition ${
+              filter === 'hidden'
+                ? 'text-yellow-600 border-b-2 border-yellow-500'
+                : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            ปิดชั่วคราว ({hiddenCount})
+          </button>
+        </div>
+
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-20">
           {loading && (
             <div className="text-center py-10 text-gray-400 text-sm">กำลังโหลด...</div>
           )}
 
-          {!loading && positions.length === 0 && (
-            <div className="text-center py-10 text-gray-400 text-sm">ยังไม่มี Position</div>
+          {!loading && filteredPositions.length === 0 && (
+            <div className="text-center py-10 text-gray-400 text-sm">
+              {filter === 'active' ? 'ไม่มี Position ที่เปิดให้บริการ' : 'ไม่มี Position ที่ปิดชั่วคราว'}
+            </div>
           )}
 
           {!loading &&
-            positions.map((pos) => (
+            filteredPositions.map((pos) => (
               <Card
                 key={pos.id}
-                className="mb-5 p-0 hover:shadow-md transition cursor-pointer"
+                className="mb-5 p-0 hover:shadow-md transition cursor-pointer overflow-hidden"
                 onClick={() => handleSelect(pos)}
               >
-                <div className="flex items-center gap-3 p-3">
+                <div className={pos.isHidden ? 'opacity-60 grayscale' : ''}>
+                  <div className="flex items-center gap-3 p-3">
                   {/* Thumbnail */}
                   {pos.image ? (
                     (() => {
@@ -105,7 +156,12 @@ const PositionListPanel: React.FC<PositionListPanelProps> = ({
 
                   {/* Info */}
                   <div className="flex-1 min-w-0 ">
-                    <p className="font-semibold text-gray-800 truncate">{pos.name}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-semibold text-gray-800 truncate">{pos.name}</p>
+                      {pos.isHidden && (
+                        <IoEyeOffOutline className="h-3.5 w-3.5 text-yellow-500 flex-shrink-0" title="ซ่อนอยู่" />
+                      )}
+                    </div>
 
                     {pos.phone && (
                       <div className="flex items-center gap-1 mt-0.5">
@@ -134,7 +190,27 @@ const PositionListPanel: React.FC<PositionListPanelProps> = ({
                   </div>
 
                   <IoChevronForward className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                  </div>
                 </div>
+
+                {/* Toggle visibility button */}
+                {pos.isHidden ? (
+                  <button
+                    onClick={(e) => handleToggleVisibility(e, pos)}
+                    className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-medium text-green-600 bg-green-50 hover:bg-green-100 border-t border-green-100 rounded-b-xl transition"
+                  >
+                    <IoEyeOutline className="h-3.5 w-3.5" />
+                    เปิดให้บริการอีกครั้ง
+                  </button>
+                ) : (
+                  <button
+                    onClick={(e) => handleToggleVisibility(e, pos)}
+                    className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-medium text-yellow-600 bg-yellow-50 hover:bg-yellow-100 border-t border-yellow-100 rounded-b-xl transition"
+                  >
+                    <IoEyeOffOutline className="h-3.5 w-3.5" />
+                    ปิดชั่วคราว
+                  </button>
+                )}
               </Card>
             ))}
         </div>
