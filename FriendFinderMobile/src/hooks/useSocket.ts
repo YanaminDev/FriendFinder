@@ -8,7 +8,7 @@ import { getLocationImages } from '../service/location_image.service';
 import type { ChatMessage } from '../service/chat_message.service';
 import { LocationProposal } from '../service/location_proposal.service';
 
-const SOCKET_URL = 'http://192.168.1.100:3000';
+const SOCKET_URL = 'https://api.friendsfinders.uk';
 
 // Global socket instance
 let globalSocket: Socket | null = null;
