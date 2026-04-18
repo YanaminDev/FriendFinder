@@ -34,6 +34,8 @@ async function refreshAccessToken(): Promise<string | null> {
         if (data.accessToken) {
             const { setAccessToken } = require('../redux/authSlice');
             store.dispatch(setAccessToken(data.accessToken));
+            const { saveAccessToken } = require('../utils/tokenStorage');
+            await saveAccessToken(data.accessToken);
             return data.accessToken;
         }
         return null;

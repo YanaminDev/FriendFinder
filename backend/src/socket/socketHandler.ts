@@ -22,6 +22,19 @@ export const setupSocket = (io: Server) => {
             }
         });
 
+        // ตั้งค่า offline status เมื่อ app ไปอยู่ background
+        socket.on("user_offline", async (user_id: string) => {
+            try {
+                await prisma.user.update({
+                    where: { user_id },
+                    data: { isOnline: false },
+                });
+                io.emit("user_status_changed", { user_id, isOnline: false });
+            } catch (err) {
+                console.error("[Socket] user_offline error:", err);
+            }
+        });
+
         // เข้าร่วม room ของ chat
         socket.on("join_room", (chat_id: string) => {
             socket.join(chat_id);

@@ -17,6 +17,7 @@ import { useResponsive } from '../../hooks/useResponsive';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { clearAuth, setCredentials, setIsAuthenticated } from '../../redux/authSlice';
 import { login } from '../../service/user.service';
+import { clearAuthData } from '../../utils/tokenStorage';
 
 const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { maxContentWidth, horizontalPadding } = useResponsive();
@@ -124,6 +125,7 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       console.error('Logout API error:', error);
     } finally {
       // Always clear auth and navigate regardless of API success
+      await clearAuthData();
       dispatch(clearAuth());
       navigation.reset({
         index: 0,

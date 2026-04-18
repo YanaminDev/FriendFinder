@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { io, Socket } from 'socket.io-client';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { addMessage, deleteMessage as deleteMessageAction, editMessage as editMessageAction, removeConversation, clearMessages, markAllMessagesRead, updateConversationLastMessage } from '../redux/chatSlice';
@@ -27,6 +28,8 @@ export const useSocket = (chat_id: string | null, onChatDeleted?: () => void) =>
             connectedUserId = null;
         }
 
+        let appStateSubscription: ReturnType<typeof AppState.addEventListener> | null = null;
+
         // สร้าง global socket connection ใหม่ (ถ้ายังไม่มี)
         if (currentUserId && !globalSocket) {
             globalSocket = io(SOCKET_URL, {
@@ -52,6 +55,16 @@ export const useSocket = (chat_id: string | null, onChatDeleted?: () => void) =>
             globalSocket.on('error', (err: { message: string }) => {
                 console.error('[Socket] global error:', err.message);
             });
+
+            // ตรวจจับ app background/foreground เพื่อ emit online/offline
+            const handleAppStateChange = (nextAppState: AppStateStatus) => {
+                if (nextAppState === 'active' && connectedUserId) {
+                    globalSocket?.emit('user_online', connectedUserId);
+                } else if ((nextAppState === 'background' || nextAppState === 'inactive') && connectedUserId) {
+                    globalSocket?.emit('user_offline', connectedUserId);
+                }
+            };
+            appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
 
             // รับ update conversation list real-time
             globalSocket.on('conversation_updated', (data: {
@@ -87,6 +100,10 @@ export const useSocket = (chat_id: string | null, onChatDeleted?: () => void) =>
         }
 
         socketRef.current = globalSocket;
+
+        return () => {
+            appStateSubscription?.remove();
+        };
     }, [currentUserId, dispatch]);
 
     useEffect(() => {

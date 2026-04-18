@@ -274,10 +274,23 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       }
 
       await respondNotification(notification.id, 'accepted');
+
+      // หา activity ที่ทั้งสองฝั่งมีเหมือนกัน แล้วสุ่มเลือก
+      const senderActivityIds = [
+        senderFindMatch.activity_id1,
+        senderFindMatch.activity_id2,
+        senderFindMatch.activity_id3,
+      ].filter(Boolean) as string[];
+      const receiverActivityIds = selectedActivities.map((a: any) => a.id);
+      const commonActivityIds = senderActivityIds.filter(id => receiverActivityIds.includes(id));
+      const pickedActivityId = commonActivityIds.length > 0
+        ? commonActivityIds[Math.floor(Math.random() * commonActivityIds.length)]
+        : notification.activityId || selectedActivities[0]?.id || '';
+
       const match = await createMatch({
         user1_id: notification.senderId,
         user2_id: userId,
-        activity_id: notification.activityId || selectedActivities[0]?.id || '',
+        activity_id: pickedActivityId,
         position_id: notification.positionId || positionId || '',
       });
       createdMatchId = match?.id || null;
@@ -364,6 +377,15 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     try {
       await deleteFindMatch(userId);
       dispatch(clearFindMatch());
+
+      // reject notification ที่ค้างอยู่ทั้งหมด เพราะเราไม่หาคนแล้ว
+      if (notifications.length > 0) {
+        await Promise.allSettled(
+          notifications.map(n => respondNotification(n.id, 'rejected'))
+        );
+        setNotifications([]);
+      }
+
       setAlert({ visible: true, type: 'info', title: 'ยกเลิกสำเร็จ', message: 'ยกเลิกการค้นหาเพื่อนแล้ว' });
     } catch (error: any) {
       setAlert({ visible: true, type: 'error', title: 'ข้อผิดพลาด', message: error?.message || 'ไม่สามารถยกเลิกได้' });

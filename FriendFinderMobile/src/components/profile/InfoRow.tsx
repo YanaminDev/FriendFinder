@@ -3,10 +3,11 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import type { ComponentProps } from 'react';
 import { colors } from '../../constants/theme';
 
 interface InfoRowProps {
-  iconName: string;
+  iconName: ComponentProps<typeof MaterialCommunityIcons>['name'];
   label: string;
   value: string;
   onPress?: () => void;

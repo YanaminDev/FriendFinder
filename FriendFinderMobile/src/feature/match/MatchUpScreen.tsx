@@ -38,6 +38,7 @@ import {
   LocationProposal,
 } from '../../service/location_proposal.service';
 import { getChatsByUser, getChatById } from '../../service/chat.service';
+import { getLocationsByPosition } from '../../service/location.service';
 
 interface Props {
   navigation: any;
@@ -93,6 +94,7 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
   const [proposing, setProposing] = useState(false);
   const [waitingResponse, setWaitingResponse] = useState(false);
   const [chatId, setChatId] = useState<string | null>(null);
+  const [otherLocations, setOtherLocations] = useState<Location[]>([]);
 
   const [respondLoading, setRespondLoading] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -131,22 +133,26 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
           // ไม่ navigate ทันที ให้ user เห็นสถานที่ที่เลือก
         }
         if (m?.position_id && m?.activity_id && m?.user1_id && m?.user2_id) {
-          const locs = await getAIRecommendedLocations(
-            m.position_id,
-            m.user1_id,
-            m.user2_id,
-            m.activity_id
-          );
+          const [locs, allPositionLocs] = await Promise.all([
+            getAIRecommendedLocations(m.position_id, m.user1_id, m.user2_id, m.activity_id),
+            getLocationsByPosition(m.position_id).catch(() => [] as Location[]),
+          ]);
           setLocations(locs);
 
-          // ดึงรูปของแต่ละ location
+          // สถานที่อื่นๆ = activity ตรงกับ match แต่ไม่อยู่ใน AI list
+          const aiIds = new Set(locs.map(l => l.id));
+          const others = allPositionLocs.filter(
+            l => l.activity_id === m.activity_id && !aiIds.has(l.id)
+          );
+          setOtherLocations(others);
+
+          // ดึงรูปของทุก location (AI + อื่นๆ)
           const imagesMap: Record<string, LocationImage[]> = {};
-          for (const loc of locs) {
+          for (const loc of [...locs, ...others]) {
             try {
               const imgs = await getLocationImages(loc.id);
               imagesMap[loc.id] = imgs;
             } catch (err) {
-              console.error(`Error fetching images for location ${loc.id}:`, err);
               imagesMap[loc.id] = [];
             }
           }
@@ -311,7 +317,6 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
   const otherUserId = match && userId === match.user1_id ? match.user2_id : match?.user1_id;
 
   const recommendedLocations = locations.filter((l) => l.activity_id === matchActivityId);
-  const otherLocations       = locations.filter((l) => l.activity_id !== matchActivityId);
 
   // ─── Actions ──────────────────────────────────────────────────────────────
   const handlePropose = async () => {
@@ -577,7 +582,7 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
 
               {(() => {
-                const confirmedLocation = locations.find((l) => l.id === match.location_id);
+                const confirmedLocation = [...locations, ...otherLocations].find((l) => l.id === match.location_id);
                 return confirmedLocation ? renderLocationCard(confirmedLocation, false, false) : null;
               })()}
             </>
@@ -593,11 +598,28 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
             </>
           )}
 
-          {!match?.location_id && recommendedLocations.length === 0 && (
+          {!match?.location_id && recommendedLocations.length === 0 && otherLocations.length === 0 && (
             <View style={{ alignItems: 'center', paddingVertical: 40 }}>
               <Ionicons name="storefront-outline" size={48} color={colors.gray300} />
               <Text className="text-gray-400 mt-3">ยังไม่มีสถานที่สำหรับกิจกรรมนี้ในบริเวณนี้</Text>
             </View>
+          )}
+
+          {/* สถานที่อื่นๆ */}
+          {!match?.location_id && otherLocations.length > 0 && (
+            <>
+              {recommendedLocations.length > 0 && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8 }}>
+                  <View style={{ flex: 1, height: 1, backgroundColor: '#e5e7eb' }} />
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#6b7280' }}>สถานที่อื่นๆ</Text>
+                  <View style={{ flex: 1, height: 1, backgroundColor: '#e5e7eb' }} />
+                </View>
+              )}
+              {recommendedLocations.length === 0 && (
+                <Text className="text-sm font-bold text-gray-900 mt-2">สถานที่อื่นๆ</Text>
+              )}
+              {otherLocations.map((l) => renderLocationCard(l, false, true))}
+            </>
           )}
         </View>
       </ScrollView>

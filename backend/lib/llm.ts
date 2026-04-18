@@ -29,7 +29,7 @@ export async function askAIForLocationRecommendation(
       const negativeCount = reviews.filter((r) => r.status === 0).length;
       const reviewTexts = reviews
         .filter((r) => r.review_text)
-        .slice(0, 5)
+        .slice(0, 15)
         .map((r) => `- ${r.review_text}`)
         .join("\n");
 

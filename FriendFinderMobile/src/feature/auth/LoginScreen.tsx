@@ -14,6 +14,7 @@ import { login, checkUserOnlineStatus } from '../../service/user.service';
 import { useAppDispatch } from '../../redux/hooks';
 import { setCredentials, setIsAuthenticated } from '../../redux/authSlice';
 import { setUserId } from '../../redux/userSlice';
+import { saveAuthData } from '../../utils/tokenStorage';
 
 interface AlertState {
   visible: boolean;
@@ -49,6 +50,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       dispatch(setCredentials({ username, password, accessToken: response.accessToken, refreshToken: response.refreshToken }));
       dispatch(setUserId(response.user_id));
       dispatch(setIsAuthenticated(true));
+      await saveAuthData(response.accessToken, response.refreshToken, response.user_id);
       showAlert('success', 'สำเร็จ', response.message || 'เข้าสู่ระบบสำเร็จ', () => {
         navigation.replace('Home');
       });
