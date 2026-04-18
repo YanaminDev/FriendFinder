@@ -19,6 +19,7 @@ model User {
   role                   Role                @default(user)
   isOnline               Boolean             @default(false)
   isBanned               Boolean             @default(false)
+  google_id              String?             @unique
   CancellationAsReviewee Cancellation[]      @relation("RevieweeCancellation")
   CancellationAsReviewer Cancellation[]      @relation("ReviewerCancellation")
   chat1                  Chat[]              @relation("User1Chat")

@@ -2,6 +2,8 @@
 export const CHECK_USERNAME = "/v1/api/auth/check-username";
 export const REGISTER = "/v1/api/auth/register";
 export const LOGIN = "/v1/api/auth/login";
+export const GOOGLE_LOGIN = "/v1/api/auth/google-login";
+export const GOOGLE_REGISTER = "/v1/api/auth/google-register";
 export const LOGOUT = "/v1/api/auth/logout";
 export const DELETE_USER = "/v1/api/auth/delete";
 export const DELETE_USER_BY_ID = "/v1/api/auth/delete/:id";

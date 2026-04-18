@@ -6,6 +6,8 @@ interface AuthState {
   accessToken: string;
   refreshToken: string;
   isAuthenticated: boolean;
+  googleId: string;
+  googlePicture: string;
 }
 
 const initialState: AuthState = {
@@ -14,6 +16,8 @@ const initialState: AuthState = {
   accessToken: '',
   refreshToken: '',
   isAuthenticated: false,
+  googleId: '',
+  googlePicture: '',
 };
 
 export const authSlice = createSlice({
@@ -51,6 +55,16 @@ export const authSlice = createSlice({
     setIsAuthenticated: (state, action: PayloadAction<boolean>) => {
       state.isAuthenticated = action.payload;
     },
+    // Set Google signup data (pre-registration)
+    setGoogleSignupData: (state, action: PayloadAction<{ googleId: string; picture?: string }>) => {
+      state.googleId = action.payload.googleId;
+      state.googlePicture = action.payload.picture ?? '';
+    },
+    // Clear Google signup data
+    clearGoogleSignupData: (state) => {
+      state.googleId = '';
+      state.googlePicture = '';
+    },
     // Clear auth (logout)
     clearAuth: (state) => {
       state.username = '';
@@ -58,9 +72,11 @@ export const authSlice = createSlice({
       state.accessToken = '';
       state.refreshToken = '';
       state.isAuthenticated = false;
+      state.googleId = '';
+      state.googlePicture = '';
     },
   },
 });
 
-export const { setUsername, setPassword, setAccessToken, setRefreshToken, setCredentials, setIsAuthenticated, clearAuth } = authSlice.actions;
+export const { setUsername, setPassword, setAccessToken, setRefreshToken, setCredentials, setIsAuthenticated, setGoogleSignupData, clearGoogleSignupData, clearAuth } = authSlice.actions;
 export default authSlice.reducer;

@@ -16,9 +16,10 @@ import { setShowName } from '../../redux/userSlice';
 const UserInfoScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const profileImage = useAppSelector((state) => state.userImage.profileImage);
+  const prefilledName = useAppSelector((state) => state.user.user_show_name);
   const { maxContentWidth, horizontalPadding, bottomPadding } = useResponsive();
 
-  const [name, setName] = useState('');
+  const [name, setName] = useState(prefilledName || '');
 
   // ขออนุญาตการเข้าถึงไลบรารีรูปภาพเมื่อ component mount
   useEffect(() => {

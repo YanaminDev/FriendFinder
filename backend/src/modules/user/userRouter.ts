@@ -1,11 +1,19 @@
 import { Router } from "express";
 import { userRepository } from "./userRepository";
-import { UserSignupSchema , UserLoginSchema, ChangePasswordSchema } from "./userModel"
+import { UserSignupSchema , UserLoginSchema, ChangePasswordSchema, GoogleLoginSchema, GoogleSignupSchema } from "./userModel"
 import {generateAccessToken,generateRefreshToken , verifyRefreshToken} from "../../common/utils/jwt"
 import "dotenv/config"
 import { authenticateToken } from "../../common/middleware/authenticate";
 import { verifyToken } from "../../common/utils/jwt";
 import {authorize} from '../../common/middleware/authorize'
+import { OAuth2Client } from "google-auth-library";
+
+const googleClient = new OAuth2Client();
+const GOOGLE_CLIENT_IDS = [
+    process.env.GOOGLE_WEB_CLIENT_ID,
+    process.env.GOOGLE_ANDROID_CLIENT_ID,
+    process.env.GOOGLE_IOS_CLIENT_ID,
+].filter(Boolean) as string[];
 
 
 export const userRouter = () => {
@@ -61,6 +69,112 @@ export const userRouter = () => {
         }
 
     })
+
+    router.post("/google-login", async (req, res) => {
+        try {
+            const { idToken } = GoogleLoginSchema.parse(req.body);
+
+            const ticket = await googleClient.verifyIdToken({
+                idToken,
+                audience: GOOGLE_CLIENT_IDS.length ? GOOGLE_CLIENT_IDS : undefined,
+            });
+            const payload = ticket.getPayload();
+            if (!payload?.sub) {
+                return res.status(401).json({ message: "Invalid Google token" });
+            }
+
+            const google_id = payload.sub;
+            const existing = await userRepository.findByGoogleId(google_id);
+
+            if (!existing) {
+                return res.status(200).json({
+                    isNew: true,
+                    google_id,
+                    email: payload.email ?? null,
+                    suggested_name: payload.name ?? payload.given_name ?? "",
+                    picture: payload.picture ?? null,
+                });
+            }
+
+            if (existing.isBanned) {
+                return res.status(403).json({ message: "Your account has been banned" });
+            }
+            if (existing.isOnline) {
+                return res.status(409).json({ message: "User already logged in elsewhere", is_online: true });
+            }
+
+            await userRepository.setUserOnline(existing.user_id, true);
+
+            const accessToken = generateAccessToken({ user_id: existing.user_id, username: existing.username, role: existing.role });
+            const refreshToken = generateRefreshToken({ user_id: existing.user_id });
+
+            res.cookie('accessToken', accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 15 * 60 * 1000
+            });
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 30 * 24 * 60 * 60 * 1000
+            });
+
+            return res.status(200).json({
+                isNew: false,
+                message: "Google login successful",
+                user_id: existing.user_id,
+                username: existing.username,
+                role: existing.role,
+                accessToken,
+                refreshToken,
+            });
+        } catch (err: any) {
+            console.error("Google login error:", err?.message);
+            return res.status(401).json({ message: "Google authentication failed" });
+        }
+    });
+
+    router.post("/google-register", async (req, res) => {
+        try {
+            const data = GoogleSignupSchema.parse(req.body);
+
+            const existing = await userRepository.findByGoogleId(data.google_id);
+            if (existing) {
+                return res.status(409).json({ message: "Google account already registered" });
+            }
+
+            const user = await userRepository.registerWithGoogle(data);
+
+            const accessToken = generateAccessToken({ user_id: user.user_id, username: user.username, role: user.role });
+            const refreshToken = generateRefreshToken({ user_id: user.user_id });
+
+            res.cookie('accessToken', accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 15 * 60 * 1000
+            });
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 30 * 24 * 60 * 60 * 1000
+            });
+
+            return res.status(201).json({
+                message: "Google user registered successfully",
+                user_id: user.user_id,
+                username: user.username,
+                accessToken,
+                refreshToken,
+            });
+        } catch (err: any) {
+            console.error("Google register error:", err?.message);
+            return res.status(400).json({ message: err?.message || "Failed to register Google user" });
+        }
+    });
 
     router.post("/login" , async (req , res) => {
         try{

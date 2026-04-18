@@ -1,12 +1,19 @@
 import { prisma } from "../../../lib/prisma";
 import type { Prisma } from "../../../generated/prisma/client";
 import { hashPassword, verifyPassword } from "../../common/utils/hashPassword";
+import { randomBytes } from "crypto";
 
 
 export const userRepository = {
     findByUsername: async (username: string) => {
         return await prisma.user.findUnique({
             where: { username }
+        })
+    },
+
+    findByGoogleId: async (google_id: string) => {
+        return await prisma.user.findUnique({
+            where: { google_id }
         })
     },
 
@@ -23,6 +30,43 @@ export const userRepository = {
                 user_show_name: data.user_show_name,
                 username: data.username,
                 password: data.password,
+                sex: data.sex,
+                age: data.age,
+                birth_of_date: new Date(data.birth_of_date),
+                interested_gender: data.interested_gender
+            }
+        })
+    },
+
+    registerWithGoogle: async (data: {
+        google_id: string;
+        user_show_name: string;
+        sex: "male" | "female" | "lgbtq";
+        age: number;
+        birth_of_date: string;
+        interested_gender: "male" | "female" | "lgbtq";
+    }) => {
+        const existing = await userRepository.findByGoogleId(data.google_id)
+        if (existing) {
+            throw new Error("Google account already registered")
+        }
+
+        // auto-generate unique username (กัน collision ด้วย retry)
+        let username = `gg_${randomBytes(6).toString("hex")}`
+        while (await userRepository.findByUsername(username)) {
+            username = `gg_${randomBytes(6).toString("hex")}`
+        }
+
+        // random password — user login ผ่าน Google เท่านั้น
+        const randomPassword = `G${randomBytes(16).toString("hex")}!aA1`
+        const hashedPassword = await hashPassword(randomPassword)
+
+        return await prisma.user.create({
+            data: {
+                user_show_name: data.user_show_name,
+                username,
+                password: hashedPassword,
+                google_id: data.google_id,
                 sex: data.sex,
                 age: data.age,
                 birth_of_date: new Date(data.birth_of_date),

@@ -4,6 +4,7 @@
     "slug": "friendfinder",
     "version": "1.0.0",
     "icon": "./src/image/logo/logowithnoname.png",
+    "scheme": "friendfinder",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "android": {

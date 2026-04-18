@@ -1,4 +1,4 @@
-import { CHECK_USERNAME, REGISTER, LOGIN, LOGOUT, DELETE_USER, DELETE_USER_BY_ID, GET_USER_PROFILE, UPDATE_USER_SHOW_NAME, CHANGE_PASSWORD, UPDATE_USER_INTERESTED_GENDER, CHECK_USER_ONLINE_STATUS } from "../api/endpoint";
+import { CHECK_USERNAME, REGISTER, LOGIN, LOGOUT, DELETE_USER, DELETE_USER_BY_ID, GET_USER_PROFILE, UPDATE_USER_SHOW_NAME, CHANGE_PASSWORD, UPDATE_USER_INTERESTED_GENDER, CHECK_USER_ONLINE_STATUS, GOOGLE_LOGIN, GOOGLE_REGISTER } from "../api/endpoint";
 import mainApi from "../api/main.api";
 
 export type Sex = "male" | "female" | "lgbtq";
@@ -52,6 +52,53 @@ export const register = async (data: RegisterRequest): Promise<{ message: string
         return await mainApi.post<{ message: string; user_id: string; accessToken: string; refreshToken: string }>(REGISTER, data);
     } catch (error) {
         console.error("Error registering user:", error);
+        throw error;
+    }
+};
+
+export interface GoogleLoginResponseExisting {
+    isNew: false;
+    message: string;
+    user_id: string;
+    username: string;
+    role: string;
+    accessToken: string;
+    refreshToken: string;
+}
+
+export interface GoogleLoginResponseNew {
+    isNew: true;
+    google_id: string;
+    email: string | null;
+    suggested_name: string;
+    picture: string | null;
+}
+
+export type GoogleLoginResponse = GoogleLoginResponseExisting | GoogleLoginResponseNew;
+
+export interface GoogleRegisterRequest {
+    google_id: string;
+    user_show_name: string;
+    sex: Sex;
+    age: number;
+    birth_of_date: string;
+    interested_gender: Sex;
+}
+
+export const googleLogin = async (idToken: string): Promise<GoogleLoginResponse> => {
+    try {
+        return await mainApi.post<GoogleLoginResponse>(GOOGLE_LOGIN, { idToken });
+    } catch (error) {
+        console.error("Error with Google login:", error);
+        throw error;
+    }
+};
+
+export const googleRegister = async (data: GoogleRegisterRequest): Promise<{ message: string; user_id: string; username: string; accessToken: string; refreshToken: string }> => {
+    try {
+        return await mainApi.post<{ message: string; user_id: string; username: string; accessToken: string; refreshToken: string }>(GOOGLE_REGISTER, data);
+    } catch (error) {
+        console.error("Error with Google register:", error);
         throw error;
     }
 };
