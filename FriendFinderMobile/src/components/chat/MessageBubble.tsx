@@ -12,9 +12,10 @@ interface MessageBubbleProps {
   otherAvatarBgColor?: string;
   showAvatar?: boolean;
   onDelete?: (messageId: string) => void;
+  onEdit?: (messageId: string, currentText: string) => void;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, otherAvatar, otherInitials, otherAvatarBgColor = '#9ca3af', showAvatar = false, onDelete }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ message, otherAvatar, otherInitials, otherAvatarBgColor = '#9ca3af', showAvatar = false, onDelete, onEdit }) => {
   const [imageError, setImageError] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
 
@@ -45,16 +46,28 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, otherAvatar, oth
           )}
         </TouchableOpacity>
         {showDelete && (
-          <TouchableOpacity
-            onPress={() => {
-              onDelete?.(message.id);
-              setShowDelete(false);
-            }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            className="mt-1"
-          >
-            <Ionicons name="trash-outline" size={18} color="#ef4444" />
-          </TouchableOpacity>
+          <View className="flex-row gap-3 mt-1">
+            {!isImageMessage && (
+              <TouchableOpacity
+                onPress={() => {
+                  onEdit?.(message.id, message.text);
+                  setShowDelete(false);
+                }}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="pencil-outline" size={18} color="#6b7280" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              onPress={() => {
+                onDelete?.(message.id);
+                setShowDelete(false);
+              }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="trash-outline" size={18} color="#ef4444" />
+            </TouchableOpacity>
+          </View>
         )}
         {message.isRead && (
           <Text className="text-xs text-primary mt-0.5">อ่านแล้ว</Text>

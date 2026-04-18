@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import { addMessage, deleteMessage as deleteMessageAction, markAllMessagesRead, updateConversationLastMessage } from '../redux/chatSlice';
+import { addMessage, deleteMessage as deleteMessageAction, editMessage as editMessageAction, removeConversation, clearMessages, markAllMessagesRead, updateConversationLastMessage } from '../redux/chatSlice';
 import { setIncomingProposal, setIncomingProposalImage } from '../redux/locationProposalSlice';
 import { getLocationImages } from '../service/location_image.service';
 import type { ChatMessage } from '../service/chat_message.service';
@@ -13,7 +13,7 @@ const SOCKET_URL = 'http://192.168.1.100:3000';
 let globalSocket: Socket | null = null;
 let connectedUserId: string | null = null;
 
-export const useSocket = (chat_id: string | null) => {
+export const useSocket = (chat_id: string | null, onChatDeleted?: () => void) => {
     const dispatch = useAppDispatch();
     const socketRef = useRef<Socket | null>(null);
     const currentUserId = useAppSelector(state => state.user.user_id);
@@ -128,11 +128,29 @@ export const useSocket = (chat_id: string | null) => {
         };
         socket.on('message_deleted', handleMessageDeleted);
 
+        // ข้อความถูกแก้ไข → อัปเดตใน Redux
+        const handleMessageEdited = (data: { message_id: string; new_message: string }) => {
+            dispatch(editMessageAction({ messageId: data.message_id, newMessage: data.new_message }));
+        };
+        socket.on('message_edited', handleMessageEdited);
+
+        // ห้องแชทถูกลบ → ลบออกจาก list + ถ้าอยู่ในห้องนี้ให้ navigate ออก
+        const handleChatDeleted = (data: { chat_id: string }) => {
+            dispatch(removeConversation(data.chat_id));
+            if (data.chat_id === chat_id) {
+                dispatch(clearMessages());
+                onChatDeleted?.();
+            }
+        };
+        socket.on('chat_deleted', handleChatDeleted);
+
         return () => {
             socket.emit('leave_room', chat_id);
             socket.off('new_message', handleNewMessage);
             socket.off('messages_read', handleMessagesRead);
             socket.off('message_deleted', handleMessageDeleted);
+            socket.off('message_edited', handleMessageEdited);
+            socket.off('chat_deleted', handleChatDeleted);
         };
     }, [chat_id, currentUserId, dispatch]);
 
@@ -162,5 +180,9 @@ export const useSocket = (chat_id: string | null) => {
         socketRef.current?.emit('delete_message', { message_id, chat_id, user_id: currentUserId });
     };
 
-    return { sendMessage, deleteMessage };
+    const editMessage = (message_id: string, chat_id: string, new_message: string) => {
+        socketRef.current?.emit('edit_message', { message_id, chat_id, user_id: currentUserId, new_message });
+    };
+
+    return { sendMessage, deleteMessage, editMessage };
 };

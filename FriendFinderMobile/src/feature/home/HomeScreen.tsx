@@ -245,24 +245,32 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const handleAcceptNotification = async (notification: any) => {
     let createdMatchId: string | null = null;
     try {
+      // เช็คว่าตัวเองมี active match อยู่แล้วไหม
+      const myActiveMatch = await getActiveMatchByUser(userId).catch(() => null);
+      if (myActiveMatch?.id) {
+        setAlert({
+          visible: true,
+          type: 'warning',
+          title: 'ไม่สามารถยอมรับได้',
+          message: 'คุณมีการ match ที่ยังไม่เสร็จอยู่แล้ว',
+        });
+        await respondNotification(notification.id, 'rejected');
+        fetchNotifications();
+        return;
+      }
+
       // Check if sender still has active find_match (ยังหาคู่อยู่)
-      try {
-        await getFindMatch(notification.senderId);
-      } catch (error: any) {
-        if (error?.status === 404 || error?.message?.includes('not found')) {
-          // Sender ไม่มี find_match record → ได้จับคู่ไปแล้ว
-          setAlert({
-            visible: true,
-            type: 'warning',
-            title: 'ไม่สามารถยอมรับได้',
-            message: 'ผู้ส่งคำขอได้จับคู่กับคนอื่นแล้ว หรือยกเลิกการค้นหา',
-          });
-          await respondNotification(notification.id, 'rejected');
-          fetchNotifications();
-          return;
-        }
-        // Error อื่น ๆ ไม่ต่อ
-        throw error;
+      const senderFindMatch = await getFindMatch(notification.senderId).catch(() => null);
+      if (!senderFindMatch) {
+        setAlert({
+          visible: true,
+          type: 'warning',
+          title: 'ไม่สามารถยอมรับได้',
+          message: 'ผู้ส่งคำขอได้จับคู่กับคนอื่นแล้ว หรือยกเลิกการค้นหา',
+        });
+        await respondNotification(notification.id, 'rejected');
+        fetchNotifications();
+        return;
       }
 
       await respondNotification(notification.id, 'accepted');

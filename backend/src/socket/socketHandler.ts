@@ -154,6 +154,42 @@ export const setupSocket = (io: Server) => {
             }
         });
 
+        // แก้ไขข้อความ
+        socket.on("edit_message", async (data: { message_id: string; chat_id: string; user_id: string; new_message: string }) => {
+            try {
+                const { message_id, chat_id, user_id, new_message } = data;
+
+                const message = await prisma.chat_Message.findUnique({
+                    where: { id: message_id },
+                });
+
+                if (!message) {
+                    socket.emit("error", { message: "Message not found" });
+                    return;
+                }
+
+                if (message.sender_id !== user_id) {
+                    socket.emit("error", { message: "Unauthorized to edit this message" });
+                    return;
+                }
+
+                if (message.chatType !== "text") {
+                    socket.emit("error", { message: "Cannot edit image messages" });
+                    return;
+                }
+
+                const updated = await prisma.chat_Message.update({
+                    where: { id: message_id },
+                    data: { message: new_message },
+                });
+
+                io.to(chat_id).emit("message_edited", { message_id, chat_id, new_message: updated.message });
+            } catch (err) {
+                console.error("[Socket] edit_message error:", err);
+                socket.emit("error", { message: "Failed to edit message" });
+            }
+        });
+
         // ออกจาก room
         socket.on("leave_room", (chat_id: string) => {
             socket.leave(chat_id);

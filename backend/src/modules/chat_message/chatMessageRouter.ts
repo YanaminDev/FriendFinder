@@ -4,7 +4,6 @@ import { chatMessageRepository } from "./chatMessageRepository";
 import {
     SendMessageSchema,
     GetMessagesSchema,
-    DeleteMessageSchema
 } from "./chatMessageModel";
 import { authenticateToken } from "../../common/middleware/authenticate";
 import { uploadFile } from "../../common/utils/uploadImage";
@@ -39,22 +38,6 @@ export const chatMessageRouter = () => {
         }
         catch (err) {
             return res.status(500).json({ message: "Failed to fetch messages" });
-        }
-    });
-
-    // Delete message
-    router.delete("/delete/:message_id", authenticateToken, async (req, res) => {
-        try {
-            const message_id = String(req.params.message_id);
-            if (!message_id) {
-                return res.status(400).json({ message: "Message ID is required" });
-            }
-            const validateData = DeleteMessageSchema.parse({ message_id });
-            await chatMessageRepository.deleteMessage(validateData);
-            res.status(200).json({ message: "Message deleted successfully" });
-        }
-        catch (err) {
-            return res.status(500).json({ message: "Failed to delete message" });
         }
     });
 

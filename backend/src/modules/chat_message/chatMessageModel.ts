@@ -11,12 +11,5 @@ export const GetMessagesSchema = z.object({
   chat_id: z.string(),
 });
 
-export const DeleteMessageSchema = z.object({
-  message_id: z.string(),
-});
-
-
-
 export type SendMessage = z.infer<typeof SendMessageSchema>;
 export type GetMessages = z.infer<typeof GetMessagesSchema>;
-export type DeleteMessage = z.infer<typeof DeleteMessageSchema>;

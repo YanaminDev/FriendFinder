@@ -37,7 +37,7 @@ import {
   respondLocationProposal,
   LocationProposal,
 } from '../../service/location_proposal.service';
-import { getChatsByUser } from '../../service/chat.service';
+import { getChatsByUser, getChatById } from '../../service/chat.service';
 
 interface Props {
   navigation: any;
@@ -497,12 +497,18 @@ const MatchUpScreen: React.FC<Props> = ({ navigation, route }) => {
         rightElement={
           chatId && (
             <TouchableOpacity
-              onPress={() => {
-                navigation.navigate('ChatDetail', {
-                  conversationId: chatId,
-                  otherUsername: otherUser?.user_show_name || 'Chat',
-                  otherAvatar: otherImage,
-                });
+              onPress={async () => {
+                try {
+                  await getChatById(chatId);
+                  navigation.navigate('ChatDetail', {
+                    conversationId: chatId,
+                    otherUsername: otherUser?.user_show_name || 'Chat',
+                    otherAvatar: otherImage,
+                  });
+                } catch {
+                  setChatId(null);
+                  setAlert({ visible: true, type: 'warning', title: 'ไม่พบห้องแชท', message: 'ห้องแชทนี้ถูกลบไปแล้ว' });
+                }
               }}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >

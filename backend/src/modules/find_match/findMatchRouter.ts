@@ -22,6 +22,9 @@ export const findMatchRouter = () => {
             }
             const validateData = GetFindMatchSchema.parse({ user_id });
             const data = await findMatchRepository.getFindMatchByUserId(validateData);
+            if (!data) {
+                return res.status(404).json({ message: "Find match not found" });
+            }
             res.status(200).json(data);
         }
         catch (err) {

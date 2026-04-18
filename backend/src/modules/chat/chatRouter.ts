@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { Server } from "socket.io";
 import { prisma } from "../../../lib/prisma";
 import { chatRepository } from "./chatRepository";
 import {
@@ -9,7 +10,7 @@ import {
 } from "./chatModel";
 import { authenticateToken } from "../../common/middleware/authenticate";
 
-export const chatRouter = () => {
+export const chatRouter = (io: Server) => {
     const router = Router();
 
     // Create chat
@@ -86,6 +87,10 @@ export const chatRouter = () => {
 
             const validateData = DeleteChatSchema.parse({ chat_id });
             const deletedChat = await chatRepository.deleteChat(validateData);
+
+            // broadcast ให้ทั้ง 2 user รู้ว่าแชทถูกลบแล้ว
+            io.to(`user_${deletedChat.user1.user_id}`).emit("chat_deleted", { chat_id });
+            io.to(`user_${deletedChat.user2.user_id}`).emit("chat_deleted", { chat_id });
 
             res.status(200).json({ message: "Chat deleted successfully", chat: deletedChat });
         }

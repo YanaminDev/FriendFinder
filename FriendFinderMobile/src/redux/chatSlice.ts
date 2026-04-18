@@ -59,6 +59,15 @@ const chatSlice = createSlice({
     deleteMessage: (state, action: PayloadAction<string>) => {
       state.currentMessages = state.currentMessages.filter(m => m.id !== action.payload);
     },
+    editMessage: (state, action: PayloadAction<{ messageId: string; newMessage: string }>) => {
+      const idx = state.currentMessages.findIndex(m => m.id === action.payload.messageId);
+      if (idx !== -1) {
+        state.currentMessages[idx] = { ...state.currentMessages[idx], message: action.payload.newMessage };
+      }
+    },
+    removeConversation: (state, action: PayloadAction<string>) => {
+      state.conversations = state.conversations.filter(c => c.id !== action.payload);
+    },
     clearMessages: (state) => {
       state.currentMessages = [];
     },
@@ -122,5 +131,5 @@ const chatSlice = createSlice({
   },
 });
 
-export const { addMessage, deleteMessage, clearMessages, markAllMessagesRead, updateConversationLastMessage } = chatSlice.actions;
+export const { addMessage, deleteMessage, editMessage, removeConversation, clearMessages, markAllMessagesRead, updateConversationLastMessage } = chatSlice.actions;
 export default chatSlice.reducer;

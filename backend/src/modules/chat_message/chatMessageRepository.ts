@@ -2,13 +2,11 @@ import { prisma } from "../../../lib/prisma";
 import {
     SendMessageSchema,
     GetMessagesSchema,
-    DeleteMessageSchema
 } from "./chatMessageModel";
 import { z } from "zod";
 
 type SendMessageInput = z.infer<typeof SendMessageSchema>;
 type GetMessagesInput = z.infer<typeof GetMessagesSchema>;
-type DeleteMessageInput = z.infer<typeof DeleteMessageSchema>;
 
 export const chatMessageRepository = {
     sendMessage: async (data: SendMessageInput) => {
@@ -45,19 +43,6 @@ export const chatMessageRepository = {
                 },
                 orderBy: {
                     createdAt: 'asc'
-                }
-            });
-        }
-        catch (err) {
-            throw err;
-        }
-    },
-
-    deleteMessage: async (data: DeleteMessageInput) => {
-        try {
-            return await prisma.chat_Message.delete({
-                where: {
-                    id: data.message_id
                 }
             });
         }

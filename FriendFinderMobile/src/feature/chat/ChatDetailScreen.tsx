@@ -55,7 +55,8 @@ const ChatDetailScreen: React.FC<{
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
   const [showDeleteMessageAlert, setShowDeleteMessageAlert] = useState(false);
   const [deleteMessageError, setDeleteMessageError] = useState('');
-  const { sendMessage, deleteMessage: deleteMessageSocket } = useSocket(conversationId);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const { sendMessage, deleteMessage: deleteMessageSocket, editMessage: editMessageSocket } = useSocket(conversationId, () => navigation.goBack());
   const { maxContentWidth } = useResponsive();
 
   useEffect(() => {
@@ -68,12 +69,28 @@ const ChatDetailScreen: React.FC<{
 
   const handleSend = () => {
     if (!text.trim()) return;
+    if (editingMessageId) {
+      editMessageSocket(editingMessageId, conversationId, text.trim());
+      setEditingMessageId(null);
+      setText('');
+      return;
+    }
     sendMessage({
       chat_id: conversationId,
       message: text.trim(),
       sender_id: currentUserId,
       chatType: 'text',
     });
+    setText('');
+  };
+
+  const handleEditMessage = (messageId: string, currentText: string) => {
+    setEditingMessageId(messageId);
+    setText(currentText);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessageId(null);
     setText('');
   };
 
@@ -203,6 +220,11 @@ const ChatDetailScreen: React.FC<{
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#ec4899" />
           </View>
+        ) : currentMessages.length === 0 ? (
+          <View className="flex-1 items-center justify-center">
+            <Ionicons name="chatbubbles-outline" size={48} color={colors.gray300} style={{ marginBottom: 12 }} />
+            <Text className="text-base text-gray-500">เริ่มการสนทนาได้เลย</Text>
+          </View>
         ) : (
           <FlatList
             data={[...currentMessages].reverse()}
@@ -227,17 +249,25 @@ const ChatDetailScreen: React.FC<{
                 otherAvatarBgColor={otherAvatarBgColor}
                 showAvatar
                 onDelete={handleDeleteMessage}
+                onEdit={handleEditMessage}
               />
             )}
             contentContainerStyle={{ paddingVertical: 12 }}
             showsVerticalScrollIndicator={false}
-            ListEmptyComponent={
-              <View className="items-center justify-center py-20" style={{ transform: [{ scaleY: -1 }] }}>
-                <Ionicons name="chatbubbles-outline" size={48} color={colors.gray300} style={{ marginBottom: 12 }} />
-                <Text className="text-base text-gray-500">เริ่มการสนทนาได้เลย</Text>
-              </View>
-            }
           />
+        )}
+
+        {/* Edit banner */}
+        {editingMessageId && (
+          <View className="flex-row items-center justify-between px-4 py-2 bg-blue-50 border-t border-blue-100">
+            <View className="flex-row items-center gap-2">
+              <Ionicons name="pencil-outline" size={16} color="#3b82f6" />
+              <Text className="text-sm text-blue-600">กำลังแก้ไขข้อความ</Text>
+            </View>
+            <TouchableOpacity onPress={handleCancelEdit} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Ionicons name="close-outline" size={20} color="#6b7280" />
+            </TouchableOpacity>
+          </View>
         )}
 
         {/* Input */}
