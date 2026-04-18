@@ -3,7 +3,7 @@
     "name": "FriendFinder",
     "slug": "friendfinder",
     "version": "1.0.0",
-    "icon": "./src/image/logo/logo.png",
+    "icon": "./src/image/logo/logowithnoname.png",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "android": {

@@ -53,6 +53,8 @@ function AuthGuard() {
 
     if (!isAuthenticated && isProtected) {
       router.replace('/page/splash');
+    } else if (isAuthenticated && isPublicPage) {
+      router.replace('/(tabs)/home');
     }
   }, [isAuthenticated, segments, isCheckingAuth]);
 

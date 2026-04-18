@@ -80,6 +80,11 @@ export const useSocket = (chat_id: string | null, onChatDeleted?: () => void) =>
                 }));
             });
 
+            // ห้องแชทถูกลบ → ลบออกจาก conversation list ทันที (ทุกหน้า)
+            globalSocket.on('chat_deleted', (data: { chat_id: string }) => {
+                dispatch(removeConversation(data.chat_id));
+            });
+
             // รับ location proposal real-time
             globalSocket.on('location_proposal_received', async (proposal: LocationProposal) => {
                 dispatch(setIncomingProposal(proposal));
