@@ -99,7 +99,7 @@ export const positionRepository = {
     getAllPositions: async (includeHidden: boolean = false) => {
         try {
             return await prisma.position.findMany({
-                where: includeHidden ? {} : { OR: [{ isHidden: false }, { isHidden: null }] }
+                where: includeHidden ? {} : { isHidden: { not: true } }
             });
         }
         catch (err) {
@@ -111,7 +111,7 @@ export const positionRepository = {
         try {
             return await prisma.position.findMany({
                 where: {
-                    OR: [{ isHidden: false }, { isHidden: null }],
+                    isHidden: { not: true },
                     latitude: {
                         gte: data.user_latitude - data.radius,
                         lte: data.user_latitude + data.radius
