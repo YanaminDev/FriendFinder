@@ -51,6 +51,7 @@ export interface PositionResponse {
   open_time?: string;
   close_time?: string;
   image?: string;
+  isHidden?: boolean;
   latitude: number;
   longitude: number;
   location?: LocationResponse[];

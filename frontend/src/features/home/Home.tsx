@@ -21,6 +21,7 @@ interface Position {
   open_time?: string
   close_time?: string
   image?: string
+  isHidden?: boolean
   latitude: number
   longitude: number
 }
@@ -203,6 +204,28 @@ export default function Home() {
     setIsEditPositionOpen(true)
   }
 
+  const handleToggleHide = (positionId: string, isCurrentlyHidden: boolean) => {
+    const action = isCurrentlyHidden ? 'แสดง' : 'ซ่อน'
+    openConfirm(
+      `${action}ตำแหน่ง`,
+      `คุณต้องการ${action}ตำแหน่งนี้ใช่หรือไม่?`,
+      `ยืนยัน${action}`,
+      async () => {
+        try {
+          const updated = isCurrentlyHidden
+            ? await positionService.unhide(positionId)
+            : await positionService.hide(positionId)
+          setPositions(prev => prev.map(p => p.id === positionId ? { ...p, isHidden: updated.isHidden } : p))
+          setSelectedPosition(prev => prev && prev.id === positionId ? { ...prev, isHidden: updated.isHidden } : prev)
+        } catch (err) {
+          console.error(`Failed to ${action} position:`, err)
+        }
+        closeConfirm()
+      },
+      'primary'
+    )
+  }
+
   // ========== Place (Location) handlers ==========
 
   const handleOpenPlaceForm = () => {
@@ -338,6 +361,9 @@ export default function Home() {
         isOpen={isPositionListPanelOpen}
         onClose={() => setIsPositionListPanelOpen(false)}
         onSelectPosition={handleSelectPositionFromPanel}
+        onPositionVisibilityChange={(positionId, isHidden) => {
+          setPositions(prev => prev.map(p => p.id === positionId ? { ...p, isHidden } : p))
+        }}
       />
 
       <div className="flex-1 pt-16 relative">
@@ -373,6 +399,7 @@ export default function Home() {
         onEditLocation={handleEditLocation}
         onEditPosition={handleEditPosition}
         onDelete={handleDeletePosition}
+        onToggleHide={handleToggleHide}
       />
 
       {/* Place List Modal */}

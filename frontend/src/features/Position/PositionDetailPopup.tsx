@@ -1,5 +1,5 @@
 import React from 'react';
-import { IoClose, IoLocationOutline, IoCallOutline, IoTimeOutline } from 'react-icons/io5';
+import { IoClose, IoLocationOutline, IoCallOutline, IoTimeOutline, IoEyeOffOutline, IoEyeOutline } from 'react-icons/io5';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import ImageCarousel from '../../components/ImageCarousel';
@@ -13,6 +13,7 @@ interface PositionData {
   open_time?: string;
   close_time?: string;
   image?: string;
+  isHidden?: boolean;
   latitude: number;
   longitude: number;
 }
@@ -24,6 +25,7 @@ interface PositionDetailPopupProps {
   onEditLocation: (position: PositionData) => void;
   onEditPosition: (position: PositionData) => void;
   onDelete: (positionId: string) => void;
+  onToggleHide: (positionId: string, isHidden: boolean) => void;
 }
 
 const PositionDetailPopup: React.FC<PositionDetailPopupProps> = ({
@@ -33,6 +35,7 @@ const PositionDetailPopup: React.FC<PositionDetailPopupProps> = ({
   onEditLocation,
   onEditPosition,
   onDelete,
+  onToggleHide,
 }) => {
   if (!isOpen || !position) return null;
 
@@ -41,7 +44,14 @@ const PositionDetailPopup: React.FC<PositionDetailPopupProps> = ({
       <Card className="w-full max-w-lg p-0 overflow-hidden animate-slide-up">
         {/* Header with close */}
         <div className="flex justify-between items-start p-5 pb-0">
-          <h2 className="text-xl font-bold text-gray-800">{position.name}</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-bold text-gray-800">{position.name}</h2>
+            {position.isHidden && (
+              <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">
+                ซ่อนอยู่
+              </span>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="flex items-center justify-center text-gray-400 hover:text-gray-700 transition"
@@ -113,6 +123,21 @@ const PositionDetailPopup: React.FC<PositionDetailPopupProps> = ({
             onClick={() => onEditPosition(position)}
           >
             EDIT POSITION
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            fullWidth
+            className={position.isHidden
+              ? '!text-green-600 !border-green-300 hover:!bg-green-50'
+              : '!text-yellow-600 !border-yellow-300 hover:!bg-yellow-50'}
+            onClick={() => onToggleHide(position.id, !!position.isHidden)}
+          >
+            {position.isHidden ? (
+              <span className="flex items-center justify-center gap-1"><IoEyeOutline className="h-4 w-4" /> UNHIDE</span>
+            ) : (
+              <span className="flex items-center justify-center gap-1"><IoEyeOffOutline className="h-4 w-4" /> HIDE</span>
+            )}
           </Button>
           <Button
             variant="outline"

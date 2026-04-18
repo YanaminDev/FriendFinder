@@ -18,6 +18,7 @@ export interface Location {
   open_time?: string;
   close_time?: string;
   image?: string;
+  isHidden?: boolean;
   latitude: number;
   longitude: number;
 }
@@ -131,7 +132,10 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
 
-    locations.forEach(location => {
+    // Filter out hidden locations
+    const visibleLocations = locations.filter(loc => !loc.isHidden);
+
+    visibleLocations.forEach(location => {
       const el = document.createElement('div');
       el.style.width = '40px';
       el.style.height = '40px';

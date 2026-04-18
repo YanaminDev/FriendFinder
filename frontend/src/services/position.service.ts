@@ -7,6 +7,8 @@ import {
   POSITION_DELETE,
   POSITION_SEARCH_NEARBY,
   POSITION_UPLOAD_IMAGES,
+  POSITION_HIDE,
+  POSITION_UNHIDE,
 } from '../apis/endpoint.api';
 import type {
   CreatePositionRequest,
@@ -93,6 +95,26 @@ export const positionService = {
       return response.data;
     } catch (error: any) {
       const message = error.response?.data?.message || 'Failed to upload images';
+      throw new Error(message);
+    }
+  },
+
+  async hide(id: string): Promise<PositionResponse> {
+    try {
+      const response = await axiosInstance.patch<PositionResponse>(POSITION_HIDE(id));
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to hide position';
+      throw new Error(message);
+    }
+  },
+
+  async unhide(id: string): Promise<PositionResponse> {
+    try {
+      const response = await axiosInstance.patch<PositionResponse>(POSITION_UNHIDE(id));
+      return response.data;
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to unhide position';
       throw new Error(message);
     }
   },
