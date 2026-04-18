@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, Text, TextInput, Image, TouchableOpacity, ScrollView, Modal, FlatList, ActivityIndicator, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import Button from '../../components/common/Button';
@@ -147,6 +147,7 @@ const INTERESTED_GENDER_OPTIONS: SelectOption[] = [
 
 const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { maxContentWidth } = useResponsive();
+  const insets = useSafeAreaInsets();
   const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
   // ─── Profile state ────────────────────────────────────────────────
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -635,6 +636,7 @@ const EditProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   </TouchableOpacity>
                 )}
                 style={{ maxHeight: 300 }}
+                contentContainerStyle={{ paddingBottom: insets.bottom }}
               />
             </View>
           </TouchableOpacity>
