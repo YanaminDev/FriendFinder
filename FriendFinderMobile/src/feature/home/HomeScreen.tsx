@@ -99,6 +99,9 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     matchAcceptedHandled.current = false; // Reset flag when home screen mounts
     fetchPositions();
     fetchActiveMatch();
+
+    const positionInterval = setInterval(fetchPositions, 60000);
+    return () => clearInterval(positionInterval);
   }, [isAuthenticated, userId]);
 
   // ดึง notifications จริง
