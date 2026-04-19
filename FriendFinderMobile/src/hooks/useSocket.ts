@@ -8,7 +8,7 @@ import { getLocationImages } from '../service/location_image.service';
 import type { ChatMessage } from '../service/chat_message.service';
 import { LocationProposal } from '../service/location_proposal.service';
 
-const SOCKET_URL = __DEV__ ? 'http://192.168.1.100:3000' : 'https://api.friendsfinders.uk';
+const SOCKET_URL = __DEV__ ? 'http://192.168.1.166:3000' : 'https://api.friendsfinders.uk';
 
 // Global socket instance
 let globalSocket: Socket | null = null;
@@ -22,8 +22,9 @@ export const useSocket = (chat_id: string | null, onChatDeleted?: () => void) =>
     const currentMessages = useAppSelector(state => state.chat.currentMessages);
 
     useEffect(() => {
-        // ถ้า user เปลี่ยน (logout/login คนใหม่) ให้ disconnect socket เก่า
-        if (globalSocket && connectedUserId && connectedUserId !== currentUserId) {
+        // ถ้า user เปลี่ยน หรือ token เปลี่ยน ให้ disconnect socket เก่า
+        const tokenChanged = globalSocket && (globalSocket.auth as any)?.token !== accessToken;
+        if (globalSocket && connectedUserId && (connectedUserId !== currentUserId || tokenChanged)) {
             globalSocket.disconnect();
             globalSocket = null;
             connectedUserId = null;
@@ -38,7 +39,7 @@ export const useSocket = (chat_id: string | null, onChatDeleted?: () => void) =>
                 reconnection: true,
                 reconnectionDelay: 1000,
                 reconnectionDelayMax: 5000,
-                reconnectionAttempts: 5,
+                reconnectionAttempts: Infinity,
                 auth: { token: accessToken },
             });
 
@@ -119,14 +120,14 @@ export const useSocket = (chat_id: string | null, onChatDeleted?: () => void) =>
         const socket = socketRef.current;
 
         // ถ้า socket connected อยู่แล้ว join room ทันที
+        const handleJoinOnConnect = () => {
+            socket.emit('join_room', chat_id);
+        };
         if (socket.connected) {
             socket.emit('join_room', chat_id);
-            // Emit mark_read จาก useAppSelector currentMessages ที่ fetch มา
         } else {
             // ถ้ายังไม่ connected รอ connect event
-            socket.once('connect', () => {
-                socket.emit('join_room', chat_id);
-            });
+            socket.once('connect', handleJoinOnConnect);
         }
 
         // รับข้อความใหม่ real-time
@@ -169,6 +170,7 @@ export const useSocket = (chat_id: string | null, onChatDeleted?: () => void) =>
         socket.on('chat_deleted', handleChatDeleted);
 
         return () => {
+            socket.off('connect', handleJoinOnConnect);
             socket.emit('leave_room', chat_id);
             socket.off('new_message', handleNewMessage);
             socket.off('messages_read', handleMessagesRead);
@@ -176,7 +178,7 @@ export const useSocket = (chat_id: string | null, onChatDeleted?: () => void) =>
             socket.off('message_edited', handleMessageEdited);
             socket.off('chat_deleted', handleChatDeleted);
         };
-    }, [chat_id, currentUserId, dispatch]);
+    }, [chat_id, currentUserId, accessToken, dispatch]);
 
     // Emit mark_read เมื่อมี unread messages จากอีกฝั่ง
     useEffect(() => {
@@ -196,15 +198,22 @@ export const useSocket = (chat_id: string | null, onChatDeleted?: () => void) =>
         message: string;
         chatType?: string;
     }) => {
-        socketRef.current?.emit('send_message', data);
+        if (!socketRef.current?.connected) {
+            console.warn('[Socket] sendMessage failed: socket not connected');
+            return false;
+        }
+        socketRef.current.emit('send_message', data);
+        return true;
     };
 
     const deleteMessage = (message_id: string, chat_id: string) => {
-        socketRef.current?.emit('delete_message', { message_id, chat_id });
+        if (!socketRef.current?.connected) return;
+        socketRef.current.emit('delete_message', { message_id, chat_id });
     };
 
     const editMessage = (message_id: string, chat_id: string, new_message: string) => {
-        socketRef.current?.emit('edit_message', { message_id, chat_id, new_message });
+        if (!socketRef.current?.connected) return;
+        socketRef.current.emit('edit_message', { message_id, chat_id, new_message });
     };
 
     return { sendMessage, deleteMessage, editMessage };

@@ -75,11 +75,15 @@ const ChatDetailScreen: React.FC<{
       setText('');
       return;
     }
-    sendMessage({
+    const sent = sendMessage({
       chat_id: conversationId,
       message: text.trim(),
       chatType: 'text',
     });
+    if (sent === false) {
+      Alert.alert('ไม่สามารถส่งได้', 'การเชื่อมต่อขาด กรุณารอสักครู่แล้วลองใหม่');
+      return;
+    }
     setText('');
   };
 

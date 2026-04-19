@@ -48,7 +48,6 @@ export const getFindMatch = async (user_id: string): Promise<FindMatch> => {
         const endpoint = GET_FIND_MATCH.replace(":user_id", user_id);
         return await mainApi.get<FindMatch>(endpoint);
     } catch (error) {
-        console.error("Error getting find match:", error);
         throw error;
     }
 };
