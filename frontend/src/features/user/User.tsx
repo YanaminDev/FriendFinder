@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react"
-import BottomNav from "../../components/BottomNav"
-import TopBar from "../../components/TopBar"
-import SearchBar from "../../components/SearchBar"
+import BottomNav from "../../components/Layout/BottomNav"
+import TopBar from "../../components/Layout/TopBar"
+import SearchBar from "../../components/UI Components (Reusable)/SearchBar"
 import UserList from "./components/UserList"
-import ConfirmDialog from "../../components/ConfirmDialog"
+import ConfirmDialog from "../../components/Logic Components/ConfirmDialog"
 import { adminService, userInformationService } from "../../services"
 import { IoPersonOutline, IoShieldCheckmarkOutline, IoBanOutline, IoPeopleOutline } from "react-icons/io5"
 

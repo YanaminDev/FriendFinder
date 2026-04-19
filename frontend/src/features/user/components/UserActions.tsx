@@ -1,4 +1,4 @@
-import Button from "../../../components/Button"
+import Button from "../../../components/UI Components (Reusable)/Button"
 
 interface UserActionsProps {
   userId: string

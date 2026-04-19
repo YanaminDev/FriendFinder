@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import BottomNav from "../../components/BottomNav"
-import TopBar from "../../components/TopBar"
-import CategoryCard from '../../components/CategoryCard'
+import BottomNav from "../../components/Layout/BottomNav"
+import TopBar from "../../components/Layout/TopBar"
+import CategoryCard from '../../components/Logic Components/CategoryCard'
 import { lookupService, type LookupItem } from '../../services/lookup.service'
 import { activityService, type ActivityItem } from '../../services/activity.service'
 

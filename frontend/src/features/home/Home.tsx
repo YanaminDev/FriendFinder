@@ -1,15 +1,17 @@
-import BottomNav from "../../components/BottomNav"
-import TopBar from "../../components/TopBar"
+import BottomNav from "../../components/Layout/BottomNav"
+import TopBar from "../../components/Layout/TopBar"
 import LocationPicker, { type SelectedLocation } from "../map/PositionPicker"
+
 import AddPositionModal from "../Position/AddPositionModal"
 import EditPositionModal from "../Position/EditPositionModal"
 import PositionDetailPopup from "../Position/PositionDetailPopup"
 import PositionListPanel from "../Position/PositionListPanel"
+
 import PlaceListModal from "../location/PlaceListModal"
 import PlaceFormModal from "../location/PlaceFormModal"
 import { useState, useEffect } from "react"
 import { positionService, locationService } from "../../services"
-import ConfirmDialog from "../../components/ConfirmDialog"
+import ConfirmDialog from "../../components/Logic Components/ConfirmDialog"
 import type { LocationResponse } from "../../types/responses"
 
 interface Position {
@@ -42,7 +44,7 @@ export default function Home() {
   const [editingPlace, setEditingPlace] = useState<LocationResponse | null>(null)
   const [placeListKey, setPlaceListKey] = useState(0)
 
-  // Confirm dialog state
+  // เก็บ config popup ยืนยัน (title, message, callback)
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean
     title: string

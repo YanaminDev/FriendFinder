@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import Input from "../../components/Input";
-import Button from "../../components/Button";
-import Logo from "../../components/logo";
+import Input from "../../components/UI Components (Reusable)/Input";
+import Button from "../../components/UI Components (Reusable)/Button";
+import Logo from "../../components/UI Components (Reusable)/logo";
 import Footer from "../footer/Footer";
 import { useAuth } from "../../hooks";
 

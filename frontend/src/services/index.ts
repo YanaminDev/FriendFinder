@@ -8,4 +8,3 @@ export { adminService } from './admin.service';
 export { lookupService } from './lookup.service';
 export { feedbackService } from './feedback.service';
 export { userInformationService } from './userInformation.service';
-export { userLifeStyleService } from './userLifeStyle.service';

@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Trash2, Edit2, Check, X } from 'lucide-react'
 import ConfirmDialog from './ConfirmDialog'
-import IconPicker from './IconPicker'
-import CardHeader from './CardHeader'
-import { IoniconRender } from '../utils/ionicon'
+import IconPicker from '../UI Components (Reusable)/IconPicker'
+import CardHeader from '../UI Components (Reusable)/CardHeader'
+import { IoniconRender } from '../../utils/ionicon'
 
 interface Option {
   id: string

@@ -6,7 +6,7 @@ import type {
   MatchUserReview,
 } from "../../../types/responses"
 import { IoThumbsUp, IoThumbsDown, IoPerson, IoLocation, IoTimeOutline, IoMapOutline, IoBanOutline } from "react-icons/io5"
-import CardHeader from "../../../components/CardHeader"
+import CardHeader from "../../../components/UI Components (Reusable)/CardHeader"
 
 interface Props {
   match: MatchWithReviews

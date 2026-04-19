@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import { AVAILABLE_ICONS, getIonicon } from '../utils/ionicon'
+import { AVAILABLE_ICONS, getIonicon } from '../../utils/ionicon'
 
 interface IconPickerProps {
   isOpen: boolean

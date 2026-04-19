@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { IoClose } from 'react-icons/io5';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import Card from '../../components/Card';
-import Input from '../../components/Input';
-import PhoneInput from '../../components/PhoneInput';
-import TimeInput from '../../components/TimeInput';
-import OpenDateSelect from '../../components/OpenDateSelect';
-import Button from '../../components/Button';
-import ConfirmDialog from '../../components/ConfirmDialog';
+import Card from '../../components/UI Components (Reusable)/Card';
+import Input from '../../components/UI Components (Reusable)/Input';
+import PhoneInput from '../../components/UI Components (Reusable)/PhoneInput';
+import TimeInput from '../../components/UI Components (Reusable)/TimeInput';
+import OpenDateSelect from '../../components/UI Components (Reusable)/OpenDateSelect';
+import Button from '../../components/UI Components (Reusable)/Button';
+import ConfirmDialog from '../../components/Logic Components/ConfirmDialog';
 import { mapService } from '../../services';
 
 interface PositionFormData {
