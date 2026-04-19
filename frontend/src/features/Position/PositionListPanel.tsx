@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { IoClose, IoChevronForward, IoTimeOutline, IoCallOutline, IoLocationOutline, IoEyeOffOutline, IoEyeOutline } from 'react-icons/io5';
 import { positionService } from '../../services';
 import type { PositionResponse } from '../../types/responses';
-import Card from '../../components/Card';
+import Card from '../../components/UI Components (Reusable)/Card';
 
 interface PositionListPanelProps {
   isOpen: boolean;

@@ -1,8 +1,8 @@
 import React from 'react';
 import { IoClose, IoLocationOutline, IoCallOutline, IoTimeOutline, IoEyeOffOutline, IoEyeOutline } from 'react-icons/io5';
-import Card from '../../components/Card';
-import Button from '../../components/Button';
-import ImageCarousel from '../../components/ImageCarousel';
+import Card from '../../components/UI Components (Reusable)/Card';
+import Button from '../../components/UI Components (Reusable)/Button';
+import ImageCarousel from '../../components/UI Components (Reusable)/ImageCarousel';
 
 interface PositionData {
   id: string;

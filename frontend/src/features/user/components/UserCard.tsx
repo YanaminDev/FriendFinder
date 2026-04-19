@@ -1,6 +1,6 @@
 import UserInfo from "./UserInfo"
 import UserActions from "./UserActions"
-import CardHeader from "../../../components/CardHeader"
+import CardHeader from "../../../components/UI Components (Reusable)/CardHeader"
 
 interface LookupValue {
   id: string

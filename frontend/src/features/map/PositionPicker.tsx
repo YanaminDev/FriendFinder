@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import Button from '../../components/Button';
+import Button from '../../components/UI Components (Reusable)/Button';
 import { mapService } from '../../services';
 
 export interface SelectedLocation {

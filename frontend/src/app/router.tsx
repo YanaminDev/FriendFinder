@@ -5,8 +5,6 @@ import HomePage from "../pages/HomePage"
 import UserPage from "../pages/UserPage"
 import FeedbackPage from "../pages/FeedbackPage"
 import AddDataPage from "../pages/AddDataPage"
-import RegisterPage from "../pages/RegisterPage"
-import ForgotPasswordPage from "../pages/ForgotPasswordPage"
 import { AdminRoute } from "../components/common/AdminRoute"
 
 export default function Router() {
@@ -17,8 +15,6 @@ export default function Router() {
             {/* Public routes */}
             <Route path="/" element={<LoginPage /> } />
             <Route path="/login" element={<LoginPage /> } />
-            <Route path="/register" element={<RegisterPage /> } />
-            <Route path="/forgot-password" element={<ForgotPasswordPage /> } />
 
             {/* Admin-only routes */}
             <Route path="/user" element={<AdminRoute><UserPage /></AdminRoute>} />

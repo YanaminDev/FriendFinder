@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom"
 import { FiHome, FiUser, FiLogOut } from "react-icons/fi"
 import { MdFeedback } from "react-icons/md"
 import { BiData } from "react-icons/bi"
-import { useAuth } from "../hooks"
+import { useAuth } from "../../hooks"
 
 export default function BottomNav() {
   const navigate = useNavigate()

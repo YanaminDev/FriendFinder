@@ -2,15 +2,10 @@ import type { ReactNode } from "react"
 
 interface CardHeaderProps {
   children: ReactNode
-  /** 'pink' (default) or 'gray' for banned/disabled state */
   variant?: "pink" | "gray"
   className?: string
 }
 
-/**
- * Reusable card header with pink gradient background and decorative circles.
- * Drop it as the first child inside any `overflow-hidden rounded-2xl` card wrapper.
- */
 export default function CardHeader({ children, variant = "pink", className = "px-5 py-4" }: CardHeaderProps) {
   const bg =
     variant === "gray"

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { IoClose, IoCallOutline, IoTimeOutline } from 'react-icons/io5';
-import Card from '../../components/Card';
-import Button from '../../components/Button';
-import ImageCarousel from '../../components/ImageCarousel';
-import ConfirmDialog from '../../components/ConfirmDialog';
+import Card from '../../components/UI Components (Reusable)/Card';
+import Button from '../../components/UI Components (Reusable)/Button';
+import ImageCarousel from '../../components/UI Components (Reusable)/ImageCarousel';
+import ConfirmDialog from '../../components/Logic Components/ConfirmDialog';
 import { locationService } from '../../services';
 import type { LocationResponse } from '../../types/responses';
 
