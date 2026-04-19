@@ -1,4 +1,4 @@
-const BASE_URL = __DEV__ ? "http://192.168.1.100:3000" : "https://api.friendsfinders.uk";
+const BASE_URL = __DEV__ ? "http://192.168.1.166:3000" : "https://api.friendsfinders.uk";
 
 const getHeaders = () => {
     const storeModule = require('../redux/store');
@@ -71,7 +71,7 @@ async function request<T>(method: string, endpoint: string, body?: unknown, isRe
 
         if (!response.ok) {
             const error = await response.json().catch(() => ({ message: response.statusText }));
-            const apiError = new Error(error.message ?? response.statusText) as any;
+            const apiError = new Error(error.message ?? error.error ?? response.statusText) as any;
             apiError.status = response.status;
             apiError.data = error;
             throw apiError;
