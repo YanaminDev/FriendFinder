@@ -18,6 +18,7 @@ export const useSocket = (chat_id: string | null, onChatDeleted?: () => void) =>
     const dispatch = useAppDispatch();
     const socketRef = useRef<Socket | null>(null);
     const currentUserId = useAppSelector(state => state.user.user_id);
+    const accessToken = useAppSelector(state => state.auth.accessToken);
     const currentMessages = useAppSelector(state => state.chat.currentMessages);
 
     useEffect(() => {
@@ -31,13 +32,14 @@ export const useSocket = (chat_id: string | null, onChatDeleted?: () => void) =>
         let appStateSubscription: ReturnType<typeof AppState.addEventListener> | null = null;
 
         // สร้าง global socket connection ใหม่ (ถ้ายังไม่มี)
-        if (currentUserId && !globalSocket) {
+        if (currentUserId && accessToken && !globalSocket) {
             globalSocket = io(SOCKET_URL, {
                 transports: ['websocket'],
                 reconnection: true,
                 reconnectionDelay: 1000,
                 reconnectionDelayMax: 5000,
                 reconnectionAttempts: 5,
+                auth: { token: accessToken },
             });
 
             connectedUserId = currentUserId;
@@ -109,7 +111,7 @@ export const useSocket = (chat_id: string | null, onChatDeleted?: () => void) =>
         return () => {
             appStateSubscription?.remove();
         };
-    }, [currentUserId, dispatch]);
+    }, [currentUserId, accessToken, dispatch]);
 
     useEffect(() => {
         if (!chat_id || !socketRef.current) return;
@@ -132,7 +134,7 @@ export const useSocket = (chat_id: string | null, onChatDeleted?: () => void) =>
             dispatch(addMessage(message));
             // mark_read เฉพาะข้อความจากคนอื่น (ไม่ใช่ของตัวเอง)
             if (message.sender_id !== currentUserId) {
-                socket.emit('mark_read', { chat_id, user_id: currentUserId });
+                socket.emit('mark_read', { chat_id });
             }
         };
         socket.on('new_message', handleNewMessage);
@@ -192,18 +194,17 @@ export const useSocket = (chat_id: string | null, onChatDeleted?: () => void) =>
     const sendMessage = (data: {
         chat_id: string;
         message: string;
-        sender_id: string;
         chatType?: string;
     }) => {
         socketRef.current?.emit('send_message', data);
     };
 
     const deleteMessage = (message_id: string, chat_id: string) => {
-        socketRef.current?.emit('delete_message', { message_id, chat_id, user_id: currentUserId });
+        socketRef.current?.emit('delete_message', { message_id, chat_id });
     };
 
     const editMessage = (message_id: string, chat_id: string, new_message: string) => {
-        socketRef.current?.emit('edit_message', { message_id, chat_id, user_id: currentUserId, new_message });
+        socketRef.current?.emit('edit_message', { message_id, chat_id, new_message });
     };
 
     return { sendMessage, deleteMessage, editMessage };

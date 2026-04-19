@@ -1,5 +1,6 @@
 import {authorize} from '../../common/middleware/authorize'
 import { authenticateToken } from "../../common/middleware/authenticate"
+import { aiRecommendLimiter } from "../../common/middleware/rateLimiter"
 import { Router } from "express";
 import { locationRepository } from './locationRepository'
 import {CreateLocationSchema , GetLocationByIdSchema , DeleteLocationSchema , UpdateLocationSchema} from './locationModel'
@@ -52,7 +53,7 @@ export const locationRouter = () => {
         }
     })
 
-    router.get("/get-ai-recommend/:position_id" , authenticateToken , async (req, res) => {
+    router.get("/get-ai-recommend/:position_id" , authenticateToken , aiRecommendLimiter , async (req, res) => {
         try{
             const position_id = String(req.params.position_id);
             const user_id1 = String(req.query.user_id1 || '');

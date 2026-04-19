@@ -32,12 +32,12 @@ export function generateAccessToken(user: userpayload): string {
     return jwt.sign(payload, JWT_ACCESS_SECRET, { expiresIn: '15m' })
 }
 
-export function generateRefreshToken(user: userIdpayload): string {
+export function generateRefreshToken(user: userIdpayload, role?: string): string {
     const payload = {
         sub : user.user_id
     }
-
-    return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: '30d' })
+    const expiresIn = role === 'admin' ? '1d' : '30d'
+    return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn })
 }
 
 

@@ -78,7 +78,6 @@ const ChatDetailScreen: React.FC<{
     sendMessage({
       chat_id: conversationId,
       message: text.trim(),
-      sender_id: currentUserId,
       chatType: 'text',
     });
     setText('');
@@ -145,7 +144,6 @@ const ChatDetailScreen: React.FC<{
       sendMessage({
         chat_id: conversationId,
         message: imageUrl,
-        sender_id: currentUserId,
         chatType: 'image',
       });
     } catch {

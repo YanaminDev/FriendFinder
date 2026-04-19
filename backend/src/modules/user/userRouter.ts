@@ -86,7 +86,7 @@ export const userRouter = () => {
                 await userRepository.setUserOnline(responsedata.user_id, true);
 
                 const accessToken = generateAccessToken({user_id: responsedata.user_id, username: responsedata.username, role: responsedata.role});
-                const refreshToken = generateRefreshToken({user_id: responsedata.user_id});
+                const refreshToken = generateRefreshToken({user_id: responsedata.user_id}, responsedata.role);
 
                 res.cookie('accessToken',accessToken , {
                     httpOnly : true,

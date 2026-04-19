@@ -40,12 +40,15 @@ Reviews: 👍 ${positiveCount} / 👎 ${negativeCount}${reviewTexts ? `\nReview 
     })
     .join("\n\n");
 
+  const safeBio1 = (user1Bio || "ไม่มีข้อมูล").slice(0, 300).replace(/[`"\\]/g, "");
+  const safeBio2 = (user2Bio || "ไม่มีข้อมูล").slice(0, 300).replace(/[`"\\]/g, "");
+
   const userMessage = `
 You are helping match two people find the best meeting location for their shared activity.
 
 Shared activity: ${activityName || "Unknown"}
-User 1 bio: ${user1Bio || "ไม่มีข้อมูล"}
-User 2 bio: ${user2Bio || "ไม่มีข้อมูล"}
+User 1 bio: ${safeBio1}
+User 2 bio: ${safeBio2}
 
 Available locations (all matching the activity):
 ${locationSummary}

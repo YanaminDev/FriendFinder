@@ -19,7 +19,7 @@ export const UserSignupSchema = z.object({
 
 export const UserLoginSchema = z.object({
     username: z.string(),
-    password: passwordSchema
+    password: z.string()
 })
 
 export const ChangePasswordSchema = z.object({

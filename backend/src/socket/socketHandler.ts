@@ -1,13 +1,31 @@
 import { Server, Socket } from "socket.io";
 import { prisma } from "../../lib/prisma";
+import { verifyToken } from "../common/utils/jwt";
 
 // เก็บ mapping ของ socket.id → user_id
 const userSockets: Map<string, string> = new Map();
 
 export const setupSocket = (io: Server) => {
+    // verify JWT ตอน handshake ก่อน connection
+    io.use((socket, next) => {
+        const token = socket.handshake.auth?.token;
+        if (!token) {
+            return next(new Error("Authentication required"));
+        }
+        try {
+            const decoded = verifyToken(token) as any;
+            socket.data.user_id = decoded.sub;
+            next();
+        } catch {
+            next(new Error("Invalid token"));
+        }
+    });
+
     io.on("connection", (socket: Socket) => {
+        const user_id: string = socket.data.user_id;
+
         // ตั้งค่า online status เมื่อ user เข้ามา
-        socket.on("user_online", async (user_id: string) => {
+        socket.on("user_online", async () => {
             try {
                 userSockets.set(socket.id, user_id);
                 // join personal room เพื่อรับ conversation_updated
@@ -23,7 +41,7 @@ export const setupSocket = (io: Server) => {
         });
 
         // ตั้งค่า offline status เมื่อ app ไปอยู่ background
-        socket.on("user_offline", async (user_id: string) => {
+        socket.on("user_offline", async () => {
             try {
                 await prisma.user.update({
                     where: { user_id },
@@ -46,11 +64,11 @@ export const setupSocket = (io: Server) => {
             async (data: {
                 chat_id: string;
                 message: string;
-                sender_id: string;
                 chatType?: string;
             }) => {
                 try {
-                    const { chat_id, message, sender_id, chatType = "text" } = data;
+                    const { chat_id, message, chatType = "text" } = data;
+                    const sender_id = user_id;
 
                     // ✅ เช็ค chat มี user นี้ไหม
                     const chat = await prisma.chat.findUnique({
@@ -115,14 +133,14 @@ export const setupSocket = (io: Server) => {
         );
 
         // อ่านข้อความแล้ว → mark isRead ของข้อความจากอีกฝั่ง + แจ้ง room
-        socket.on("mark_read", async (data: { chat_id: string; user_id: string }) => {
+        socket.on("mark_read", async (data: { chat_id: string }) => {
             try {
-                const { chat_id, user_id } = data;
+                const { chat_id } = data;
                 const result = await prisma.chat_Message.updateMany({
                     where: {
                         chat_id,
                         isRead: false,
-                        sender_id: { not: user_id }  // Mark only messages from the other user
+                        sender_id: { not: user_id }
                     },
                     data: { isRead: true, status: "read" },
                 });
@@ -135,9 +153,9 @@ export const setupSocket = (io: Server) => {
         });
 
         // ลบข้อความ
-        socket.on("delete_message", async (data: { message_id: string; chat_id: string; user_id: string }) => {
+        socket.on("delete_message", async (data: { message_id: string; chat_id: string }) => {
             try {
-                const { message_id, chat_id, user_id } = data;
+                const { message_id, chat_id } = data;
 
                 // ตรวจสอบว่าข้อความนี้เป็นของ user ที่ลบ
                 const message = await prisma.chat_Message.findUnique({
@@ -168,9 +186,9 @@ export const setupSocket = (io: Server) => {
         });
 
         // แก้ไขข้อความ
-        socket.on("edit_message", async (data: { message_id: string; chat_id: string; user_id: string; new_message: string }) => {
+        socket.on("edit_message", async (data: { message_id: string; chat_id: string; new_message: string }) => {
             try {
-                const { message_id, chat_id, user_id, new_message } = data;
+                const { message_id, chat_id, new_message } = data;
 
                 const message = await prisma.chat_Message.findUnique({
                     where: { id: message_id },
