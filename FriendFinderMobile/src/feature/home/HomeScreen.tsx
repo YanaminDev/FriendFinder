@@ -24,6 +24,7 @@ import { getPendingNotifications, respondNotification, NotificationData } from '
 import { createMatch, getActiveMatchByUser } from '../../service/match.service';
 import { getLocationProposalByMatch } from '../../service/location_proposal.service';
 import { getLocationImages } from '../../service/location_image.service';
+import { getPublicUserImages } from '../../service/user_image.service';
 import AlertModal from '../../components/common/AlertModal';
 
 
@@ -127,20 +128,29 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         }
       }
 
-      const mapped = data
-        .filter((n: NotificationData) => n.type !== 'match_accepted') // match_accepted แสดงเป็น modal ไม่ต้องเอาเข้า list
-        .map((n: NotificationData) => ({
-          id: n.id,
-          title: 'คำขอ Match!',
-          message: `${n.sender?.user_show_name || 'ผู้ใช้'} อยากเจอคุณ`,
-          timestamp: new Date(n.createdAt).toLocaleString('th-TH'),
-          icon: 'heart',
-          type: n.type,
-          hasActions: true,
-          senderId: n.sender_id,
-          positionId: n.position_id,
-          activityId: n.activity_id,
-        }));
+      const filtered = data.filter((n: NotificationData) => n.type !== 'match_accepted');
+      const mapped = await Promise.all(
+        filtered.map(async (n: NotificationData) => {
+          let senderAvatar: string | null = null;
+          try {
+            const imgs = await getPublicUserImages(n.sender_id);
+            senderAvatar = imgs?.[0]?.imageUrl || null;
+          } catch {}
+          return {
+            id: n.id,
+            title: 'คำขอ Match!',
+            message: `${n.sender?.user_show_name || 'ผู้ใช้'} อยากเจอคุณ`,
+            timestamp: new Date(n.createdAt).toLocaleString('th-TH'),
+            icon: 'heart',
+            type: n.type,
+            hasActions: true,
+            senderId: n.sender_id,
+            positionId: n.position_id,
+            activityId: n.activity_id,
+            senderAvatar,
+          };
+        })
+      );
       setNotifications(mapped);
     } catch (err: any) {
       // ถ้า Not authenticated → ทำการ logout

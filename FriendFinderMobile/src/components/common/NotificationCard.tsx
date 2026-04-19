@@ -1,7 +1,7 @@
 // ─── NotificationCard ──────────────────────────────────────────────────────────
 
 import React from 'react';
-import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../constants/theme';
 
@@ -13,6 +13,7 @@ interface Notification {
   icon: string;
   type: 'message' | 'match' | 'like' | 'system' | 'match_request';
   hasActions?: boolean;
+  senderAvatar?: string | null;
 }
 
 interface NotificationCardProps {
@@ -43,19 +44,26 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
       className="flex-row gap-3 px-4 py-3 border-b border-gray-100 active:bg-gray-50"
       onPress={() => onNotificationPress?.(item)}
     >
-      {/* Icon */}
-      <View
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: 20,
-          backgroundColor: ICON_COLOR[item.type] || colors.primary,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Ionicons name={item.icon as any} size={20} color={colors.white} />
-      </View>
+      {/* Avatar or Icon */}
+      {item.senderAvatar ? (
+        <Image
+          source={{ uri: item.senderAvatar }}
+          style={{ width: 40, height: 40, borderRadius: 20 }}
+        />
+      ) : (
+        <View
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: ICON_COLOR[item.type] || colors.primary,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Ionicons name={item.icon as any} size={20} color={colors.white} />
+        </View>
+      )}
 
       {/* Content */}
       <View className="flex-1">
