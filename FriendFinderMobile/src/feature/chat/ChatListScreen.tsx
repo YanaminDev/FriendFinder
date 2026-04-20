@@ -152,17 +152,16 @@ const ChatListScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               data={onlineFriends}
               keyExtractor={item => item.id}
               renderItem={({ item }) => (
-                <TouchableOpacity
-                  className="items-center px-2"
-                  onPress={() =>
-                    navigation.navigate('ChatDetail', {
-                      conversationId: item.id,
-                      otherUsername: item.user.name,
-                      otherAvatar: item.user.avatar,
-                    })
-                  }
-                >
-                  <View className="relative w-16 h-16 mb-2">
+                <View className="items-center px-2">
+                  <TouchableOpacity
+                    className="relative w-16 h-16 mb-2"
+                    onPress={() =>
+                      navigation.navigate('OtherProfile', {
+                        userId: item.user.id,
+                        userName: item.user.name,
+                      })
+                    }
+                  >
                     {item.user.avatar ? (
                       <Image
                         source={{ uri: item.user.avatar }}
@@ -181,11 +180,21 @@ const ChatListScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     {item.user.isOnline && (
                       <View className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-online border-2 border-white" />
                     )}
-                  </View>
-                  <Text className="text-xs text-gray-900 text-center w-16" numberOfLines={1} ellipsizeMode="tail">
-                    {item.user.name}
-                  </Text>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate('ChatDetail', {
+                        conversationId: item.id,
+                        otherUsername: item.user.name,
+                        otherAvatar: item.user.avatar,
+                      })
+                    }
+                  >
+                    <Text className="text-xs text-gray-900 text-center w-16" numberOfLines={1} ellipsizeMode="tail">
+                      {item.user.name}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ paddingHorizontal: 8 }}
@@ -217,6 +226,12 @@ const ChatListScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                       otherAvatar: item.user.avatar || null,
                       otherInitials: (item.user as any).initials,
                       otherAvatarBgColor: (item.user as any).avatarBgColor,
+                    })
+                  }
+                  onAvatarPress={() =>
+                    navigation.navigate('OtherProfile', {
+                      userId: item.user.id,
+                      userName: item.user.name,
                     })
                   }
                 />

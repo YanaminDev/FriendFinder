@@ -1,4 +1,4 @@
-const BASE_URL = __DEV__ ? "http://192.168.1.166:3000" : "https://api.friendsfinders.uk";
+const BASE_URL = __DEV__ ? "http://192.168.1.169:3000" : "https://api.friendsfinders.uk";
 
 const getHeaders = () => {
     const storeModule = require('../redux/store');

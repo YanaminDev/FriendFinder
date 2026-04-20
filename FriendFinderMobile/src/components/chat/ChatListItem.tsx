@@ -8,9 +8,10 @@ import { ChatConversation } from '../../types';
 interface ChatListItemProps {
   conversation: ChatConversation;
   onPress: () => void;
+  onAvatarPress?: () => void;
 }
 
-const ChatListItem: React.FC<ChatListItemProps> = ({ conversation, onPress }) => {
+const ChatListItem: React.FC<ChatListItemProps> = ({ conversation, onPress, onAvatarPress }) => {
   const [imageError, setImageError] = useState(false);
 
   const user = conversation.user as any;
@@ -25,7 +26,11 @@ const ChatListItem: React.FC<ChatListItemProps> = ({ conversation, onPress }) =>
       activeOpacity={0.7}
     >
       {/* Avatar */}
-      <View className="relative w-14 h-14">
+      <TouchableOpacity
+        className="relative w-14 h-14"
+        onPress={onAvatarPress ?? onPress}
+        activeOpacity={onAvatarPress ? 0.7 : 1}
+      >
         {hasValidAvatar ? (
           <Image
             source={{ uri: user.avatar }}
@@ -45,7 +50,7 @@ const ChatListItem: React.FC<ChatListItemProps> = ({ conversation, onPress }) =>
         {conversation.user.isOnline && (
           <View className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-online border-2 border-white" />
         )}
-      </View>
+      </TouchableOpacity>
 
       {/* Content */}
       <View className="flex-1 gap-0.5">

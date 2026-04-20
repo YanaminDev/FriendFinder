@@ -37,6 +37,7 @@ const ROUTE_MAP: Record<string, string> = {
   Notification: '/page/notification',
   EditProfile: '/page/edit-profile',
   ReviewExperience: '/page/review-experience',
+  OtherProfile: '/page/other-profile',
 };
 
 export function useNav() {
